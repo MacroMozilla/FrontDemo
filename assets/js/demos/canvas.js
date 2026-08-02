@@ -337,52 +337,208 @@ B.tw = async function (ctx) {
 /* ---------------------------------------------------------------- ZRender */
 B.zr = async function (ctx) {
   var T = ctx.T;
-  var zr = zrender.init(ctx.el);
-  zr.setBackgroundColor(T.stage);
+  var zr = null, bars = [], spin = 0, spinning = true;
 
-  var out = ctx.readout("hover any shape — hit testing and the animation module are both ZRender");
+  function build(renderer) {
+    if (zr) { zr.dispose(); ctx.el.innerHTML = ""; }
+    zr = zrender.init(ctx.el, { renderer: renderer });
+    zr.setBackgroundColor(T.stage);
+    bars = [];
 
-  var items = [];
-  function build() {
-    zr.clear();
-    items = [];
     var W = zr.getWidth(), H = zr.getHeight();
-    var n = 26;
-    for (var i = 0; i < n; i++) {
-      var a = (i / n) * Math.PI * 2;
-      var R = Math.min(W, H) * .32;
-      var shape = new zrender.Circle({
-        shape: { cx: W / 2 + Math.cos(a) * R, cy: H / 2 + Math.sin(a) * R, r: 6 },
-        style: { fill: ctx.series(i % 8), opacity: .9 },
+    var cx = W * 0.34, cy = H / 2;
+    var R = Math.min(W * 0.5, H) * 0.40;
+
+    /* A gradient-filled backdrop, because gradients are a renderer feature
+       rather than something the shapes bring with them. */
+    zr.add(new zrender.Rect({
+      shape: { x: 0, y: 0, width: W, height: H },
+      style: {
+        fill: new zrender.LinearGradient(0, 0, 1, 1, [
+          { offset: 0, color: T.stage },
+          { offset: 1, color: T.panel }
+        ])
+      },
+      silent: true, z: 0
+    }));
+
+    /* Radial bars, animated in with a stagger — this is exactly the shape
+       of code ECharts runs underneath every chart it draws. */
+    var N = 42;
+    for (var i = 0; i < N; i++) {
+      var a = (i / N) * Math.PI * 2 - Math.PI / 2;
+      var len = 26 + ((i * 37) % 61);
+      var sector = new zrender.Sector({
+        shape: {
+          cx: cx, cy: cy,
+          r0: R * 0.45, r: R * 0.45,
+          startAngle: a, endAngle: a + (Math.PI * 2 / N) * 0.72
+        },
+        style: { fill: ctx.series(i % 8), opacity: 0.9 },
         cursor: "pointer", z: 2
       });
-      shape.on("mouseover", function () {
-        this.animateTo({ shape: { r: 26 }, style: { opacity: 1 } }, { duration: 240, easing: "elasticOut" });
-        out("hover → <b>animateTo</b> with an elasticOut easing, driven by ZRender");
+      sector._target = R * 0.45 + len;
+      sector.on("mouseover", function () {
+        this.animateTo({ style: { opacity: 1 }, shape: { r: this._target + 22 } },
+                       { duration: 220, easing: "elasticOut" });
+        out("hit testing is the renderer's job — <b>Sector</b> hover, no DOM node involved");
       });
-      shape.on("mouseout", function () {
-        this.animateTo({ shape: { r: 6 }, style: { opacity: .9 } }, { duration: 320 });
+      sector.on("mouseout", function () {
+        this.animateTo({ style: { opacity: 0.9 }, shape: { r: this._target } }, { duration: 300 });
       });
-      zr.add(shape);
-      items.push(shape);
+      zr.add(sector);
+      bars.push(sector);
     }
-    var label = new zrender.Text({
-      style: { text: "the rendering kernel ECharts is built on", x: W / 2, y: H / 2,
-               fill: T.muted, fontFamily: T.mono, fontSize: 12, align: "center", verticalAlign: "middle" }
+
+    /* A hand-written path, to show shapes are not limited to the built-ins. */
+    var blob = new zrender.Polygon({
+      shape: { points: (function () {
+        var pts = [];
+        for (var k = 0; k < 60; k++) {
+          var t = (k / 60) * Math.PI * 2;
+          var rr = R * 0.30 + Math.sin(t * 5) * R * 0.06;
+          pts.push([cx + Math.cos(t) * rr, cy + Math.sin(t) * rr]);
+        }
+        return pts;
+      })() },
+      style: { fill: T.stage, stroke: T.line2, lineWidth: 1.4 },
+      silent: true, z: 3
     });
-    zr.add(label);
+    zr.add(blob);
+
+    zr.add(new zrender.Text({
+      style: { text: "ZRender", x: cx, y: cy - 9, fill: T.ink,
+               fontFamily: T.sans, fontSize: 17, fontWeight: 600,
+               align: "center", verticalAlign: "middle" },
+      silent: true, z: 4
+    }));
+    zr.add(new zrender.Text({
+      style: { text: renderer.toUpperCase() + " backend", x: cx, y: cy + 12, fill: T.muted,
+               fontFamily: T.mono, fontSize: 10, align: "center", verticalAlign: "middle" },
+      silent: true, z: 4
+    }));
+
+    /* Three draggable chips on the right — dragging is also the kernel's. */
+    ["drag me", "and me", "me too"].forEach(function (label, i) {
+      var g = new zrender.Group({ draggable: true, z: 5 });
+      var x = W * 0.72, y = H * 0.28 + i * 78;
+      g.add(new zrender.Rect({
+        shape: { x: x, y: y, width: 132, height: 46, r: 10 },
+        style: { fill: ctx.series((i * 3) % 8), shadowBlur: 12,
+                 shadowColor: "rgba(0,0,0,.35)", shadowOffsetY: 3 }
+      }));
+      g.add(new zrender.Text({
+        style: { text: label, x: x + 66, y: y + 23, fill: "#0b0e14",
+                 fontFamily: T.sans, fontSize: 13, fontWeight: 600,
+                 align: "center", verticalAlign: "middle" }
+      }));
+      g.on("dragstart", function () { out("drag events come from the renderer, not the DOM"); });
+      zr.add(g);
+    });
+
+    animateIn();
   }
-  build();
 
-  ctx.btn("Pulse all", function () {
-    items.forEach(function (s, i) {
-      s.animateTo({ shape: { r: 20 } }, { duration: 300, delay: i * 26, easing: "cubicOut" });
-      s.animateTo({ shape: { r: 6 } }, { duration: 400, delay: 300 + i * 26, easing: "bounceOut" });
+  function animateIn() {
+    bars.forEach(function (s, i) {
+      s.attr({ shape: { r: s.shape.r0 } });
+      s.animateTo({ shape: { r: s._target } },
+                  { duration: 620, delay: i * 14, easing: "cubicOut" });
     });
-  }, true);
+  }
 
-  ctx.onResize(function () { zr.resize(); build(); });
-  ctx.onDestroy(function () { zr.dispose(); });
+  var out = ctx.readout("hover the ring · drag the chips on the right");
+  build("canvas");
+
+  ctx.select("backend", [{ v: "canvas", t: "Canvas" }, { v: "svg", t: "SVG" }], build, "canvas");
+  ctx.btn("Replay animation", animateIn, true);
+  ctx.check("rotate", true, function (v) { spinning = v; });
+
+  ctx.raf(function (dt) {
+    if (!spinning || !zr) return;
+    spin += dt * 0.00022;
+    bars.forEach(function (s, i) {
+      var a = (i / bars.length) * Math.PI * 2 - Math.PI / 2 + spin;
+      s.attr({ shape: { startAngle: a, endAngle: a + (Math.PI * 2 / bars.length) * 0.72 } });
+    });
+  });
+
+  ctx.onResize(function () { build(zr && zr.painter && zr.painter.type === "svg" ? "svg" : "canvas"); });
+  ctx.onDestroy(function () { if (zr) zr.dispose(); });
+};
+
+/* ----------------------------------------------------------------- Two.js */
+B.tw = async function (ctx) {
+  var T = ctx.T;
+  var two = null, rings = [], orbiters = [], spin = 0, rate = 1;
+
+  function build(type) {
+    if (two) { two.pause(); two.clear(); ctx.el.innerHTML = ""; }
+    two = new Two({ type: Two.Types[type], width: ctx.el.clientWidth,
+                    height: ctx.el.clientHeight, autostart: true }).appendTo(ctx.el);
+    rings = []; orbiters = [];
+
+    var cx = two.width / 2, cy = two.height / 2;
+    var R = Math.min(two.width, two.height) * 0.40;
+
+    /* Nested polygons */
+    for (var i = 0; i < 8; i++) {
+      var poly = two.makePolygon(cx, cy, R * (0.30 + i * 0.09), 3 + i);
+      poly.noFill();
+      poly.stroke = ctx.series(i % 8);
+      poly.linewidth = 2;
+      poly.opacity = 0.85;
+      rings.push(poly);
+    }
+
+    /* Orbiting discs with trails */
+    for (var j = 0; j < 14; j++) {
+      var c = two.makeCircle(cx, cy, 5 + (j % 4) * 3);
+      c.fill = ctx.series(j % 8);
+      c.noStroke();
+      c._r = R * (0.42 + (j % 5) * 0.14);
+      c._speed = 0.4 + (j % 6) * 0.16;
+      c._phase = (j / 14) * Math.PI * 2;
+      orbiters.push(c);
+    }
+
+    var core = two.makeCircle(cx, cy, 16);
+    core.fill = T.ink;
+    core.noStroke();
+
+    var label = two.makeText(type === "Svg" ? "SVG" : type === "Canvas" ? "Canvas 2D" : "WebGL",
+                             cx, cy + R + 26);
+    label.fill = T.muted;
+    label.size = 12;
+    label.family = T.mono;
+
+    two.bind("update", function () {
+      spin += 0.006 * rate;
+      for (var i = 0; i < rings.length; i++) {
+        rings[i].rotation = spin * (i % 2 ? 1 : -1) * (1 + i * 0.14);
+      }
+      for (var j = 0; j < orbiters.length; j++) {
+        var o = orbiters[j];
+        var a = o._phase + spin * o._speed * 3;
+        o.translation.set(cx + Math.cos(a) * o._r, cy + Math.sin(a) * o._r * 0.72);
+      }
+    });
+
+    out("renderer <b>" + type + "</b> — identical scene code, different backend");
+  }
+
+  var out = ctx.readout("");
+  build("Svg");
+
+  ctx.select("renderer", [
+    { v: "Svg", t: "SVG" }, { v: "Canvas", t: "Canvas 2D" }, { v: "WebGL", t: "WebGL" }
+  ], build, "Svg");
+  ctx.range("speed", { min: 0, max: 30, value: 10,
+                       fmt: function (v) { return (v / 10).toFixed(1) + "×"; } },
+            function (v) { rate = v / 10; });
+
+  ctx.onResize(function () { if (two) two.fit(); });
+  ctx.onDestroy(function () { if (two) { two.pause(); two.clear(); } });
 };
 
 })();

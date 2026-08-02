@@ -194,7 +194,8 @@ B.d3 = async function (ctx) {
 /* ------------------------------------------------------------- Vega-Lite */
 B.vl = async function (ctx) {
   var T = ctx.T;
-  var p = ctx.panes("46%");
+  ctx.tall();
+  var p = ctx.panes("34%");
   var host = ctx.mk("div");
   host.style.cssText = "padding:12px;min-height:100%";
   p.b.appendChild(host);
@@ -213,7 +214,7 @@ B.vl = async function (ctx) {
     })() },
     vconcat: [
       {
-        width: "container", height: 170,
+        width: 430, height: 190,
         params: [{ name: "brush", select: { type: "interval", encodings: ["x"] } }],
         mark: { type: "line", strokeWidth: 1.6 },
         encoding: {
@@ -223,7 +224,7 @@ B.vl = async function (ctx) {
         }
       },
       {
-        width: "container", height: 130,
+        width: 430, height: 150,
         transform: [{ filter: { param: "brush" } }],
         mark: { type: "bar", cornerRadiusEnd: 3 },
         encoding: {

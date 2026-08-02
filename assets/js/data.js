@@ -135,7 +135,7 @@ window.LIBS = [
   con:"Vue-based, and the node UI is opinionated",
   try:"Change a number on the left. The result node recomputes immediately — that is the engine, not a mock.",
   rnNote:"Vue-based; not a React Native option.",
-  js:["vue","baklava"], site:"https://baklava.tech/" },
+  js:["vue","baklava"], css:["baklava"], site:"https://baklava.tech/" },
 
 { k:"max", n:"maxGraph", pkg:"@maxgraph/core", ver:"0.24.0", pub:"2026-07-08", lic:"Apache-2.0", kb:609, cat:"flow", st:3,
   c:"y y p n n p p y",
@@ -679,7 +679,7 @@ window.LIBS = [
   con:"Its own styling conventions, and theming takes effort",
   try:"Double-click a node to rename it, press Tab for a child and Enter for a sibling, drag a node onto another to re-parent it.",
   rnNote:"Web only; WebView on native.",
-  js:["mindelixir"], site:"https://mind-elixir.com/" },
+  js:["mindelixir"], css:["mindelixir"], site:"https://mind-elixir.com/" },
 
 { k:"jm", n:"jsMind", pkg:"jsmind", ver:"0.9.1", pub:"2025-12-15", lic:"BSD-3-Clause", kb:50, cat:"mind", st:3,
   c:"y y n n n p p y",

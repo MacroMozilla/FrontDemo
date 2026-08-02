@@ -62,18 +62,23 @@ B.gsap = async function (ctx) {
         stagger: { each: .06, from: "center" } }, "-=0.2")
     .fromTo(ball, { opacity: 0 }, { opacity: 1, duration: .2 }, "-=0.4")
     .to(ball, {
-      duration: 2.1, ease: "power1.inOut",
-      motionPath: undefined,           /* MotionPathPlugin is a separate file */
-      onUpdate: function () {
+      duration: 2.4, ease: "power1.inOut",
+      onUpdate: function () {            /* MotionPathPlugin is a separate file */
         var p = path.getPointAtLength(this.progress() * len);
         gsap.set(ball, { x: p.x - 17, y: p.y - 17 });
       }
     }, "-=0.2")
     .to(tiles, { backgroundColor: T.accent, duration: .35,
-                 stagger: { each: .04, from: "edges" } }, "-=1.5")
-    .to(tiles, { opacity: 0, scale: .4, y: -30, duration: .5, ease: "power2.in",
-                 stagger: { each: .04, from: "end" } })
-    .to([ball, caption], { opacity: 0, duration: .35 }, "-=0.4");
+                 stagger: { each: .04, from: "edges" } }, "-=1.8")
+    .to(tiles, { backgroundColor: function (i) { return ctx.series(i % 8); }, duration: .35,
+                 stagger: { each: .04, from: "start" } })
+    /* Shuffle the row rather than clearing the stage — the loop used to
+       spend most of its time on an empty panel. */
+    .to(tiles, { y: -26, duration: .3, ease: "power2.out",
+                 stagger: { each: .04, from: "random" } })
+    .to(tiles, { y: 0, duration: .5, ease: "bounce.out",
+                 stagger: { each: .04, from: "random" } }, "-=0.1")
+    .to(ball, { opacity: 0, duration: .4 }, "-=0.6");
 
   tl.play();
 
@@ -201,7 +206,7 @@ B.lottie = async function (ctx) {
 
   /* A Lottie file is just JSON. This one is assembled here so it can use
      the page palette — a real one comes out of After Effects unchanged. */
-  function shapeLayer(index, colour, radius, orbit, delay, size) {
+  function shapeLayer(index, colour, startAngle, orbit, delay, size) {
     var rgb = [parseInt(colour.slice(1, 3), 16) / 255,
                parseInt(colour.slice(3, 5), 16) / 255,
                parseInt(colour.slice(5, 7), 16) / 255, 1];
@@ -209,9 +214,11 @@ B.lottie = async function (ctx) {
       ddd: 0, ind: index, ty: 4, nm: "dot" + index, sr: 1, ao: 0, bm: 0,
       ks: {
         o: { a: 0, k: 100 },
+        /* Each dot starts a sixth of the way round, so a still frame
+           already reads as a ring rather than a single spoke. */
         r: { a: 1, k: [
-          { t: delay, s: [0], i: { x: [.4], y: [1] }, o: { x: [.6], y: [0] } },
-          { t: delay + 150, s: [360] }
+          { t: 0, s: [startAngle], i: { x: [.4], y: [1] }, o: { x: [.6], y: [0] } },
+          { t: 150, s: [startAngle + 360] }
         ] },
         p: { a: 0, k: [200, 200, 0] },
         a: { a: 0, k: [0, 0, 0] },
@@ -235,8 +242,10 @@ B.lottie = async function (ctx) {
   }
 
   var layers = [];
-  for (var i = 0; i < 6; i++) {
-    layers.push(shapeLayer(i + 1, ctx.series(i), 0, 62 + i * 9, i * 12, 46 - i * 4));
+  var RING = 8;
+  for (var i = 0; i < RING; i++) {
+    layers.push(shapeLayer(i + 1, ctx.series(i % 8), (360 / RING) * i,
+                           118 + (i % 3) * 30, (i % 4) * 14, 66 - (i % 4) * 9));
   }
   var data = { v: "5.7.4", fr: 30, ip: 0, op: 150, w: 400, h: 400, nm: "orbit", ddd: 0,
                assets: [], layers: layers };
@@ -245,7 +254,7 @@ B.lottie = async function (ctx) {
   host.style.cssText = "position:absolute;inset:0;display:flex;align-items:center;justify-content:center";
   ctx.el.appendChild(host);
   var box = ctx.mk("div");
-  box.style.cssText = "width:min(78%,420px);aspect-ratio:1";
+  box.style.cssText = "width:min(96%,540px);aspect-ratio:1";
   host.appendChild(box);
 
   var anim = lottie.loadAnimation({

@@ -99,72 +99,112 @@ B.p5 = async function (ctx) {
 B.matter = async function (ctx) {
   var T = ctx.T;
   var M = Matter;
+  ctx.tall();
+
+  /* Measure after layout, or the walls end up outside the visible area. */
   var W = ctx.el.clientWidth, H = ctx.el.clientHeight;
 
   var engine = M.Engine.create();
   var render = M.Render.create({
     element: ctx.el, engine: engine,
-    options: { width: W, height: H, wireframes: false, background: T.stage, pixelRatio: Math.min(devicePixelRatio || 1, 2) }
+    options: { width: W, height: H, wireframes: false, background: T.stage,
+               pixelRatio: Math.min(devicePixelRatio || 1, 2) }
   });
 
-  function wall(x, y, w, h) {
-    return M.Bodies.rectangle(x, y, w, h, { isStatic: true, render: { fillStyle: T.line } });
+  function wall(x, y, w, h, angle) {
+    return M.Bodies.rectangle(x, y, w, h, {
+      isStatic: true, angle: angle || 0,
+      render: { fillStyle: angle ? T.line2 : T.line }
+    });
   }
+  /* Floor, side walls, and two ramps for things to tumble down. */
   M.Composite.add(engine.world, [
-    wall(W / 2, H + 24, W * 2, 50),
-    wall(-24, H / 2, 50, H * 2),
-    wall(W + 24, H / 2, 50, H * 2),
-    M.Bodies.rectangle(W * .32, H * .58, W * .38, 16, {
-      isStatic: true, angle: .13, render: { fillStyle: T.line2 } })
+    wall(W / 2, H + 20, W * 2, 40),
+    wall(-20, H / 2, 40, H * 3),
+    wall(W + 20, H / 2, 40, H * 3),
+    wall(W * 0.30, H * 0.45, W * 0.42, 14, 0.16),
+    wall(W * 0.74, H * 0.70, W * 0.38, 14, -0.19)
   ]);
+
+  var out = ctx.readout("");
+  function count() {
+    return M.Composite.allBodies(engine.world).filter(function (b) { return !b.isStatic; }).length;
+  }
+  function report() { out("<b>" + count() + "</b> rigid bodies simulated · grab one and throw it"); }
 
   function spawn(n) {
     var bodies = [];
     for (var i = 0; i < n; i++) {
-      var x = 60 + Math.random() * (W - 120), y = -Math.random() * 400;
-      var col = ctx.series(i % 8);
-      var kind = i % 3;
-      var body = kind === 0 ? M.Bodies.circle(x, y, 12 + Math.random() * 14)
-               : kind === 1 ? M.Bodies.rectangle(x, y, 26 + Math.random() * 26, 26 + Math.random() * 26)
-               : M.Bodies.polygon(x, y, 5, 18 + Math.random() * 12);
-      body.restitution = .55;
-      body.friction = .18;
-      body.render.fillStyle = col;
+      /* Drop just above the top edge, inside the walls. */
+      var x = 40 + Math.random() * (W - 80);
+      var y = -40 - Math.random() * 260;
+      var kind = i % 4;
+      var body =
+        kind === 0 ? M.Bodies.circle(x, y, 11 + Math.random() * 15) :
+        kind === 1 ? M.Bodies.rectangle(x, y, 24 + Math.random() * 30, 24 + Math.random() * 30) :
+        kind === 2 ? M.Bodies.polygon(x, y, 5, 16 + Math.random() * 12) :
+                     M.Bodies.polygon(x, y, 3, 18 + Math.random() * 12);
+      body.restitution = 0.62;
+      body.friction = 0.15;
+      body.frictionAir = 0.006;
+      body.angle = Math.random() * Math.PI;
+      body.render.fillStyle = ctx.series(i % 8);
       body.render.strokeStyle = T.stage;
       body.render.lineWidth = 1.5;
       bodies.push(body);
     }
     M.Composite.add(engine.world, bodies);
-    out("<b>" + M.Composite.allBodies(engine.world).filter(function (b) { return !b.isStatic; }).length +
-        "</b> rigid bodies being simulated");
+    report();
   }
 
   /* The mouse constraint is why this is playable in three lines. */
   var mouse = M.Mouse.create(render.canvas);
   var mc = M.MouseConstraint.create(engine, {
     mouse: mouse,
-    constraint: { stiffness: .16, render: { strokeStyle: ctx.series(0), lineWidth: 2 } }
+    constraint: { stiffness: 0.16, render: { strokeStyle: ctx.series(0), lineWidth: 2 } }
   });
   M.Composite.add(engine.world, mc);
   render.mouse = mouse;
+  /* Let the page keep its own scrolling. */
+  mouse.element.removeEventListener("wheel", mouse.mousewheel);
 
   var runner = M.Runner.create();
   M.Runner.run(runner, engine);
   M.Render.run(render);
 
-  var out = ctx.readout("");
-  spawn(48);
+  spawn(60);
 
-  ctx.range("gravity", { min: -10, max: 20, value: 10, fmt: function (v) { return (v / 10).toFixed(1) + "g"; } },
+  ctx.range("gravity", { min: -10, max: 20, value: 10,
+                         fmt: function (v) { return (v / 10).toFixed(1) + "g"; } },
             function (v) { engine.gravity.y = v / 10; });
-  ctx.btn("Drop 25 more", function () { spawn(25); });
+  ctx.range("bounciness", { min: 0, max: 100, value: 62,
+                            fmt: function (v) { return (v / 100).toFixed(2); } },
+            function (v) {
+              M.Composite.allBodies(engine.world).forEach(function (b) {
+                if (!b.isStatic) b.restitution = v / 100;
+              });
+            });
+  ctx.btn("Drop 30 more", function () { spawn(30); }, true);
+  ctx.btn("Explode", function () {
+    M.Composite.allBodies(engine.world).forEach(function (b) {
+      if (b.isStatic) return;
+      M.Body.applyForce(b, b.position,
+        { x: (Math.random() - 0.5) * 0.22, y: -Math.random() * 0.24 });
+    });
+  });
   ctx.btn("Clear", function () {
     M.Composite.allBodies(engine.world).forEach(function (b) {
       if (!b.isStatic) M.Composite.remove(engine.world, b);
     });
-    out("<b>0</b> rigid bodies being simulated");
+    report();
   });
 
+  ctx.onResize(function () {
+    W = ctx.el.clientWidth; H = ctx.el.clientHeight;
+    render.canvas.width = W; render.canvas.height = H;
+    render.options.width = W; render.options.height = H;
+    M.Render.setPixelRatio(render, Math.min(devicePixelRatio || 1, 2));
+  });
   ctx.onDestroy(function () {
     M.Render.stop(render);
     M.Runner.stop(runner);
@@ -355,20 +395,47 @@ B.pf = async function (ctx) {
     points = null; path = null;
   });
 
-  /* Seed one stroke so the panel is never empty on arrival. */
+  /* Arrive with handwriting already on the pad, so the effect of the
+     thinning and streamline sliders is visible without drawing first. */
   (function seed() {
-    var pts = [];
-    for (var i = 0; i <= 90; i++) {
-      var t = i / 90;
-      pts.push([70 + t * (ctx.el.clientWidth - 160),
-                ctx.el.clientHeight / 2 + Math.sin(t * Math.PI * 2.4) * 70,
-                .25 + Math.abs(Math.sin(t * Math.PI * 2)) * .75]);
-    }
-    var el = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    el.setAttribute("fill", ctx.series(colour++ % 8));
-    svg.appendChild(el);
-    render(el, pts);
-    strokes.push({ pts: pts, el: el });
+    var W = ctx.el.clientWidth, H = ctx.el.clientHeight;
+    var scale = Math.min(W / 460, H / 300);
+    var ox = (W - 322 * scale) / 2, oy = H / 2 - 30 * scale;
+
+    /* Each entry is a stroke: a list of [x, y] control points that get
+       sampled into a pressure-varying path. */
+    var letters = [
+      [[10, -60], [10, 60]], [[10, 6], [46, 0], [56, 20], [56, 60]],                          /* h */
+      [[92, -6], [120, -14], [134, 6], [124, 22], [96, 26], [100, 46], [126, 52], [140, 40]], /* e */
+      [[170, -60], [170, 60]],                                                                /* l */
+      [[200, -60], [200, 60]],                                                                /* l */
+      [[248, 4], [232, 20], [238, 46], [262, 54], [282, 38], [280, 12], [258, 0], [242, 6]],  /* o */
+      /* an underline flourish, drawn as one fast stroke */
+      [[6, 96], [90, 88], [180, 100], [270, 84], [316, 96]]
+    ];
+    letters.forEach(function (ctrl, li) {
+      var pts = [];
+      /* Catmull-rom-ish resample so the strokes read as handwriting. */
+      var steps = Math.max(18, ctrl.length * 14);
+      for (var i = 0; i <= steps; i++) {
+        var t = (i / steps) * (ctrl.length - 1);
+        var i0 = Math.min(ctrl.length - 1, Math.floor(t));
+        var i1 = Math.min(ctrl.length - 1, i0 + 1);
+        var f = t - i0;
+        var x = ctrl[i0][0] + (ctrl[i1][0] - ctrl[i0][0]) * f;
+        var y = ctrl[i0][1] + (ctrl[i1][1] - ctrl[i0][1]) * f;
+        /* Fast in the middle of a stroke, slow at the ends — which is what
+           makes the width vary the way real handwriting does. */
+        var speed = Math.sin((i / steps) * Math.PI);
+        pts.push([ox + x * scale, oy + y * scale, .35 + speed * .6]);
+      }
+      var el = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      el.setAttribute("fill", li === letters.length - 1 ? ctx.series(3) : ctx.series(0));
+      svg.appendChild(el);
+      render(el, pts);
+      strokes.push({ pts: pts, el: el });
+    });
+    colour = 1;
   })();
 
   function reflow() { strokes.forEach(function (s) { render(s.el, s.pts); }); }
