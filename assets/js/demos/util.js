@@ -284,4 +284,306 @@ B.purify = async function (ctx) {
   ctx.label("DOMPurify.sanitize(dirty, config)");
 };
 
+
+/* ----------------------------------------------------------------- Ramda */
+B.ramda = async function (ctx) {
+  var T = ctx.T;
+  ctx.mount("scroll pad");
+  ctx.tall();
+
+  var host = ctx.mk("div");
+  host.innerHTML = '<p class="demo-h">A pipeline you can take apart</p>' +
+    '<p class="demo-p">Every function below is curried and takes its data last, which is why they ' +
+    "compose into one <code>R.pipe</code> with no lambdas in between. Switch stages off and watch " +
+    "the intermediate output at each step — the pipeline is data, not a method chain.</p>";
+  ctx.el.appendChild(host);
+
+  var RAW = [
+    { name: "Northwind", region: "emea", amount: 1290, tags: ["gold", "renewal"], open: true },
+    { name: "Contoso", region: "amer", amount: 640, tags: ["silver"], open: false },
+    { name: "Fabrikam", region: "emea", amount: 1808, tags: ["gold"], open: true },
+    { name: "Adventure Works", region: "apac", amount: 450, tags: ["bronze", "trial"], open: true },
+    { name: "Tailspin", region: "amer", amount: 2210, tags: ["gold", "renewal"], open: true },
+    { name: "Wingtip", region: "apac", amount: 310, tags: ["trial"], open: false },
+    { name: "Litware", region: "emea", amount: 980, tags: ["silver", "renewal"], open: true },
+    { name: "Proseware", region: "amer", amount: 1520, tags: ["gold"], open: true }
+  ];
+
+  var STAGES = [
+    { on: true, label: "R.filter(R.propEq(true, 'open'))",
+      note: "keep the open ones", fn: R.filter(R.propEq(true, "open")) },
+    { on: true, label: "R.map(R.evolve({ amount: R.multiply(1.2) }))",
+      note: "add 20% tax, leaving every other key alone",
+      fn: R.map(R.evolve({ amount: R.multiply(1.2) })) },
+    { on: true, label: "R.sortWith([R.descend(R.prop('amount'))])",
+      note: "largest first", fn: R.sortWith([R.descend(R.prop("amount"))]) },
+    { on: true, label: "R.groupBy(R.prop('region'))",
+      note: "one key per region", fn: R.groupBy(R.prop("region")) },
+    { on: true, label: "R.map(R.pluck('amount'))",
+      note: "collapse each group to its amounts", fn: R.map(R.pluck("amount")) },
+    { on: true, label: "R.map(R.sum)", note: "and total them", fn: R.map(R.sum) }
+  ];
+
+  var p = ctx.mk("div", "demo-cols");
+  ctx.el.appendChild(p);
+  var colA = ctx.mk("div", "demo-colbox"), colB = ctx.mk("div", "demo-colbox");
+  p.appendChild(colA); p.appendChild(colB);
+
+  function panel(parent, title, note) {
+    var c = ctx.mk("div");
+    c.style.cssText = "background:" + T.panel + ";border:1px solid " + T.line +
+      ";border-radius:12px;padding:14px 16px;margin-bottom:14px";
+    c.innerHTML = '<div style="font:700 9.5px ' + T.mono + ";letter-spacing:.14em;color:" + T.muted +
+      ';margin:0 0 9px">' + title + "</div>" +
+      (note ? '<p class="demo-note" style="margin:0 0 10px">' + note + "</p>" : "");
+    parent.appendChild(c);
+    return c;
+  }
+
+  var pipeCard = panel(colA, "THE PIPELINE", "Click a stage to switch it off.");
+  var pipeHost = ctx.mk("div");
+  pipeCard.appendChild(pipeHost);
+
+  var stepCard = panel(colB, "OUTPUT AFTER EACH STAGE", "");
+  var stepHost = ctx.mk("div");
+  stepCard.appendChild(stepHost);
+
+  var curryCard = panel(ctx.el, "CURRYING AND LENSES",
+    "Currying is what makes point-free composition possible; lenses are how you update nested data " +
+    "without mutating it.");
+  var curryHost = ctx.mk("div");
+  curryCard.appendChild(curryHost);
+
+  var out = ctx.readout("");
+
+  function short(v) {
+    var s = JSON.stringify(v, null, 1).replace(/\n\s*/g, " ");
+    return s.length > 260 ? s.slice(0, 260) + " …" : s;
+  }
+
+  function run() {
+    var active = STAGES.filter(function (s2) { return s2.on; });
+    var value = RAW;
+    var steps = [["input", RAW]];
+    active.forEach(function (s2) {
+      try { value = s2.fn(value); } catch (e) { value = { error: e.message }; }
+      steps.push([s2.label, value]);
+    });
+
+    pipeHost.innerHTML = STAGES.map(function (s2, i) {
+      return '<div data-i="' + i + '" style="cursor:pointer;padding:9px 11px;border-radius:8px;' +
+        "margin-bottom:7px;border:1px solid " + (s2.on ? ctx.series(i) : T.line) + ";background:" +
+        T.sunk + ";opacity:" + (s2.on ? "1" : ".45") + '">' +
+        '<code style="font-size:11.5px;color:' + (s2.on ? T.ink : T.muted) + '">' +
+        ctx.esc(s2.label) + "</code>" +
+        '<div style="font-size:11px;color:' + T.muted + ';margin-top:3px">' + s2.note + "</div></div>";
+    }).join("");
+    pipeHost.querySelectorAll("[data-i]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        STAGES[+el.dataset.i].on = !STAGES[+el.dataset.i].on;
+        run();
+      });
+    });
+
+    stepHost.innerHTML = steps.map(function (st, i) {
+      return '<div style="margin-bottom:10px">' +
+        '<div style="font:600 10px ' + T.mono + ";color:" + (i ? ctx.series(i - 1) : T.muted) +
+        ';margin-bottom:4px">' + ctx.esc(i ? "→ " + st[0] : st[0]) + "</div>" +
+        '<pre class="demo-pre" style="max-height:112px;font-size:11px">' +
+        ctx.esc(short(st[1])) + "</pre></div>";
+    }).join("");
+
+    out("<b>" + active.length + "</b> of " + STAGES.length + " stages active");
+  }
+
+  /* Currying and lenses, computed live so the numbers are real. */
+  var lensAmount = R.lensProp("amount");
+  var lensFirstTag = R.lensPath([0, "tags", 0]);
+  var discount = R.curry(function (pct, order) { return R.over(lensAmount, R.multiply(1 - pct), order); });
+  var half = discount(0.5);
+  curryHost.innerHTML = '<table class="demo-tbl" style="table-layout:fixed;width:100%">' +
+    '<colgroup><col style="width:300px"><col></colgroup><tbody>' + [
+      ["R.add(2)(3)", R.add(2)(3)],
+      ["R.map(R.add(10), [1,2,3])", short(R.map(R.add(10), [1, 2, 3]))],
+      ["const half = discount(0.5)", "a new function, waiting for an order"],
+      ["half(RAW[0]).amount", half(RAW[0]).amount],
+      ["RAW[0].amount  (unchanged)", RAW[0].amount],
+      ["R.view(lensPath([0,'tags',0]), RAW)", R.view(lensFirstTag, RAW)],
+      ["R.set(lensPath([0,'tags',0]), 'platinum', RAW)[0].tags", short(R.set(lensFirstTag, "platinum", RAW)[0].tags)],
+      ["RAW[0].tags  (still)", short(RAW[0].tags)],
+      ["R.equals({a:[1,2]}, {a:[1,2]})", String(R.equals({ a: [1, 2] }, { a: [1, 2] }))],
+      ["{a:[1,2]} === {a:[1,2]}", "false"],
+      ["R.countBy(R.prop('region'), RAW)", short(R.countBy(R.prop("region"), RAW))],
+      ["R.mean(R.pluck('amount', RAW))", R.mean(R.pluck("amount", RAW)).toFixed(1)]
+    ].map(function (r) {
+      return "<tr><td><code>" + ctx.esc(r[0]) + '</code></td><td style="font-family:' + T.mono +
+        ';font-size:11.5px;word-break:break-all">' + ctx.esc(String(r[1])) + "</td></tr>";
+    }).join("") + "</tbody></table>";
+
+  run();
+
+  ctx.btn("All stages on", function () {
+    STAGES.forEach(function (s2) { s2.on = true; }); run();
+  }, true);
+  ctx.btn("Only the filter", function () {
+    STAGES.forEach(function (s2, i) { s2.on = i === 0; }); run();
+  });
+  ctx.btn("Nothing (raw data)", function () {
+    STAGES.forEach(function (s2) { s2.on = false; }); run();
+  });
+};
+
+/* ---------------------------------------------------------- validator.js */
+B.validator = async function (ctx) {
+  var T = ctx.T;
+  ctx.mount("scroll pad");
+  ctx.tall();
+
+  var host = ctx.mk("div");
+  host.innerHTML = '<p class="demo-h">The edge cases are the whole library</p>' +
+    '<p class="demo-p">Anyone can write an email regex. The value here is the accumulated set of ' +
+    "cases it gets right — the table underneath runs each validator against inputs that usually break " +
+    "a hand-rolled one. Type in the form to check your own.</p>";
+  ctx.el.appendChild(host);
+
+  var p = ctx.mk("div", "demo-cols");
+  ctx.el.appendChild(p);
+  var colA = ctx.mk("div", "demo-colbox"), colB = ctx.mk("div", "demo-colbox");
+  p.appendChild(colA); p.appendChild(colB);
+
+  function panel(parent, title, note) {
+    var c = ctx.mk("div");
+    c.style.cssText = "background:" + T.panel + ";border:1px solid " + T.line +
+      ";border-radius:12px;padding:14px 16px;margin-bottom:14px";
+    c.innerHTML = '<div style="font:700 9.5px ' + T.mono + ";letter-spacing:.14em;color:" + T.muted +
+      ';margin:0 0 9px">' + title + "</div>" +
+      (note ? '<p class="demo-note" style="margin:0 0 10px">' + note + "</p>" : "");
+    parent.appendChild(c);
+    return c;
+  }
+
+  var formCard = panel(colA, "LIVE FORM", "Each field runs one validator on every keystroke.");
+  var FIELDS = [
+    { label: "Email", value: "ada@example.co.uk", fn: "isEmail", args: [{}] },
+    { label: "URL", value: "https://example.com/a?b=1", fn: "isURL", args: [{ require_protocol: true }] },
+    { label: "IBAN", value: "GB33BUKB20201555555555", fn: "isIBAN", args: [] },
+    { label: "Credit card", value: "4111111111111111", fn: "isCreditCard", args: [] },
+    { label: "IPv6", value: "2001:db8::8a2e:370:7334", fn: "isIP", args: [6] },
+    { label: "Strong password", value: "correct-horse-9!", fn: "isStrongPassword",
+      args: [{ minLength: 12, minSymbols: 1 }] },
+    { label: "ISO 8601 date", value: "2026-08-02T14:30:00Z", fn: "isISO8601", args: [{ strict: true }] },
+    { label: "Semver", value: "2.1.0-rc.1+build.7", fn: "isSemVer", args: [] }
+  ];
+  var out = ctx.readout("");
+  var inputs = [];
+
+  FIELDS.forEach(function (f) {
+    var row = ctx.mk("div");
+    row.style.cssText = "margin-bottom:12px";
+    var lab = ctx.mk("div");
+    lab.style.cssText = "font:600 11px " + T.mono + ";color:" + T.muted + ";margin-bottom:5px";
+    lab.innerHTML = f.label + " &nbsp;<code style='font-size:10.5px'>validator." + f.fn + "()</code>";
+    var i = ctx.mk("input");
+    i.type = "text";
+    i.value = f.value;
+    i.spellcheck = false;
+    i.style.cssText = "width:100%;background:" + T.sunk + ";border:1px solid " + T.line +
+      ";border-radius:8px;padding:9px 12px;color:" + T.ink + ";font:500 12.5px " + T.mono + ";outline:none";
+    var msg = ctx.mk("div");
+    msg.style.cssText = "font:600 11px " + T.mono + ";margin-top:5px";
+    row.appendChild(lab); row.appendChild(i); row.appendChild(msg);
+    formCard.appendChild(row);
+    inputs.push({ f: f, i: i, msg: msg });
+    i.addEventListener("input", check);
+  });
+
+  function check() {
+    var passing = 0;
+    inputs.forEach(function (rec) {
+      var ok = false;
+      try { ok = validator[rec.f.fn].apply(validator, [rec.i.value].concat(rec.f.args)); }
+      catch (e) { ok = false; }
+      if (ok) passing++;
+      rec.i.style.borderColor = rec.i.value === "" ? T.line : ok ? T.yes : T.bad;
+      rec.msg.style.color = ok ? T.yes : T.bad;
+      rec.msg.textContent = rec.i.value === "" ? "" : ok ? "valid" : "rejected";
+    });
+    out("<b>" + passing + "</b> of " + inputs.length + " fields valid");
+  }
+  check();
+
+  var edgeCard = panel(colB, "THE CASES THAT CATCH PEOPLE OUT",
+    "Expected result on the left, what validator.js actually returns on the right.");
+  var CASES = [
+    ["isEmail", '"a@b.c"', "a@b.c", true],
+    ["isEmail", '"user+tag@sub.example.co.uk"', "user+tag@sub.example.co.uk", true],
+    ["isEmail", '"user@localhost"', "user@localhost", false],
+    ["isEmail", '"a..b@example.com"', "a..b@example.com", false],
+    ["isEmail", '"\\"quoted local\\"@example.com"', '"quoted local"@example.com', true],
+    ["isURL", '"example.com"', "example.com", true],
+    ["isURL", '"http://localhost:3000"', "http://localhost:3000", false],
+    ["isURL", '"javascript:alert(1)"', "javascript:alert(1)", false],
+    ["isNumeric", '"1e3"', "1e3", false],
+    ["isNumeric", '"-0.5"', "-0.5", true],
+    ["isInt", '"007"', "007", true],
+    ["isCreditCard", '"4111 1111 1111 1111"', "4111 1111 1111 1111", true],
+    ["isCreditCard", '"4111111111111112"', "4111111111111112", false],
+    ["isUUID", '"not-a-uuid"', "not-a-uuid", false]
+  ];
+  edgeCard.insertAdjacentHTML("beforeend",
+    '<table class="demo-tbl" style="table-layout:fixed;width:100%">' +
+    '<colgroup><col style="width:96px"><col><col style="width:66px"></colgroup>' +
+    "<thead><tr><th>validator</th><th>input</th><th>result</th></tr></thead><tbody>" +
+    CASES.map(function (c) {
+      var got = false;
+      try { got = validator[c[0]](c[2]); } catch (e) { got = false; }
+      return "<tr><td><code>" + c[0] + '</code></td><td style="word-break:break-all;font-family:' +
+        T.mono + ';font-size:11px">' + ctx.esc(c[1]) + '</td><td style="color:' +
+        (got ? T.yes : T.bad) + ';font-weight:700">' + (got ? "true" : "false") + "</td></tr>";
+    }).join("") + "</tbody></table>");
+
+  var sanCard = panel(ctx.el, "SANITISERS",
+    "The other half of the library: coerce input into the shape you wanted before you validate it.");
+  var sanIn = ctx.mk("input");
+  sanIn.type = "text";
+  sanIn.value = "  Ada.Lovelace+news@GoogleMail.com  ";
+  sanIn.spellcheck = false;
+  sanIn.style.cssText = "width:100%;background:" + T.sunk + ";border:1px solid " + T.line +
+    ";border-radius:8px;padding:10px 13px;color:" + T.ink + ";font:500 13px " + T.mono +
+    ";outline:none;margin-bottom:12px";
+  sanCard.appendChild(sanIn);
+  var sanHost = ctx.mk("div");
+  sanCard.appendChild(sanHost);
+
+  function sanitise() {
+    var v = sanIn.value;
+    var rows = [
+      ["trim(v)", JSON.stringify(validator.trim(v))],
+      ["normalizeEmail(trim(v))", JSON.stringify(validator.normalizeEmail(validator.trim(v)))],
+      ["escape(v)", JSON.stringify(validator.escape(v))],
+      ["blacklist(v, '@.')", JSON.stringify(validator.blacklist(v, "@."))],
+      ["toBoolean(v)", String(validator.toBoolean(v))],
+      ["toInt(v)", String(validator.toInt(v))],
+      ["isEmail(trim(v))", String(validator.isEmail(validator.trim(v)))]
+    ];
+    sanHost.innerHTML = '<table class="demo-tbl" style="table-layout:fixed;width:100%">' +
+      '<colgroup><col style="width:230px"><col></colgroup><tbody>' + rows.map(function (r) {
+        return "<tr><td><code>" + ctx.esc(r[0]) + '</code></td><td style="font-family:' + T.mono +
+          ';font-size:11.5px;word-break:break-all">' + ctx.esc(r[1]) + "</td></tr>";
+      }).join("") + "</tbody></table>";
+  }
+  sanIn.addEventListener("input", sanitise);
+  sanitise();
+
+  ctx.btn("Break every field", function () {
+    inputs.forEach(function (rec) { rec.i.value = rec.i.value.slice(0, -2) + "??"; });
+    check();
+  });
+  ctx.btn("Reset the form", function () {
+    inputs.forEach(function (rec) { rec.i.value = rec.f.value; });
+    check();
+  }, true);
+  ctx.label("validator " + validator.version);
+};
+
 })();

@@ -30,6 +30,9 @@ jobs:
       - name: Check the site is well-formed
         run: node scripts/check.mjs
 
+      - name: Check the README tables match the registry
+        run: node scripts/readme.mjs --check
+
       # Pages can publish either from a branch or from a workflow. Deploying
       # through Actions only works in the second mode, so ask which is set
       # rather than failing at the last step.

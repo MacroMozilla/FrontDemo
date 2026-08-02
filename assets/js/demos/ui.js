@@ -369,4 +369,196 @@ B.driver = async function (ctx) {
   ctx.onDestroy(function () { try { drv.destroy(); } catch (e) {} });
 };
 
+
+/* ------------------------------------------------------------- hotkeys-js */
+B.hotkeys = async function (ctx) {
+  var T = ctx.T;
+  ctx.mount("scroll pad");
+  ctx.tall();
+
+  var host = ctx.mk("div");
+  host.innerHTML = '<p class="demo-h">Scopes are the reason this is not a switch on event.key</p>' +
+    '<p class="demo-p">Press any combination — the keyboard below lights up from ' +
+    "<code>hotkeys.getPressedKeyCodes()</code>. The same combination does different things depending " +
+    "on the active scope, which is how a real app gives the editor its own shortcuts without " +
+    "unbinding the global ones. Click into the text field to see the input filter at work.</p>";
+  ctx.el.appendChild(host);
+
+  /* ---- a small visual keyboard ---- */
+  var ROWS = [
+    ["Esc", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
+    ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+    ["A", "S", "D", "F", "G", "H", "J", "K", "L", "Enter"],
+    ["Shift", "Z", "X", "C", "V", "B", "N", "M", "/", "↑"],
+    ["Ctrl", "Alt", "Meta", "Space", "←", "↓", "→"]
+  ];
+  var CODES = {
+    Esc: 27, Enter: 13, Shift: 16, Ctrl: 17, Alt: 18, Meta: 91, Space: 32,
+    "/": 191, "←": 37, "↑": 38, "→": 39, "↓": 40
+  };
+  function codeOf(label) {
+    if (CODES[label] != null) return CODES[label];
+    return label.charCodeAt(0);
+  }
+
+  var kbCard = ctx.mk("div");
+  kbCard.style.cssText = "background:" + T.panel + ";border:1px solid " + T.line +
+    ";border-radius:12px;padding:16px;margin-bottom:14px";
+  ctx.el.appendChild(kbCard);
+  var keys = {};
+  ROWS.forEach(function (row) {
+    var r = ctx.mk("div");
+    r.style.cssText = "display:flex;gap:6px;margin-bottom:6px;justify-content:center";
+    row.forEach(function (label) {
+      var k = ctx.mk("div");
+      k.style.cssText = "flex:" + (label.length > 2 ? "0 0 74px" : "0 0 42px") +
+        ";height:38px;display:flex;align-items:center;justify-content:center;border-radius:7px;" +
+        "border:1px solid " + T.line + ";background:" + T.sunk + ";color:" + T.ink2 +
+        ";font:600 11.5px " + T.mono + ";transition:background .08s,color .08s";
+      k.textContent = label;
+      r.appendChild(k);
+      keys[codeOf(label)] = k;
+    });
+    kbCard.appendChild(r);
+  });
+
+  var p = ctx.mk("div", "demo-cols");
+  ctx.el.appendChild(p);
+  var colA = ctx.mk("div", "demo-colbox"), colB = ctx.mk("div", "demo-colbox");
+  p.appendChild(colA); p.appendChild(colB);
+
+  function panel(parent, title, note) {
+    var c = ctx.mk("div");
+    c.style.cssText = "background:" + T.panel + ";border:1px solid " + T.line +
+      ";border-radius:12px;padding:14px 16px;margin-bottom:14px";
+    c.innerHTML = '<div style="font:700 9.5px ' + T.mono + ";letter-spacing:.14em;color:" + T.muted +
+      ';margin:0 0 9px">' + title + "</div>" +
+      (note ? '<p class="demo-note" style="margin:0 0 10px">' + note + "</p>" : "");
+    parent.appendChild(c);
+    return c;
+  }
+
+  var bindCard = panel(colA, "BOUND SHORTCUTS", "The row flashes when its handler runs.");
+  var bindHost = ctx.mk("div");
+  bindCard.appendChild(bindHost);
+
+  var inputCard = panel(colA, "THE INPUT FILTER",
+    "By default hotkeys ignores keystrokes inside form fields. Toggle the filter and try " +
+    "<code>ctrl+s</code> while typing.");
+  var field = ctx.mk("input");
+  field.type = "text";
+  field.placeholder = "type here, then press ctrl+s…";
+  field.style.cssText = "width:100%;background:" + T.sunk + ";border:1px solid " + T.line +
+    ";border-radius:8px;padding:10px 13px;color:" + T.ink + ";font:500 13px " + T.sans + ";outline:none";
+  inputCard.appendChild(field);
+
+  var logCard = panel(colB, "EVENT LOG", "");
+  var logHost = ctx.mk("div");
+  logHost.style.cssText = "font:500 11.5px " + T.mono + ";line-height:1.9;color:" + T.ink2 +
+    ";background:" + T.sunk + ";border:1px solid " + T.line + ";border-radius:8px;padding:9px 12px;" +
+    "height:250px;overflow:auto";
+  logCard.appendChild(logHost);
+  function say(html, colour) {
+    var row = ctx.mk("div");
+    row.innerHTML = '<span style="color:' + T.muted + '">› </span><span style="color:' +
+      (colour || T.ink2) + '">' + html + "</span>";
+    logHost.insertBefore(row, logHost.firstChild);
+    while (logHost.children.length > 50) logHost.removeChild(logHost.lastChild);
+  }
+
+  var out = ctx.readout("press something");
+
+  /* ---- bindings, per scope ---- */
+  var BINDINGS = [
+    { keys: "ctrl+s, command+s", scope: "all", what: "Save the document" },
+    { keys: "ctrl+k, command+k", scope: "all", what: "Open the command palette" },
+    { keys: "ctrl+b, command+b", scope: "editor", what: "Bold — editor only" },
+    { keys: "ctrl+b, command+b", scope: "browse", what: "Toggle the sidebar — browse only" },
+    { keys: "shift+/", scope: "all", what: "Show help (?)" },
+    { keys: "up, down, left, right", scope: "all", what: "Move the selection" },
+    { keys: "g g", scope: "all", what: "Not a sequence — hotkeys fires on each g" },
+    { keys: "esc", scope: "all", what: "Cancel" }
+  ];
+
+  function drawBindings(active) {
+    bindHost.innerHTML = '<table class="demo-tbl"><thead><tr><th>keys</th><th>scope</th>' +
+      "<th>action</th></tr></thead><tbody>" + BINDINGS.map(function (b, i) {
+        return '<tr data-i="' + i + '" style="opacity:' +
+          (b.scope === "all" || b.scope === active ? "1" : ".4") + '">' +
+          "<td><code>" + ctx.esc(b.keys) + "</code></td><td><code>" + b.scope +
+          "</code></td><td>" + ctx.esc(b.what) + "</td></tr>";
+      }).join("") + "</tbody></table>";
+  }
+
+  var scope = "editor";
+  drawBindings(scope);
+
+  function flash(i) {
+    var row = bindHost.querySelector('[data-i="' + i + '"]');
+    if (!row) return;
+    row.style.background = T.accent;
+    ctx.after(200, function () { row.style.background = ""; });
+  }
+
+  BINDINGS.forEach(function (b, i) {
+    hotkeys(b.keys, b.scope === "all" ? { scope: "all" } : { scope: b.scope }, function (e, handler) {
+      e.preventDefault();
+      flash(i);
+      say("<b>" + ctx.esc(handler.key) + "</b> in scope <b>" + handler.scope + "</b> → " +
+        ctx.esc(b.what), T.yes);
+      out("fired <b>" + ctx.esc(handler.key) + "</b> — " + ctx.esc(b.what));
+      return false;
+    });
+  });
+  hotkeys.setScope(scope);
+  ctx.onDestroy(function () {
+    BINDINGS.forEach(function (b) { hotkeys.unbind(b.keys, b.scope === "all" ? "all" : b.scope); });
+    hotkeys.setScope("all");
+    hotkeys.filter = function (event) {
+      var t = event.target || event.srcElement;
+      var tag = t.tagName;
+      return !(t.isContentEditable || tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA");
+    };
+  });
+
+  /* Paint the keyboard from whatever is physically held down. */
+  function paint() {
+    var down = hotkeys.getPressedKeyCodes();
+    Object.keys(keys).forEach(function (code) {
+      var on = down.indexOf(+code) >= 0;
+      keys[code].style.background = on ? T.accent : T.sunk;
+      keys[code].style.color = on ? (T.dark ? "#0b0e14" : "#fff") : T.ink2;
+      keys[code].style.borderColor = on ? T.accent : T.line;
+    });
+    if (down.length) {
+      out("held: <b>" + hotkeys.getPressedKeyString().join(" + ") + "</b> — scope <b>" +
+        hotkeys.getScope() + "</b>");
+    }
+  }
+  ctx.on(document, "keydown", paint, true);
+  ctx.on(document, "keyup", function () { ctx.after(0, paint); }, true);
+  ctx.on(window, "blur", function () { ctx.after(0, paint); });
+
+  ctx.select("scope", ["editor", "browse"], function (v) {
+    scope = v;
+    hotkeys.setScope(v);
+    drawBindings(v);
+    say("setScope(<b>" + v + "</b>) — ctrl+b now means something else", T.part);
+  }, "editor");
+  ctx.check("filter form fields", true, function (v) {
+    hotkeys.filter = v
+      ? function (event) {
+          var t = event.target || event.srcElement, tag = t.tagName;
+          return !(t.isContentEditable || tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA");
+        }
+      : function () { return true; };
+    say("filter " + (v ? "on — typing in a field is ignored" : "off — shortcuts fire everywhere"),
+      T.part);
+  });
+  ctx.btn("Fire ctrl+k programmatically", function () { hotkeys.trigger("ctrl+k", "all"); }, true);
+  ctx.btn("Clear log", function () { logHost.innerHTML = ""; });
+
+  say("bound <b>" + BINDINGS.length + "</b> shortcuts — scope is <b>editor</b>", T.part);
+};
+
 })();

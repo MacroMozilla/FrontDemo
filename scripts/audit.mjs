@@ -13,7 +13,7 @@ import http from 'http';
 import { fileURLToPath } from 'url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MIME = { '.js': 'text/javascript', '.css': 'text/css', '.html': 'text/html',
+const MIME = { '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8',
                '.woff2': 'font/woff2', '.wasm': 'application/wasm' };
 
 const server = http.createServer((req, res) => {

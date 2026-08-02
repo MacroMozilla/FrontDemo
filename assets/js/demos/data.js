@@ -385,4 +385,330 @@ B.zod = async function (ctx) {
   ctx.label("schema: id uuid · email · age 13-120 · role enum · tags ≤5 · nested profile");
 };
 
+
+/* --------------------------------------------------------------- js-yaml */
+B.jsyaml = async function (ctx) {
+  var T = ctx.T;
+  ctx.tall();
+  var p = ctx.panes("50%");
+
+  var SRC = [
+    "# Anchors and aliases — the feature people forget YAML has",
+    "defaults: &defaults",
+    "  adapter: postgres",
+    "  pool: 5",
+    "  timeout: 30",
+    "",
+    "development:",
+    "  <<: *defaults",
+    "  database: app_dev",
+    "",
+    "production:",
+    "  <<: *defaults",
+    "  database: app_prod",
+    "  pool: 25",
+    "",
+    "# Scalars are typed, not just strings",
+    "typed:",
+    "  int: 42",
+    "  octal: 0o755",
+    "  float: 6.02e23",
+    "  bool: yes            # a string in YAML 1.2 — only true/false are booleans",
+    "  nothing: null",
+    "  date: 2026-08-02",
+    "  version: \"1.10\"      # quoted, so it stays a string",
+    "  unquoted: 1.10        # not quoted, so it is a float",
+    "",
+    "# Block scalars keep or fold newlines",
+    "literal: |",
+    "  line one",
+    "  line two",
+    "folded: >",
+    "  this becomes",
+    "  one long line",
+    "",
+    "list:",
+    "  - plain",
+    "  - { inline: map, works: too }",
+    "  - [1, 2, 3]",
+    "",
+    "---",
+    "# A second document in the same file",
+    "second: true"
+  ].join("\n");
+
+  var box = ctx.mk("div");
+  box.style.cssText = "padding:12px 14px";
+  box.innerHTML = '<div style="font:700 9.5px ' + T.mono + ";letter-spacing:.14em;color:" + T.muted +
+    ';margin-bottom:7px">YAML</div>' +
+    '<p class="demo-note" style="margin:0 0 8px">Edit anything. Errors below carry a line and column.</p>';
+  p.a.appendChild(box);
+  var ta = ctx.mk("textarea");
+  ta.value = SRC;
+  ta.spellcheck = false;
+  ta.rows = 40;
+  ta.style.cssText = "width:100%;resize:vertical;background:" + T.sunk +
+    ";border:1px solid " + T.line + ";border-radius:8px;padding:10px 12px;color:" + T.ink +
+    ";font:500 12px " + T.mono + ";line-height:1.65;outline:none";
+  box.appendChild(ta);
+
+  var outBox = ctx.mk("div");
+  outBox.style.cssText = "padding:14px 16px";
+  p.b.appendChild(outBox);
+
+  var out = ctx.readout("");
+  var view = "json", indent = 2, sortKeys = false, flowLevel = -1;
+
+  function run() {
+    var text = ta.value;
+    try {
+      var docs = [];
+      jsyaml.loadAll(text, function (d) { docs.push(d); });
+      var value = docs.length === 1 ? docs[0] : docs;
+
+      var body;
+      if (view === "json") {
+        body = '<pre class="demo-pre" style="max-height:none">' +
+          ctx.esc(JSON.stringify(value, null, 2)) + "</pre>";
+      } else if (view === "roundtrip") {
+        body = '<pre class="demo-pre" style="max-height:none">' + ctx.esc(docs.map(function (d) {
+          return jsyaml.dump(d, { indent: indent, sortKeys: sortKeys, lineWidth: 78,
+            flowLevel: flowLevel, noRefs: true });
+        }).join("---\n")) + "</pre>" +
+        '<p class="demo-note">Note what the round trip loses: comments are gone, and the merge keys ' +
+        "have been expanded into real values. YAML parsers keep data, not formatting.</p>";
+      } else {
+        body = tree(value, 0);
+      }
+
+      outBox.innerHTML = '<div style="font:700 9.5px ' + T.mono + ";letter-spacing:.14em;color:" +
+        T.muted + ';margin-bottom:9px">' +
+        (view === "json" ? "PARSED → JSON" : view === "roundtrip" ? "DUMPED BACK TO YAML" : "TYPES") +
+        "</div>" + body;
+
+      out("<b>" + docs.length + "</b> document" + (docs.length === 1 ? "" : "s") + " · " +
+        countKeys(value) + " keys · <b style='color:" + T.yes + "'>parsed</b>");
+    } catch (e) {
+      var mark = e.mark || {};
+      outBox.innerHTML = '<div style="font:700 9.5px ' + T.mono + ";letter-spacing:.14em;color:" +
+        T.bad + ';margin-bottom:9px">YAMLException</div>' +
+        '<pre class="demo-pre" style="max-height:none;color:' + T.bad + '">' +
+        ctx.esc(e.message) + "</pre>";
+      out("<b style='color:" + T.bad + "'>error at line " + ((mark.line || 0) + 1) +
+        ", column " + ((mark.column || 0) + 1) + "</b>");
+    }
+  }
+
+  function countKeys(v) {
+    if (Array.isArray(v)) return v.reduce(function (a, x) { return a + countKeys(x); }, 0);
+    if (v && typeof v === "object") {
+      return Object.keys(v).length + Object.keys(v).reduce(function (a, k) {
+        return a + countKeys(v[k]);
+      }, 0);
+    }
+    return 0;
+  }
+
+  function typeOf(v) {
+    if (v === null) return "null";
+    if (Array.isArray(v)) return "array";
+    if (v instanceof Date) return "Date";
+    return typeof v;
+  }
+  function tree(v, depth) {
+    if (v === null || typeof v !== "object") {
+      return '<span style="color:' + T.ink + '">' + ctx.esc(JSON.stringify(v)) +
+        '</span> <span style="color:' + T.part + ';font-size:10.5px">' + typeOf(v) + "</span>";
+    }
+    if (v instanceof Date) {
+      return '<span style="color:' + T.ink + '">' + ctx.esc(v.toISOString()) +
+        '</span> <span style="color:' + T.part + ';font-size:10.5px">Date</span>';
+    }
+    var keys = Array.isArray(v) ? v.map(function (_, i) { return i; }) : Object.keys(v);
+    return '<div style="padding-left:' + (depth ? 14 : 0) + 'px">' + keys.map(function (k) {
+      return '<div style="padding:2px 0;font:500 11.5px ' + T.mono + '"><span style="color:' +
+        ctx.series(depth % 8) + '">' + ctx.esc(String(k)) + "</span>" +
+        '<span style="color:' + T.muted + '">: </span>' + tree(v[k], depth + 1) + "</div>";
+    }).join("") + "</div>";
+  }
+
+  ta.addEventListener("input", run);
+  run();
+
+  ctx.select("view", [{ v: "json", t: "as JSON" }, { v: "types", t: "resolved types" },
+    { v: "roundtrip", t: "dump back to YAML" }], function (v) { view = v; run(); }, "json");
+  ctx.range("dump indent", { min: 1, max: 6, value: 2 }, function (v) { indent = v; run(); });
+  ctx.check("sort keys on dump", false, function (v) { sortKeys = v; run(); });
+  ctx.select("flow level", [{ v: "-1", t: "block" }, { v: "1", t: "flow from depth 1" },
+    { v: "2", t: "flow from depth 2" }], function (v) { flowLevel = +v; run(); }, "-1");
+  ctx.btn("Break the indentation", function () {
+    ta.value = ta.value.replace("  adapter: postgres", "   adapter: postgres");
+    run();
+  });
+  ctx.btn("Reset", function () { ta.value = SRC; run(); }, true);
+};
+
+/* ------------------------------------------------------------------- Ajv */
+B.ajv = async function (ctx) {
+  var T = ctx.T;
+  ctx.tall();
+  var p = ctx.panes("46%");
+
+  var SCHEMA = JSON.stringify({
+    $schema: "http://json-schema.org/draft-07/schema#",
+    type: "object",
+    required: ["id", "email", "plan"],
+    additionalProperties: false,
+    properties: {
+      id: { type: "integer", minimum: 1 },
+      email: { type: "string", format: "email" },
+      plan: { enum: ["free", "pro", "enterprise"] },
+      seats: { type: "integer", minimum: 1, maximum: 500, default: 1 },
+      website: { type: "string", format: "uri" },
+      startedAt: { type: "string", format: "date-time" },
+      tags: { type: "array", items: { type: "string", minLength: 2 }, uniqueItems: true, maxItems: 5 },
+      billing: {
+        type: "object",
+        required: ["country"],
+        properties: {
+          country: { type: "string", pattern: "^[A-Z]{2}$" },
+          vat: { type: "string", minLength: 8 }
+        }
+      }
+    },
+    allOf: [{
+      if: { properties: { plan: { const: "enterprise" } }, required: ["plan"] },
+      then: { required: ["billing"], properties: { seats: { minimum: 10 } } }
+    }]
+  }, null, 2);
+
+  var DATA = JSON.stringify({
+    id: 0,
+    email: "not-an-email",
+    plan: "enterprise",
+    seats: 3,
+    website: "example.com",
+    startedAt: "2026-13-40",
+    tags: ["a", "ops", "ops"],
+    extra: true
+  }, null, 2);
+
+  function editor(parent, label, note, value) {
+    var box = ctx.mk("div");
+    box.style.cssText = "padding:11px 13px;border-bottom:1px solid " + T.line;
+    box.innerHTML = '<div style="font:700 9.5px ' + T.mono + ";letter-spacing:.14em;color:" + T.muted +
+      ';margin-bottom:6px">' + label + "</div>" +
+      '<p class="demo-note" style="margin:0 0 7px">' + note + "</p>";
+    var t = ctx.mk("textarea");
+    t.value = value;
+    t.spellcheck = false;
+    t.rows = label === "SCHEMA" ? 26 : 14;
+    t.style.cssText = "width:100%;resize:vertical;background:" + T.sunk + ";border:1px solid " +
+      T.line + ";border-radius:8px;padding:9px 11px;color:" + T.ink + ";font:500 11.5px " + T.mono +
+      ";line-height:1.6;outline:none";
+    box.appendChild(t);
+    parent.appendChild(box);
+    t.addEventListener("input", run);
+    return t;
+  }
+
+  var taSchema = editor(p.a, "SCHEMA", "Draft-07, including an <code>if/then</code> rule.", SCHEMA);
+  var taData = editor(p.a, "DATA", "Deliberately wrong in eight different ways.", DATA);
+
+  var outBox = ctx.mk("div");
+  outBox.style.cssText = "padding:14px 16px";
+  p.b.appendChild(outBox);
+
+  var out = ctx.readout("");
+  var allErrors = true, useDefaults = true, coerce = false;
+
+  function run() {
+    var schema, data;
+    try { schema = JSON.parse(taSchema.value); }
+    catch (e) { return fail("The schema is not valid JSON", e.message); }
+    try { data = JSON.parse(taData.value); }
+    catch (e) { return fail("The data is not valid JSON", e.message); }
+
+    var ajv;
+    try {
+      ajv = new AjvNS.Ajv({
+        allErrors: allErrors, useDefaults: useDefaults, coerceTypes: coerce,
+        strict: false, verbose: true
+      });
+      AjvNS.addFormats(ajv);
+    } catch (e) { return fail("Ajv could not be constructed", e.message); }
+
+    var validate;
+    try { validate = ajv.compile(schema); }
+    catch (e) { return fail("The schema itself is invalid", e.message); }
+
+    var copy = JSON.parse(JSON.stringify(data));
+    var t0 = performance.now();
+    var ok = validate(copy);
+    var ms = performance.now() - t0;
+    var errors = validate.errors || [];
+
+    outBox.innerHTML =
+      '<div style="font:700 9.5px ' + T.mono + ";letter-spacing:.14em;color:" +
+        (ok ? T.yes : T.bad) + ';margin-bottom:10px">' +
+        (ok ? "VALID" : errors.length + " ERROR" + (errors.length === 1 ? "" : "S")) + "</div>" +
+      (errors.length
+        ? '<table class="demo-tbl" style="table-layout:fixed;width:100%">' +
+          '<colgroup><col style="width:150px"><col style="width:110px"><col></colgroup>' +
+          "<thead><tr><th>instancePath</th><th>keyword</th><th>message</th></tr></thead><tbody>" +
+          errors.map(function (e) {
+            return '<tr><td><code style="color:' + T.accent + ';font-size:11px">' +
+              ctx.esc(e.instancePath || "(root)") + "</code></td><td><code>" + ctx.esc(e.keyword) +
+              '</code></td><td style="font-size:12px">' + ctx.esc(e.message) +
+              (e.params && Object.keys(e.params).length
+                ? '<div style="color:' + T.muted + ";font-family:" + T.mono +
+                  ';font-size:10.5px;margin-top:3px">' + ctx.esc(JSON.stringify(e.params)) + "</div>"
+                : "") + "</td></tr>";
+          }).join("") + "</tbody></table>"
+        : '<p class="demo-note">Nothing to report. Break something on the left.</p>') +
+      '<div style="font:700 9.5px ' + T.mono + ";letter-spacing:.14em;color:" + T.muted +
+        ';margin:18px 0 8px">DATA AFTER VALIDATION</div>' +
+      '<pre class="demo-pre" style="max-height:none">' + ctx.esc(JSON.stringify(copy, null, 2)) + "</pre>" +
+      '<p class="demo-note">Ajv mutates the object it is given when <code>useDefaults</code> or ' +
+      "<code>coerceTypes</code> is on — that is a feature, and a surprise the first time.</p>" +
+      '<div style="font:700 9.5px ' + T.mono + ";letter-spacing:.14em;color:" + T.muted +
+        ';margin:18px 0 8px">HUMAN-READABLE</div>' +
+      '<pre class="demo-pre" style="max-height:none">' +
+      ctx.esc(ok ? "valid" : ajv.errorsText(errors, { separator: "\n" })) + "</pre>";
+
+    out(ok
+      ? "<b style='color:" + T.yes + "'>valid</b> in <b>" + ms.toFixed(2) + " ms</b>"
+      : "<b style='color:" + T.bad + "'>" + errors.length + " errors</b> in <b>" +
+        ms.toFixed(2) + " ms</b> · compiled to a JavaScript function, not walked");
+  }
+
+  function fail(title, detail) {
+    outBox.innerHTML = '<div style="font:700 9.5px ' + T.mono + ";letter-spacing:.14em;color:" +
+      T.bad + ';margin-bottom:9px">' + ctx.esc(title.toUpperCase()) + "</div>" +
+      '<pre class="demo-pre" style="max-height:none;color:' + T.bad + '">' + ctx.esc(detail) + "</pre>";
+    out("<b style='color:" + T.bad + "'>" + ctx.esc(title) + "</b>");
+  }
+
+  run();
+
+  ctx.check("allErrors", true, function (v) { allErrors = v; run(); });
+  ctx.check("useDefaults", true, function (v) { useDefaults = v; run(); });
+  ctx.check("coerceTypes", false, function (v) { coerce = v; run(); });
+  ctx.btn("Make the data valid", function () {
+    taData.value = JSON.stringify({
+      id: 41, email: "ada@example.com", plan: "enterprise", seats: 25,
+      website: "https://example.com", startedAt: "2026-08-02T14:30:00Z",
+      tags: ["ops", "eu"], billing: { country: "GB", vat: "GB123456789" }
+    }, null, 2);
+    run();
+  }, true);
+  ctx.btn("Downgrade to free", function () {
+    var d = JSON.parse(taData.value);
+    d.plan = "free";
+    taData.value = JSON.stringify(d, null, 2);
+    run();
+  });
+  ctx.btn("Reset", function () { taSchema.value = SCHEMA; taData.value = DATA; run(); });
+};
+
 })();

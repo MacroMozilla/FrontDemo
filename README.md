@@ -1,6 +1,6 @@
 # FrontDemo
 
-**A playground for front-end libraries. 102 of them, each one actually running in the page.**
+**A playground for front-end libraries. 162 of them, across 36 categories, each one actually running in the page.**
 
 Pick a library from the sidebar and you get it mounted on a real stage, with controls that drive its
 actual API — not a screenshot, not a canned recording, not a code sample you have to imagine working.
@@ -22,8 +22,28 @@ Each library page gives you:
 | **A live stage** | The library is loaded on demand and mounted for real. The controls in the grey bar call its API — change the router on a diagram, switch a chart's mark set, throw 40,000 sprites at PixiJS. |
 | **The trade-off** | One line for what it is genuinely good at, one line for where it hurts. Both are opinions, and both are stated as such. |
 | **React Native & mobile** | Whether the library can be used from a React codebase that also targets phones — see below. |
-| **Capabilities** | Eight columns, comparable across all 102 libraries, also available as one big [matrix](https://macromozilla.github.io/FrontDemo/#/matrix). |
+| **Capabilities** | Eight columns, comparable across all 162 libraries, also available as one big [matrix](https://macromozilla.github.io/FrontDemo/#/matrix). |
 | **The source** | The exact builder function that drew the stage, verbatim, at the bottom of every page. |
+
+## What is covered
+
+Two halves. The first is everything that puts pixels on screen; the second is the rest of the
+front-end toolbox.
+
+**Graphics & visualization** — diagrams and node editors · graphs and networks · charts ·
+high-performance charts · grammar-of-graphics kits · 2D canvas and SVG engines · creative coding and
+physics · whiteboards and freehand · maps and geospatial · 3D and WebGL · animation · text-to-diagram
+· Gantt and timelines · mind maps · data grids and pivots · documents, codes and export
+
+**Web app building blocks** — editors and rich text · interaction and UI behaviour · data, files and
+validation · utility and computation · frameworks and runtimes · media, audio and devices · state and
+reactivity · networking and async · headless UI logic · forms and input controls · overlays and
+feedback · scroll and layout · templating and text · storage, files and workers ·
+internationalization · client-side search · crypto and identifiers · games and audio · delight and
+micro-interactions · icons
+
+Nothing here is a stub. Every one of the 162 pages runs its library for real, and CI refuses to
+deploy if a page throws.
 
 ## The React Native column
 
@@ -70,7 +90,10 @@ assets/js/demos/*.js        one file per area; every demo builder lives here
 assets/fragments/*.html     HTML fragments the htmx demo fetches
 vendor/*.js                 pinned browser builds of every library
 scripts/check.mjs           static checks, run in CI before each deploy
-scripts/verify.mjs          drives all 102 pages in headless Chromium
+scripts/verify.mjs          drives all 162 pages in headless Chromium
+scripts/audit.mjs           screenshots every stage and measures what was actually painted
+scripts/montage.mjs         tiles the audit screenshots into contact sheets
+scripts/readme.mjs          regenerates the library tables in this file from data.js
 scripts/probe.mjs           prints what global a vendor build exposes
 scripts/shot.mjs            screenshots one route in either theme
 ```
@@ -106,12 +129,20 @@ automatically when you navigate away.
 
 ```bash
 node scripts/check.mjs             # registry integrity, missing builders, missing vendor files
+node scripts/readme.mjs            # regenerate the library tables in README.md
 node scripts/verify.mjs            # every page in headless Chromium
 node scripts/verify.mjs mylib      # just yours
 node scripts/verify.mjs --shots    # also write screenshots to /tmp/fd-shots
+node scripts/audit.mjs mylib       # did it actually paint anything?
 ```
 
 `scripts/verify.mjs` needs Playwright's Chromium; `npm i -D playwright` if you do not have it.
+
+`verify.mjs` only proves a demo ran without throwing — a blank canvas passes it. `audit.mjs` is the
+answer to that: it screenshots each stage through the Chrome DevTools Protocol (so animated pages
+that never reach visual stability still get captured), then measures how much of the stage is
+non-background, how many distinct colours appear, how far the content spreads, and how many controls
+the toolbar has. Anything suspicious is flagged for a human to look at.
 
 ## Deployment
 
@@ -128,6 +159,8 @@ those pages say *running X here* and the demo is written against that API.
 Licences are as declared on npm and worth reading before you ship:
 
 - **GSAP** uses its own no-charge licence, not an OSI one.
+- **Typed.js** is **GPL-3.0** — fine for a demo page, worth a second thought in a closed-source
+  product. Its whole effect is about thirty lines if you would rather write it yourself.
 - **ApexCharts** publishes as `SEE LICENSE IN LICENSE`.
 - **p5.js** is LGPL-2.1.
 - **JointJS** is MPL-2.0, with the polished tier commercial.
@@ -142,7 +175,10 @@ Everything under `vendor/` belongs to its respective authors and is included unm
 ## Every library
 
 ★ is how readily I would reach for it, not a quality score. **RN** is the React Native column
-described above.
+described above. These tables are generated from `assets/js/data.js` by `node scripts/readme.mjs` —
+edit the registry, not the table.
+
+<!-- LIBRARY-TABLES:START -->
 
 ### Graphics & visualization
 
@@ -312,7 +348,7 @@ described above.
 | **marked** | `marked` | ★★★★★ | MIT | 39 KB | ✓ | The fast, small Markdown compiler. Text in, HTML out, with a hookable renderer. |
 | **highlight.js** | `highlight.js` | ★★★★ | BSD-3-Clause | 125 KB | ✓ | Syntax highlighting for around 190 languages, with automatic language detection. |
 
-#### Interaction & UI behaviour (5)
+#### Interaction & UI behaviour (6)
 
 | Library | npm | Pick | License | Size | RN | What it is |
 |---|---|---|---|---|:--:|---|
@@ -321,8 +357,9 @@ described above.
 | **Floating UI** | `@floating-ui/dom` | ★★★★★ | MIT | 10 KB | ✓ | The positioning engine under most tooltip and dropdown libraries. Places a floating element and keeps it on screen. |
 | **Swiper** | `swiper` | ★★★★★ | MIT | 150 KB | ✗ | The touch slider that ships in a large share of the world's mobile web. Carousels, coverflow, parallax, virtual slides. |
 | **Driver.js** | `driver.js` | ★★★★ | MIT | 21 KB | ✗ | Product tours and feature highlights: dims the page, spotlights an element, walks the user through steps. |
+| **hotkeys-js** | `hotkeys-js` | ★★★★ | MIT | 7 KB | ✗ | Keyboard shortcuts with scopes: 7 KB, no dependencies, and it knows not to fire while you are typing in a field. |
 
-#### Data, files & validation (5)
+#### Data, files & validation (7)
 
 | Library | npm | Pick | License | Size | RN | What it is |
 |---|---|---|---|---|:--:|---|
@@ -331,8 +368,10 @@ described above.
 | **SheetJS** | `xlsx` | ★★★★ | Apache-2.0 | 861 KB | ✓ | Reads and writes Excel, ODS, CSV and a dozen other spreadsheet formats, entirely in the browser. |
 | **Day.js** | `dayjs` | ★★★★★ | MIT | 7 KB | ✓ | Moment.js's API in 7 KB, immutable, with everything else behind opt-in plugins. |
 | **Zod** | `zod` | ★★★★★ | MIT | 173 KB | ✓ | Schema validation where the TypeScript type is inferred from the schema — one definition, not two. |
+| **js-yaml** | `js-yaml` | ★★★★★ | MIT | 39 KB | ✓ | The YAML parser and serialiser for JavaScript. If a tool reads YAML in Node, this is usually what is doing it. |
+| **Ajv** | `ajv` | ★★★★ | MIT | 125 KB | ✓ | The JSON Schema validator. Compiles a schema to a specialised function, which is why it is the fastest one. |
 
-#### Utility & computation (4)
+#### Utility & computation (6)
 
 | Library | npm | Pick | License | Size | RN | What it is |
 |---|---|---|---|---|:--:|---|
@@ -340,8 +379,10 @@ described above.
 | **chroma.js** | `chroma-js` | ★★★★★ | BSD-3-Clause AND Apache-2.0 | 41 KB | ✓ | Colour manipulation done properly: perceptual colour spaces, scales, interpolation, contrast checks. |
 | **math.js** | `mathjs` | ★★★★ | Apache-2.0 | 668 KB | ✓ | An extensive maths library with an expression parser, matrices, complex numbers, units and symbolic derivatives. |
 | **DOMPurify** | `dompurify` | ★★★★★ | MPL-2.0 OR Apache-2.0 | 22 KB | ◐ | The XSS sanitiser. Give it untrusted HTML, get back HTML that is safe to insert. |
+| **Ramda** | `ramda` | ★★★ | MIT | 52 KB | ✓ | Functional utilities where everything is curried and data comes last, so composition is the default way to work. |
+| **validator.js** | `validator` | ★★★★ | MIT | 91 KB | ✓ | String validators and sanitisers: email, URL, IBAN, credit card, postal codes, MIME types — around a hundred of them. |
 
-#### Frameworks & runtimes (4)
+#### Frameworks & runtimes (7)
 
 | Library | npm | Pick | License | Size | RN | What it is |
 |---|---|---|---|---|:--:|---|
@@ -349,8 +390,11 @@ described above.
 | **Alpine.js** | `alpinejs` | ★★★★ | MIT | 44 KB | ✗ | Reactivity as HTML attributes. Sprinkle x-data and x-on onto server-rendered markup and you are done. |
 | **Lit** | `lit` | ★★★★ | BSD-3-Clause | 15 KB | ✗ | Web Components with a thin, fast reactive layer. Real custom elements that work in any framework. |
 | **htmx** | `htmx.org` | ★★★★ | 0BSD | 50 KB | ✗ | Extends HTML so any element can issue a request and swap the response into the page. The server sends HTML, not JSON. |
+| **Vue 3** | `vue` | ★★★★★ | MIT | 162 KB | ✗ | The framework that made fine-grained reactivity mainstream. Templates, a signals-style reactivity core, and a gentle upgrade path. |
+| **React** | `react` | ★★★★★ | MIT | 139 KB | ✓ | The one the rest of this category is measured against. A component model, a reconciler, and an ecosystem larger than most languages have. |
+| **jQuery** | `jquery` | ★★★ | MIT | 85 KB | ✗ | Still on a large share of the web. It exists here because knowing what it solved explains why the modern APIs look the way they do. |
 
-#### Media, audio & devices (5)
+#### Media, audio & devices (6)
 
 | Library | npm | Pick | License | Size | RN | What it is |
 |---|---|---|---|---|:--:|---|
@@ -359,4 +403,127 @@ described above.
 | **Cropper.js** | `cropperjs` | ★★★★ | MIT | 36 KB | ✗ | The image cropper: aspect ratios, rotation, zoom, and a canvas of exactly the region selected. |
 | **Signature Pad** | `signature_pad` | ★★★★ | MIT | 12 KB | ◐ | Smooth signature capture: variable-width Bézier strokes from pointer input, exported as PNG or SVG. |
 | **xterm.js** | `@xterm/xterm` | ★★★★★ | MIT | 283 KB | ✗ | The terminal emulator inside VS Code. Full xterm escape sequence support, GPU-accelerated rendering. |
+| **Plyr** | `plyr` | ★★★★ | MIT | 111 KB | ✗ | An accessible, themeable media player for audio, video, YouTube and Vimeo, built on the native element. |
 
+#### State & reactivity (6)
+
+| Library | npm | Pick | License | Size | RN | What it is |
+|---|---|---|---|---|:--:|---|
+| **Zustand** | `zustand` | ★★★★★ | MIT | 1 KB | ✓ | A store in about a kilobyte. No provider, no reducers, no context — you call a hook and read state. |
+| **XState** | `xstate` | ★★★★ | MIT | 46 KB | ✓ | Statecharts for JavaScript. You declare the states and the transitions between them; impossible states stop being reachable. |
+| **MobX** | `mobx` | ★★★★ | MIT | 54 KB | ✓ | Transparent reactive state: mutate a plain object, and anything that read it re-runs. No selectors, no immutability rules. |
+| **RxJS** | `rxjs` | ★★★★ | Apache-2.0 | 86 KB | ✓ | Events as streams you can compose. Debounce, retry, switch, combine — the operators most async bugs are really asking for. |
+| **Immer** | `immer` | ★★★★★ | MIT | 14 KB | ✓ | Write mutating code, get an immutable result. A Proxy records your changes and produces a structurally shared copy. |
+| **Nano Stores** | `nanostores` | ★★★★ | MIT | 5 KB | ✓ | Framework-agnostic atoms in under a kilobyte, with lazy subscription — a store with no listeners does no work. |
+
+#### Networking & async (3)
+
+| Library | npm | Pick | License | Size | RN | What it is |
+|---|---|---|---|---|:--:|---|
+| **Axios** | `axios` | ★★★★ | MIT | 53 KB | ✓ | The HTTP client most codebases already have. Interceptors, automatic JSON, cancellation, and the same API in Node. |
+| **ky** | `ky` | ★★★★ | MIT | 14 KB | ✓ | A tiny wrapper over fetch that adds the things fetch is missing: retries, timeouts, hooks and a throwing error model. |
+| **TanStack Query** | `@tanstack/query-core` | ★★★★★ | MIT | 40 KB | ✓ | Server state, treated as its own thing: caching, deduplication, background refetch, stale-while-revalidate. Not a data-fetching library — a cache. |
+
+#### Headless UI logic (2)
+
+| Library | npm | Pick | License | Size | RN | What it is |
+|---|---|---|---|---|:--:|---|
+| **TanStack Table** | `@tanstack/table-core` | ★★★★★ | MIT | 56 KB | ✓ | A table engine with no markup at all. Sorting, filtering, grouping and pagination as state; you render every cell yourself. |
+| **TanStack Virtual** | `@tanstack/virtual-core` | ★★★★★ | MIT | 23 KB | ✓ | Renders only the rows in view. 100,000 items, a couple of dozen DOM nodes. |
+
+#### Forms & input controls (5)
+
+| Library | npm | Pick | License | Size | RN | What it is |
+|---|---|---|---|---|:--:|---|
+| **flatpickr** | `flatpickr` | ★★★★ | MIT | 49 KB | ✗ | The date picker that is small, dependency-free and does ranges, times and multiple dates. |
+| **Tom Select** | `tom-select` | ★★★★★ | Apache-2.0 | 49 KB | ✗ | The maintained successor to Selectize: autocomplete, tagging, remote loading and option creation on a plain select element. |
+| **IMask** | `imask` | ★★★★ | MIT | 58 KB | ◐ | Input masking that holds up: phone numbers, card numbers, currency, dates — including paste, deletion and cursor position. |
+| **noUiSlider** | `nouislider` | ★★★★ | MIT | 27 KB | ✗ | A range slider with no dependencies: multiple handles, non-linear scales, keyboard support and proper touch behaviour. |
+| **Pickr** | `@simonwep/pickr` | ★★★★ | MIT | 23 KB | ✗ | A colour picker with no dependencies, alpha support and every output format you would want. |
+
+#### Overlays & feedback (5)
+
+| Library | npm | Pick | License | Size | RN | What it is |
+|---|---|---|---|---|:--:|---|
+| **SweetAlert2** | `sweetalert2` | ★★★★ | MIT | 73 KB | ✗ | A replacement for alert(), confirm() and prompt() that is promise-based, themeable and accessible. |
+| **Toastify** | `toastify-js` | ★★★★ | MIT | 15 KB | ✗ | Toast notifications in 15 KB with no dependencies and no framework. |
+| **Tippy.js** | `tippy.js` | ★★★★ | MIT | 25 KB | ✗ | Tooltips and popovers built on Popper: interactive content, delays, singleton groups, follow-cursor. |
+| **PhotoSwipe** | `photoswipe` | ★★★★ | MIT | 53 KB | ✗ | The image lightbox: pinch zoom, momentum panning, keyboard control, and a proper open/close animation from the thumbnail. |
+| **Micromodal** | `micromodal` | ★★★★ | ISC | 7 KB | ✗ | 7 KB of accessible modal: focus trapping, aria wiring, escape and overlay dismissal. You bring the markup. |
+
+#### Scroll & layout (5)
+
+| Library | npm | Pick | License | Size | RN | What it is |
+|---|---|---|---|---|:--:|---|
+| **Lenis** | `lenis` | ★★★★ | MIT | 14 KB | ✗ | Smooth scrolling that keeps the real scrollbar and native anchor behaviour, rather than faking the whole viewport. |
+| **AOS** | `aos` | ★★★ | MIT | 14 KB | ✗ | Animate-on-scroll declared in data attributes. The library that put fade-up on half the marketing sites on the internet. |
+| **Split.js** | `split.js` | ★★★★ | MIT | 7 KB | ✗ | Resizable split panes in 2 KB gzipped, with no dependencies and no wrapper elements. |
+| **SimpleBar** | `simplebar` | ★★★★ | MIT | 27 KB | ✗ | Custom scrollbars that keep native scrolling. It styles the bar and leaves the scrolling to the browser. |
+| **Muuri** | `muuri` | ★★★ | MIT | 82 KB | ✗ | Responsive, sortable, filterable, draggable grid layouts — masonry that you can also rearrange by hand. |
+
+#### Templating & text (4)
+
+| Library | npm | Pick | License | Size | RN | What it is |
+|---|---|---|---|---|:--:|---|
+| **Handlebars** | `handlebars` | ★★★★ | MIT | 86 KB | ✓ | Logic-less templates that compile to a function. Still the lingua franca for server-rendered HTML and email. |
+| **markdown-it** | `markdown-it` | ★★★★★ | MIT | 121 KB | ✓ | The other Markdown parser: CommonMark-exact, plugin-driven, and it exposes the token stream so you can rewrite anything. |
+| **jsdiff** | `diff` | ★★★★ | BSD-3-Clause | 77 KB | ✓ | Text diffing: characters, words, lines, sentences, JSON and CSS — plus unified patch output. |
+| **Linkify** | `linkifyjs` | ★★★★ | MIT | 19 KB | ✓ | Finds URLs, emails, mentions and hashtags in plain text and turns them into links — with a real scanner, not a regex. |
+
+#### Storage, files & workers (4)
+
+| Library | npm | Pick | License | Size | RN | What it is |
+|---|---|---|---|---|:--:|---|
+| **Dexie.js** | `dexie` | ★★★★★ | Apache-2.0 | 92 KB | ◐ | IndexedDB with an API you can actually use: promises, compound indexes, live queries and versioned migrations. |
+| **localForage** | `localforage` | ★★★★ | Apache-2.0 | 29 KB | ◐ | localStorage's API, backed by IndexedDB. Same three methods, but asynchronous and able to store blobs. |
+| **Comlink** | `comlink` | ★★★★★ | Apache-2.0 | 5 KB | ✓ | Makes a Web Worker look like an object you can await. It hides postMessage behind a proxy. |
+| **FilePond** | `filepond` | ★★★★ | MIT | 115 KB | ✗ | A file upload control with drag and drop, previews, reordering, validation and chunked uploads. |
+
+#### Internationalization (3)
+
+| Library | npm | Pick | License | Size | RN | What it is |
+|---|---|---|---|---|:--:|---|
+| **i18next** | `i18next` | ★★★★★ | MIT | 43 KB | ✓ | The translation framework: interpolation, pluralisation, context, namespaces, fallback chains and lazy loading. |
+| **Luxon** | `luxon` | ★★★★★ | MIT | 78 KB | ✓ | Moment's successor from the same author, built on the Intl API. Immutable, time-zone aware, and honest about durations. |
+| **date-fns** | `date-fns` | ★★★★★ | MIT | 72 KB | ✓ | 200-odd small functions over the native Date. No wrapper object, no prototype patching — import only what you call. |
+
+#### Client-side search (3)
+
+| Library | npm | Pick | License | Size | RN | What it is |
+|---|---|---|---|---|:--:|---|
+| **MiniSearch** | `minisearch` | ★★★★★ | MIT | 84 KB | ✓ | A real inverted index in the browser: prefix search, fuzzy matching, field boosting, and an index you can serialise. |
+| **FlexSearch** | `flexsearch` | ★★★★ | Apache-2.0 | 16 KB | ✓ | The fastest full-text search library in the browser, by a wide margin, with contextual indexing and worker support. |
+| **Lunr.js** | `lunr` | ★★★ | MIT | 29 KB | ✓ | A small Solr-like search index, and the engine behind a great many static documentation sites. |
+
+#### Crypto & identifiers (3)
+
+| Library | npm | Pick | License | Size | RN | What it is |
+|---|---|---|---|---|:--:|---|
+| **CryptoJS** | `crypto-js` | ★★★ | MIT | 62 KB | ✓ | Hashing and symmetric encryption in pure JavaScript: SHA family, MD5, HMAC, AES, PBKDF2. |
+| **Nano ID** | `nanoid` | ★★★★★ | MIT | 1 KB | ✓ | URL-safe unique ids in 130 bytes, using the platform's cryptographic random source. |
+| **uuid** | `uuid` | ★★★★★ | MIT | 11 KB | ✓ | RFC-compliant UUIDs: v4 random, v7 time-ordered, plus the namespace-based v3 and v5. |
+
+#### Games & audio (2)
+
+| Library | npm | Pick | License | Size | RN | What it is |
+|---|---|---|---|---|:--:|---|
+| **Phaser** | `phaser` | ★★★★★ | MIT | 1.1 MB | ◐ | The 2D game framework for the web: scenes, sprites, physics, tweens, input and asset loading in one package. |
+| **Howler.js** | `howler` | ★★★★ | MIT | 35 KB | ◐ | Audio for applications and games: sprites, fades, spatial panning, and one API over Web Audio and HTML5 audio. |
+
+#### Delight & micro-interactions (4)
+
+| Library | npm | Pick | License | Size | RN | What it is |
+|---|---|---|---|---|:--:|---|
+| **canvas-confetti** | `canvas-confetti` | ★★★★ | ISC | 24 KB | ◐ | Confetti. It performs well, it can run off the main thread, and it is on rather more production sites than anyone admits. |
+| **Typed.js** | `typed.js` | ★★★ | GPL-3.0 | 10 KB | ◐ | The typewriter effect: types a string out, backspaces, moves to the next. On more hero sections than you would guess. |
+| **CountUp.js** | `countup.js` | ★★★★ | MIT | 6 KB | ✓ | Animates a number from one value to another, with easing, grouping and locale-aware formatting. |
+| **AutoAnimate** | `@formkit/auto-animate` | ★★★★★ | MIT | 8 KB | ✗ | One function call on a parent element, and every add, remove and reorder inside it animates. That is the whole API. |
+
+#### Icons (2)
+
+| Library | npm | Pick | License | Size | RN | What it is |
+|---|---|---|---|---|:--:|---|
+| **Lucide** | `lucide` | ★★★★★ | ISC | 340 KB | ✓ | The community fork of Feather, grown to over 1,500 icons. Consistent 24px grid, stroke-based, tree-shakeable. |
+| **Feather** | `feather-icons` | ★★★★ | MIT | 74 KB | ✓ | 287 minimal icons on a 24px grid — the set Lucide forked from, still widely used. |
+
+<!-- LIBRARY-TABLES:END -->
