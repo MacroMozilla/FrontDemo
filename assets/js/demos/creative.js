@@ -169,7 +169,6 @@ B.matter = async function (ctx) {
     M.Render.stop(render);
     M.Runner.stop(runner);
     M.Engine.clear(engine);
-    render.canvas.remove();
   });
 };
 

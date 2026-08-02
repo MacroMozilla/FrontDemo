@@ -140,9 +140,11 @@ B.th = async function (ctx) {
     renderer.setSize(ctx.el.clientWidth, ctx.el.clientHeight);
   });
   ctx.onDestroy(function () {
-    renderer.dispose();
     geoms.forEach(function (g) { g.dispose(); });
-    renderer.domElement.remove();
+    /* Release the GPU context explicitly — disposing alone leaves it live,
+       and browsers only allow a handful at a time. */
+    renderer.forceContextLoss();
+    renderer.dispose();
   });
 };
 
@@ -166,9 +168,6 @@ B.bab = async function (ctx) {
   camera.upperRadiusLimit = 34;
   camera.wheelDeltaPercentage = .012;
 
-  /* An environment texture is what makes PBR look like PBR. */
-  var env = BABYLON.CubeTexture.CreateFromPrefilteredData
-    ? null : null;
   var hemi = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
   hemi.intensity = .55;
   var dir = new BABYLON.DirectionalLight("dir", new BABYLON.Vector3(-1, -2, -1), scene);
@@ -239,7 +238,11 @@ B.bab = async function (ctx) {
   });
 
   ctx.onResize(function () { engine.resize(); });
-  ctx.onDestroy(function () { engine.stopRenderLoop(); scene.dispose(); engine.dispose(); });
+  ctx.onDestroy(function () {
+    engine.stopRenderLoop();
+    scene.dispose();
+    engine.dispose();          /* releases the WebGL context too */
+  });
 };
 
 /* --------------------------------------------------------------- 3Dmol.js */

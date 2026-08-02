@@ -229,7 +229,7 @@ window.LIBS = [
   rnNote:"No official port; react-native-chart-kit / victory-native are the usual substitutes.",
   js:["chartjs"], site:"https://www.chartjs.org/" },
 
-{ k:"apex", n:"ApexCharts", pkg:"apexcharts", ver:"6.6.1", pub:"2026-07-27", lic:"See LICENSE file", kb:561, cat:"chart", st:4,
+{ k:"apex", n:"ApexCharts", pkg:"apexcharts", ver:"6.6.1", vend:"4.4.0", pub:"2026-07-27", lic:"See LICENSE file", kb:561, cat:"chart", st:4,
   c:"p y p n y y p y",
   what:"Dashboard charts that look finished out of the box — annotations, brush zoom, sparklines included.",
   pro:"Defaults look good; the interaction toolbar is free",
@@ -431,7 +431,7 @@ window.LIBS = [
   js:["zrender"], site:"https://github.com/ecomfe/zrender" },
 
 /* ---------------- Creative coding & physics ---------------- */
-{ k:"p5", n:"p5.js", pkg:"p5", ver:"2.3.2", pub:"2026-07-30", lic:"LGPL-2.1", kb:1032, cat:"creative", st:4,
+{ k:"p5", n:"p5.js", pkg:"p5", ver:"2.3.2", vend:"1.11.3", pub:"2026-07-30", lic:"LGPL-2.1", kb:1032, cat:"creative", st:4,
   c:"y n p y n y p y",
   what:"Processing for the web. The library that teaches most people creative coding: setup(), draw(), and go.",
   pro:"The gentlest on-ramp to graphics programming anywhere",
@@ -579,7 +579,7 @@ window.LIBS = [
   rnNote:"Yes for value tweening — GSAP can animate plain objects, so you drive Animated/Reanimated values with it. Reanimated is still the idiomatic choice.",
   js:["gsap"], site:"https://gsap.com/" },
 
-{ k:"anime", n:"anime.js", pkg:"animejs", ver:"4.5.0", pub:"2026-06-22", lic:"MIT", kb:17, cat:"anim", st:4,
+{ k:"anime", n:"anime.js", pkg:"animejs", ver:"4.5.0", vend:"3.2.2", pub:"2026-06-22", lic:"MIT", kb:17, cat:"anim", st:4,
   c:"n n n n n y y y",
   what:"17 KB of tidy animation: CSS properties, SVG attributes, DOM attributes and plain JS objects.",
   pro:"Tiny, MIT, and the stagger helper is lovely",
@@ -597,7 +597,7 @@ window.LIBS = [
   rnNote:"Yes — lottie-react-native is the flagship case, and the same JSON file works unchanged.",
   js:["lottie"], site:"https://airbnb.io/lottie/" },
 
-{ k:"motion", n:"Motion", pkg:"motion", ver:"12.43.0", pub:"2026-07-28", lic:"MIT", kb:64, cat:"anim", st:5,
+{ k:"motion", n:"Motion", pkg:"motion", ver:"12.43.0", vend:"11.18.2", pub:"2026-07-28", lic:"MIT", kb:64, cat:"anim", st:5,
   c:"n n n n y y p y",
   what:"Framer Motion's engine, now framework-agnostic. Springs, layout animation and gestures on the Web Animations API.",
   pro:"Hardware-accelerated by default, and layout animations are near magic in React",
@@ -737,7 +737,7 @@ window.LIBS = [
   rnNote:"Yes — QRCode.create() returns a pure bit matrix with no DOM. react-native-qrcode-svg is built on this exact package.",
   js:["qrcode"], site:"https://github.com/soldair/node-qrcode" },
 
-{ k:"pdfjs", n:"PDF.js", pkg:"pdfjs-dist", ver:"6.2.108", pub:"2026-07-28", lic:"Apache-2.0", kb:313, cat:"doc", st:5,
+{ k:"pdfjs", n:"PDF.js", pkg:"pdfjs-dist", ver:"6.2.108", vend:"3.11.174", pub:"2026-07-28", lic:"Apache-2.0", kb:313, cat:"doc", st:5,
   c:"n y p y n y p y",
   what:"Mozilla's PDF renderer — the one built into Firefox. Parses and rasterises PDF entirely in JavaScript.",
   pro:"Renders essentially any PDF with no plugin and no server",
@@ -746,7 +746,7 @@ window.LIBS = [
   rnNote:"Web only; on native use react-native-pdf.",
   js:["jspdf","pdfjs"], site:"https://mozilla.github.io/pdf.js/" },
 
-{ k:"jspdf", n:"jsPDF", pkg:"jspdf", ver:"4.2.1", pub:"2026-03-17", lic:"MIT", kb:357, cat:"doc", st:4,
+{ k:"jspdf", n:"jsPDF", pkg:"jspdf", ver:"4.2.1", vend:"2.5.2", pub:"2026-03-17", lic:"MIT", kb:357, cat:"doc", st:4,
   c:"n y n n n a p y",
   what:"Generates PDF files client-side: text, vectors, images, tables, and metadata.",
   pro:"No server round-trip to produce a document",
@@ -764,7 +764,7 @@ window.LIBS = [
   rnNote:"No path — the native equivalent is react-native-view-shot.",
   js:["html2canvas"], site:"https://html2canvas.hertzen.com/" },
 
-{ k:"katex", n:"KaTeX", pkg:"katex", ver:"0.18.1", pub:"2026-07-19", lic:"MIT", kb:270, cat:"doc", st:5,
+{ k:"katex", n:"KaTeX", pkg:"katex", ver:"0.18.1", vend:"0.16.22", pub:"2026-07-19", lic:"MIT", kb:270, cat:"doc", st:5,
   c:"n y n n y y p y",
   what:"Khan Academy's maths typesetter. Renders LaTeX to HTML synchronously and far faster than MathJax.",
   pro:"Fast enough to render maths while the user types, with print-quality output",
@@ -792,7 +792,7 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["quill"], css:["quill"], site:"https://quilljs.com/" },
 
-{ k:"marked", n:"marked", pkg:"marked", ver:"18.0.7", pub:"2026-07-21", lic:"MIT", kb:39, cat:"editor", st:5,
+{ k:"marked", n:"marked", pkg:"marked", ver:"18.0.7", vend:"15.0.7", pub:"2026-07-21", lic:"MIT", kb:39, cat:"editor", st:5,
   c:"n y y n n a y y",
   what:"The fast, small Markdown compiler. Text in, HTML out, with a hookable renderer.",
   pro:"Very fast, CommonMark and GFM compliant, and the extension API is simple",
@@ -838,7 +838,7 @@ window.LIBS = [
   rnNote:"Yes — @floating-ui/react-native is an official package.",
   js:["floatingui-core","floatingui"], site:"https://floating-ui.com/" },
 
-{ k:"swiper", n:"Swiper", pkg:"swiper", ver:"14.0.7", pub:"2026-07-28", lic:"MIT", kb:150, cat:"ui", st:5,
+{ k:"swiper", n:"Swiper", pkg:"swiper", ver:"14.0.7", vend:"11.2.6", pub:"2026-07-28", lic:"MIT", kb:150, cat:"ui", st:5,
   c:"y n n y y y n y",
   what:"The touch slider that ships in a large share of the world's mobile web. Carousels, coverflow, parallax, virtual slides.",
   pro:"Touch physics that feel native, plus every carousel mode you could want",
@@ -893,7 +893,7 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript. Time zones need the Intl API, which Hermes now supports.",
   js:["dayjs","dayjs-rel","dayjs-dur","dayjs-utc","dayjs-tz","dayjs-adv"], site:"https://day.js.org/" },
 
-{ k:"zod", n:"Zod", pkg:"zod", ver:"4.4.3", pub:"2026-05-04", lic:"MIT", kb:173, cat:"data", st:5,
+{ k:"zod", n:"Zod", pkg:"zod", ver:"4.4.3", vend:"3.24.2", pub:"2026-05-04", lic:"MIT", kb:173, cat:"data", st:5,
   c:"n y a n y a y y",
   what:"Schema validation where the TypeScript type is inferred from the schema — one definition, not two.",
   pro:"Static types and runtime checks stay in sync by construction",
@@ -921,7 +921,7 @@ window.LIBS = [
   rnNote:"Yes — pure maths, no DOM.",
   js:["chroma"], site:"https://gka.github.io/chroma.js/" },
 
-{ k:"mathjs", n:"math.js", pkg:"mathjs", ver:"15.2.0", pub:"2026-04-07", lic:"Apache-2.0", kb:668, cat:"util", st:4,
+{ k:"mathjs", n:"math.js", pkg:"mathjs", ver:"15.2.0", vend:"14.3.1", pub:"2026-04-07", lic:"Apache-2.0", kb:668, cat:"util", st:4,
   c:"n y a n n a y y",
   what:"An extensive maths library with an expression parser, matrices, complex numbers, units and symbolic derivatives.",
   pro:"Parses and evaluates human-written expressions, units included",
@@ -995,11 +995,11 @@ window.LIBS = [
   rnNote:"Web Audio does not exist on device; react-native-audio-api is the emerging port.",
   js:["tone"], site:"https://tonejs.github.io/" },
 
-{ k:"cropper", n:"Cropper.js", pkg:"cropperjs", ver:"2.1.1", pub:"2026-04-06", lic:"MIT", kb:36, cat:"media", st:4,
+{ k:"cropper", n:"Cropper.js", pkg:"cropperjs", ver:"2.1.1", vend:"1.6.2", pub:"2026-04-06", lic:"MIT", kb:36, cat:"media", st:4,
   c:"y n n y n y n y",
   what:"The image cropper: aspect ratios, rotation, zoom, and a canvas of exactly the region selected.",
   pro:"Everything an avatar or banner cropper needs, working on touch",
-  con:"v2 is a full rewrite to custom elements — v1 examples do not apply",
+  con:"v2 is a ground-up rewrite to custom elements, so v1 and v2 examples are not interchangeable",
   try:"Drag and resize the crop box, lock an aspect ratio, and rotate. The preview on the right is the real cropped canvas.",
   rnNote:"Web only; on native use expo-image-manipulator.",
   js:["cropper"], css:["cropper"], site:"https://fengyuanchen.github.io/cropperjs/" },
@@ -1013,7 +1013,7 @@ window.LIBS = [
   rnNote:"react-native-signature-canvas wraps this in a WebView; perfect-freehand is the pure-native route.",
   js:["signaturepad"], site:"https://github.com/szimek/signature_pad" },
 
-{ k:"xterm", n:"xterm.js", pkg:"@xterm/xterm", ver:"6.0.0", pub:"2025-12-22", lic:"MIT", kb:283, cat:"media", st:5,
+{ k:"xterm", n:"xterm.js", pkg:"@xterm/xterm", ver:"6.0.0", vend:"5.5.0", pub:"2025-12-22", lic:"MIT", kb:283, cat:"media", st:5,
   c:"y n y y n y n y",
   what:"The terminal emulator inside VS Code. Full xterm escape sequence support, GPU-accelerated rendering.",
   pro:"It is a real terminal — colours, cursor control, mouse tracking, the lot",

@@ -20,10 +20,17 @@ const server = http.createServer((req, res) => {
   if (p === '/') p = '/index.html';
   const f = path.join(ROOT, p);
   if (!f.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
-  fs.readFile(f, (e, d) => {
-    if (e) { res.writeHead(404); return res.end('not found'); }
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(f)] || 'application/octet-stream' });
-    res.end(d);
+  fs.stat(f, (e, st) => {
+    if (e || !st.isFile()) { res.writeHead(404); return res.end('not found'); }
+    res.writeHead(200, {
+      'Content-Type': MIME[path.extname(f)] || 'application/octet-stream',
+      'Content-Length': st.size
+    });
+    /* Streaming matters here: several vendor bundles are multi-megabyte and
+       buffering them all at once resets sockets under load. */
+    const stream = fs.createReadStream(f);
+    stream.on('error', () => res.destroy());
+    stream.pipe(res);
   });
 });
 const PORT = 8123;
@@ -57,8 +64,12 @@ page.on('console', m => {
   }
 });
 
-const bad = [];
-for (const l of libs) {
+/* The local static server occasionally resets a socket while streaming one
+   of the multi-megabyte bundles. That is a harness artefact, not a demo
+   failure, so a page whose only complaint is a network reset gets one retry. */
+const NET_ONLY = e => /ERR_CONNECTION_RESET|ERR_EMPTY_RESPONSE|net::ERR_FAILED/.test(e);
+
+async function attempt(l) {
   errors = [];
   await page.goto(`http://localhost:${PORT}/#/l/${l.k}`, { waitUntil: 'load' });
   await page.evaluate(k => { location.hash = '#/l/' + k; }, l.k);
@@ -87,12 +98,20 @@ for (const l of libs) {
     return Math.round(r.width) > 40 && Math.round(r.height) > 40 ? m.querySelectorAll('*').length + 1 : 0;
   });
 
-  const ok = state === 'ok' && painted > 0 && errors.length === 0;
-  if (!ok) bad.push({ k: l.k, n: l.n, state, painted, errors: errors.slice(0, 3) });
+  const errs = errors.slice(0, 3);
+  return { ok: state === 'ok' && painted > 0 && errs.length === 0, state, painted, errors: errs };
+}
+
+const bad = [];
+for (const l of libs) {
+  let r = await attempt(l);
+  if (!r.ok && r.errors.length && r.errors.every(NET_ONLY)) r = await attempt(l);
+
+  if (!r.ok) bad.push({ k: l.k, n: l.n, ...r });
   console.log(
-    (ok ? '  ok  ' : ' FAIL ') + l.k.padEnd(10) + l.n.padEnd(22) +
-    String(painted).padStart(5) + ' nodes  ' + (state === 'ok' ? '' : state) +
-    (errors.length ? '  ⟨' + errors.slice(0, 2).join(' | ') + '⟩' : '')
+    (r.ok ? '  ok  ' : ' FAIL ') + l.k.padEnd(10) + l.n.padEnd(22) +
+    String(r.painted).padStart(5) + ' nodes  ' + (r.state === 'ok' ? '' : r.state) +
+    (r.errors.length ? '  ⟨' + r.errors.slice(0, 2).join(' | ') + '⟩' : '')
   );
 
   if (shots) await page.screenshot({ path: `/tmp/fd-shots/${l.k}.png`, clip: { x: 0, y: 0, width: 1440, height: 950 } });

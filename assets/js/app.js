@@ -123,11 +123,25 @@ function destroyLive() {
   live.rafs.forEach(function (id) { cancelAnimationFrame(id); });
   live.timers.forEach(function (id) { clearInterval(id); clearTimeout(id); });
   live.listeners.forEach(function (l) { l[0].removeEventListener(l[1], l[2]); });
+  /* Browsers cap live WebGL contexts at around 16 and drop the oldest
+     silently. Anything a demo left behind gets released here, otherwise
+     the 3D pages start failing after enough navigation. */
+  if (live.mount) {
+    live.mount.querySelectorAll("canvas").forEach(function (cv) {
+      var gl = null;
+      try { gl = cv.getContext("webgl2") || cv.getContext("webgl"); } catch (e) {}
+      if (gl) {
+        var ext = gl.getExtension("WEBGL_lose_context");
+        if (ext) { try { ext.loseContext(); } catch (e) {} }
+      }
+      cv.width = cv.height = 0;
+    });
+  }
   live = null;
 }
 
 function makeCtx(lib, mount, bar, stage) {
-  var rec = { dead: false, destroyers: [], rafs: [], timers: [], listeners: [] };
+  var rec = { dead: false, destroyers: [], rafs: [], timers: [], listeners: [], mount: mount };
   live = rec;
 
   function ctl(label) {
@@ -463,6 +477,9 @@ function renderHome() {
        '<b class="mk n">✗</b> no path into a React Native app at all.</p></div>' +
        '<div class="card"><h4>Source</h4><p>Every page ends with the exact builder function that drew the stage — ' +
        'no elisions, no pseudo-code.</p></div>' +
+       '<div class="card"><h4>Versions</h4><p>The version badge is the latest release on npm. ' +
+       '<code>vendor/</code> holds a pinned browser build; where that build is an older major line, ' +
+       'the page says <b>running X here</b> and the demo is written against that API.</p></div>' +
        "</div>";
 
   h += "</div>";
@@ -566,8 +583,11 @@ function renderLib(k) {
        ' <span class="cp">copy</span></button></div>' +
        '<p class="lib-what">' + esc(l.what) + "</p>" +
        '<div class="facts">' +
-       '<span class="fact">v<b>' + esc(l.ver) + "</b></span>" +
+       '<span class="fact">npm <b>' + esc(l.ver) + "</b></span>" +
        '<span class="fact">published <b>' + esc(l.pub) + "</b></span>" +
+       (l.vend ? '<span class="fact warn" title="The browser build pinned in this repo is an older ' +
+                 'major line than npm latest, so the demo is written against that API.">running <b>' +
+                 esc(l.vend) + "</b> here</span>" : "") +
        '<span class="fact' + (licWarn ? " warn" : "") + '">' + esc(l.lic) + "</span>" +
        '<span class="fact">build here <b>' + (l.kb >= 1024 ? (l.kb / 1024).toFixed(1) + " MB" : l.kb + " KB") + "</b></span>" +
        '<span class="fact">' + esc(cat.name) + "</span>" +
