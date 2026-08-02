@@ -41,6 +41,9 @@ const browser = await chromium.launch({
   args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--use-gl=angle']
 });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, locale: 'en-US', timezoneId: 'UTC' });
+/* Playwright's screenshot waits for the page to be visually stable, which a
+   demo driving requestAnimationFrame forever never is. Go straight to CDP. */
+const cdp = await page.context().newCDPSession(page);
 
 /* How much of the stage is not just flat background, and how varied is it. */
 function analyse(buf) {
@@ -103,15 +106,28 @@ for (const l of libs) {
   const stage = await page.$('#stage');
   let a = { ink: 0, colours: 0, spanX: 0, spanY: 0 };
   if (stage) {
+    /* Several demos animate forever. `animations: disabled` tries to settle
+       CSS animations and times out on rAF loops, so fall back to a plain
+       grab rather than reporting a blank stage. */
+    const box = await stage.boundingBox();
+    let buf = null;
     try {
-      /* Several demos animate forever, so never wait for the element
-         to go still — clip to its box instead. */
-      const box = await stage.boundingBox();
-      const buf = await page.screenshot({ clip: box, animations: 'disabled', timeout: 15000 });
+      /* A plain viewport grab never waits for the page to go still, which
+         a rAF-driven demo never does. Crop to the stage afterwards. */
+      const shot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+      const full = PNG.sync.read(Buffer.from(shot.data, 'base64'));
+      const x0 = Math.max(0, Math.round(box.x)), y0 = Math.max(0, Math.round(box.y));
+      const w = Math.min(full.width - x0, Math.round(box.width));
+      const h = Math.min(full.height - y0, Math.round(box.height));
+      const crop = new PNG({ width: w, height: h });
+      PNG.bitblt(full, crop, x0, y0, w, h, 0, 0);
+      buf = PNG.sync.write(crop);
+    } catch (e) {
+      console.log('   (could not screenshot ' + l.k + ': ' + e.message.split('\n')[0].slice(0, 50) + ')');
+    }
+    if (buf) {
       fs.writeFileSync(`/tmp/fd-audit/${l.k}.png`, buf);
       a = analyse(buf);
-    } catch (e) {
-      console.log('   (screenshot failed for ' + l.k + ': ' + e.message.split('\n')[0].slice(0, 60) + ')');
     }
   }
 

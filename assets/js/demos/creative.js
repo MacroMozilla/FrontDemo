@@ -395,20 +395,47 @@ B.pf = async function (ctx) {
     points = null; path = null;
   });
 
-  /* Seed one stroke so the panel is never empty on arrival. */
+  /* Arrive with handwriting already on the pad, so the effect of the
+     thinning and streamline sliders is visible without drawing first. */
   (function seed() {
-    var pts = [];
-    for (var i = 0; i <= 90; i++) {
-      var t = i / 90;
-      pts.push([70 + t * (ctx.el.clientWidth - 160),
-                ctx.el.clientHeight / 2 + Math.sin(t * Math.PI * 2.4) * 70,
-                .25 + Math.abs(Math.sin(t * Math.PI * 2)) * .75]);
-    }
-    var el = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    el.setAttribute("fill", ctx.series(colour++ % 8));
-    svg.appendChild(el);
-    render(el, pts);
-    strokes.push({ pts: pts, el: el });
+    var W = ctx.el.clientWidth, H = ctx.el.clientHeight;
+    var scale = Math.min(W / 460, H / 300);
+    var ox = (W - 322 * scale) / 2, oy = H / 2 - 30 * scale;
+
+    /* Each entry is a stroke: a list of [x, y] control points that get
+       sampled into a pressure-varying path. */
+    var letters = [
+      [[10, -60], [10, 60]], [[10, 6], [46, 0], [56, 20], [56, 60]],                          /* h */
+      [[92, -6], [120, -14], [134, 6], [124, 22], [96, 26], [100, 46], [126, 52], [140, 40]], /* e */
+      [[170, -60], [170, 60]],                                                                /* l */
+      [[200, -60], [200, 60]],                                                                /* l */
+      [[248, 4], [232, 20], [238, 46], [262, 54], [282, 38], [280, 12], [258, 0], [242, 6]],  /* o */
+      /* an underline flourish, drawn as one fast stroke */
+      [[6, 96], [90, 88], [180, 100], [270, 84], [316, 96]]
+    ];
+    letters.forEach(function (ctrl, li) {
+      var pts = [];
+      /* Catmull-rom-ish resample so the strokes read as handwriting. */
+      var steps = Math.max(18, ctrl.length * 14);
+      for (var i = 0; i <= steps; i++) {
+        var t = (i / steps) * (ctrl.length - 1);
+        var i0 = Math.min(ctrl.length - 1, Math.floor(t));
+        var i1 = Math.min(ctrl.length - 1, i0 + 1);
+        var f = t - i0;
+        var x = ctrl[i0][0] + (ctrl[i1][0] - ctrl[i0][0]) * f;
+        var y = ctrl[i0][1] + (ctrl[i1][1] - ctrl[i0][1]) * f;
+        /* Fast in the middle of a stroke, slow at the ends — which is what
+           makes the width vary the way real handwriting does. */
+        var speed = Math.sin((i / steps) * Math.PI);
+        pts.push([ox + x * scale, oy + y * scale, .35 + speed * .6]);
+      }
+      var el = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      el.setAttribute("fill", li === letters.length - 1 ? ctx.series(3) : ctx.series(0));
+      svg.appendChild(el);
+      render(el, pts);
+      strokes.push({ pts: pts, el: el });
+    });
+    colour = 1;
   })();
 
   function reflow() { strokes.forEach(function (s) { render(s.el, s.pts); }); }

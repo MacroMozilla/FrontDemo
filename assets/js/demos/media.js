@@ -495,8 +495,12 @@ B.xterm = async function (ctx) {
     }
   });
 
+  /* Arrive with something on screen — an empty prompt shows nothing off. */
   write("\x1b[1mxterm.js\x1b[0m — the terminal emulator inside VS Code.\r\n");
-  write("Type \x1b[1mhelp\x1b[0m to see what this little shell understands.\r\n");
+  COMMANDS.neofetch();
+  write("\r\n\x1b[38;5;244m256-colour palette:\x1b[0m");
+  COMMANDS.colors();
+  write("\r\nType \x1b[1mhelp\x1b[0m for the rest. Arrow keys walk the history.\r\n");
   write(PROMPT);
 
   var out = ctx.readout("<b>" + term.cols + " × " + term.rows + "</b> character cells · full ANSI colour and cursor control");

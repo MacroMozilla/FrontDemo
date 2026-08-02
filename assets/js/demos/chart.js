@@ -645,6 +645,7 @@ B.uplot = async function (ctx) {
 
 /* ------------------------------------------------------------ webgl-plot */
 B.wgl = async function (ctx) {
+  var T = ctx.T;
   var W = window.webglplot;
 
   /* A raw canvas: asking for a 2d context first would lock out WebGL2. */
@@ -662,10 +663,21 @@ B.wgl = async function (ctx) {
   var plotter = plot.newThinLinePlotter();
   fit();
 
-  function rgb(hex) {
+  /* Clear to the stage colour instead of the default black. */
+  (function () {
+    var bg = T.stage.replace("#", "");
+    plot.gl.clearColor(parseInt(bg.slice(0, 2), 16) / 255,
+                       parseInt(bg.slice(2, 4), 16) / 255,
+                       parseInt(bg.slice(4, 6), 16) / 255, 1);
+  })();
+
+  /* Four components, not three: the plotter reads color[3] as the opacity
+     uniform, and an undefined alpha draws nothing at all. */
+  function rgba(hex, a) {
     return [parseInt(hex.slice(1, 3), 16) / 255,
             parseInt(hex.slice(3, 5), 16) / 255,
-            parseInt(hex.slice(5, 7), 16) / 255];
+            parseInt(hex.slice(5, 7), 16) / 255,
+            a == null ? 1 : a];
   }
 
   var POINTS = 2000, count = 3, buffers = [];
@@ -684,8 +696,9 @@ B.wgl = async function (ctx) {
       }
       configs.push({
         points: pts,
-        color: rgb(ctx.series(i % 8)),
-        offset: [0, n === 1 ? 0 : (i / (n - 1)) * 1.55 - .775],
+        color: rgba(ctx.series(i % 8)),
+        /* Lanes stay inside clip space once the wave amplitude is added. */
+        offset: [0, n === 1 ? 0 : (i / (n - 1)) * 1.2 - .6],
         scale: [1, 1]
       });
       buffers.push(new Float32Array(POINTS));
@@ -694,13 +707,13 @@ B.wgl = async function (ctx) {
   }
   rebuild(3);
 
-  var freq = .008, amp = .3, phase = 0, frames = 0, last = performance.now();
+  var freq = .008, amp = .16, phase = 0, frames = 0, last = performance.now();
   var out = ctx.readout("");
 
   ctx.raf(function () {
     phase += .045;
     for (var l = 0; l < count; l++) {
-      var ys = buffers[l], k = 1 + l * .37, spread = count === 1 ? 2.4 : 1;
+      var ys = buffers[l], k = 1 + l * .37, spread = count === 1 ? 2.6 : .9;
       for (var i = 0; i < POINTS; i++) {
         ys[i] = spread * amp * (Math.sin(i * freq * k + phase + l) +
                                 .32 * Math.sin(i * freq * 3.1 * k - phase * 1.7));
@@ -722,7 +735,7 @@ B.wgl = async function (ctx) {
   ctx.select("traces", ["1", "3", "8", "24"], function (v) { rebuild(+v); }, "3");
   ctx.range("frequency", { min: 1, max: 40, value: 8, fmt: function (v) { return (v / 1000).toFixed(3); } },
             function (v) { freq = v / 1000; });
-  ctx.range("amplitude", { min: 5, max: 60, value: 30, fmt: function (v) { return (v / 100).toFixed(2); } },
+  ctx.range("amplitude", { min: 5, max: 30, value: 16, fmt: function (v) { return (v / 100).toFixed(2); } },
             function (v) { amp = v / 100; });
 
   ctx.onResize(fit);

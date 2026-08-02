@@ -198,11 +198,14 @@ B.wd = async function (ctx) {
     }
   };
 
+  /* WaveDrom looks up `prefix + index`, and the entry point is
+     RenderWaveForm with a capital R. */
   var n = 0;
   var s = split(ctx, JSON.stringify(samples["SPI transfer"], null, 2), function (text, out) {
     var obj = JSON.parse(text);
-    out.innerHTML = '<div id="wd-host-' + (++n) + '"></div>';
-    WaveDrom.renderWaveForm(0, obj, "wd-host-" + n);
+    var id = "wd-out-" + (++n);
+    out.innerHTML = '<div id="' + id + '0"></div>';
+    WaveDrom.RenderWaveForm(0, obj, id);
   }, "digital timing diagrams — that JSON is the entire input");
 
   ctx.select("sample", Object.keys(samples), function (v) {

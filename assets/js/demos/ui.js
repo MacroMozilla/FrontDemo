@@ -154,7 +154,7 @@ B.floating = async function (ctx) {
   ctx.el.appendChild(scroller);
 
   var inner = ctx.mk("div");
-  inner.style.cssText = "width:1500px;height:1100px;position:relative";
+  inner.style.cssText = "width:1500px;height:900px;position:relative";
   scroller.appendChild(inner);
 
   var hint = ctx.mk("p", "demo-note");
@@ -178,8 +178,10 @@ B.floating = async function (ctx) {
 
   var placement = "top", out = ctx.readout("hover any button");
 
-  var spots = [[80, 120], [660, 90], [1290, 200], [120, 560], [700, 620], [1300, 700],
-               [90, 1000], [680, 1030], [1280, 1010]];
+  /* Clustered near the top-left so several are visible without scrolling,
+     with outliers to scroll towards for the flip/shift behaviour. */
+  var spots = [[40, 110], [300, 150], [560, 110], [180, 300], [430, 330], [660, 260],
+               [40, 470], [330, 500], [620, 460], [1280, 120], [1330, 700], [60, 820]];
   spots.forEach(function (pos, i) {
     var btn = ctx.mk("button");
     btn.type = "button";
