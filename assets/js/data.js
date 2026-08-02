@@ -199,7 +199,7 @@ window.LIBS = [
   con:"You need graphology alongside it; sigma alone does nothing",
   try:"300 nodes here — the same code handles 30,000. Drag and zoom to feel the WebGL path.",
   rnNote:"Web only; WebView on native.",
-  js:["sigma"], site:"https://www.sigmajs.org/" },
+  js:["sigma","d3"], site:"https://www.sigmajs.org/" },
 
 { k:"fg3", n:"3d-force-graph", pkg:"3d-force-graph", ver:"1.80.0", pub:"2026-04-05", lic:"MIT", kb:1283, cat:"graph", st:3,
   c:"y y y y p y p y",
@@ -265,7 +265,7 @@ window.LIBS = [
   rnNote:"Web only. react-native-plotly runs it inside a WebView.",
   js:["plotly"], site:"https://plotly.com/javascript/" },
 
-{ k:"rc", n:"Recharts", pkg:"recharts", ver:"3.10.1", pub:"2026-07-25", lic:"MIT", kb:767, cat:"chart", st:4,
+{ k:"rc", n:"Recharts", pkg:"recharts", ver:"3.10.1", pub:"2026-07-25", lic:"MIT", kb:766, cat:"chart", st:4,
   c:"p y n n y y p y",
   what:"Charts as JSX. Every axis, bar and tooltip is a React component in your tree.",
   pro:"Composes and themes like the rest of your React app",
@@ -475,7 +475,7 @@ window.LIBS = [
   con:"Very large, and it wants to own its area of the page",
   try:"Pick a tool on the left and draw. The wobble comes from Rough.js running live.",
   rnNote:"Web only; WebView on native.",
-  js:["excalidraw"], site:"https://excalidraw.com/" },
+  js:["react","reactdom","excalidraw"], site:"https://excalidraw.com/" },
 
 { k:"pf", n:"perfect-freehand", pkg:"perfect-freehand", ver:"1.2.3", pub:"2026-02-01", lic:"MIT", kb:5, cat:"board", st:5,
   c:"y n n n n y y y",
@@ -672,7 +672,7 @@ window.LIBS = [
   js:["jsgantt"], site:"https://github.com/jsGanttImproved/jsgantt-improved" },
 
 /* ---------------- Mind maps ---------------- */
-{ k:"me", n:"Mind Elixir", pkg:"mind-elixir", ver:"5.14.0", pub:"2026-07-12", lic:"MIT", kb:114, cat:"mind", st:4,
+{ k:"me", n:"Mind Elixir", pkg:"mind-elixir", ver:"5.14.0", pub:"2026-07-12", lic:"MIT", kb:88, cat:"mind", st:4,
   c:"y y n n p y p y",
   what:"A drop-in mind map editor: editable nodes, drag to re-parent, keyboard shortcuts, undo.",
   pro:"A working editor in one call, not a rendering toolkit",

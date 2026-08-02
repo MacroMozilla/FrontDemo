@@ -40,8 +40,12 @@ const libs = win.LIBS.filter(l => !only.length || only.includes(l.k));
 
 if (shots) fs.mkdirSync('/tmp/fd-shots', { recursive: true });
 
-const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader', '--use-gl=swiftshader'] });
-const page = await browser.newPage({ viewport: { width: 1440, height: 950 } });
+const browser = await chromium.launch({
+  args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--use-gl=angle',
+         '--enable-webgl', '--ignore-gpu-blocklist']
+});
+/* The container reports en-US@posix, which Intl rejects — pin a real locale. */
+const page = await browser.newPage({ viewport: { width: 1440, height: 950 }, locale: 'en-US', timezoneId: 'UTC' });
 
 let errors = [];
 page.on('pageerror', e => errors.push('pageerror: ' + e.message.split('\n')[0].slice(0, 160)));

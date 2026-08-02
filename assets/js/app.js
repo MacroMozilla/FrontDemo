@@ -174,11 +174,14 @@ function makeCtx(lib, mount, bar, stage) {
       return t;
     },
 
-    /** A canvas sized to its parent, with device-pixel-ratio handled. */
+    /** A canvas sized to its parent, with device-pixel-ratio handled.
+        onResize fires on later resizes only — draw once yourself after
+        this returns, when your own state is set up. */
     canvas: function (parent, onResize) {
       var cv = el("canvas", "demo-canvas");
       (parent || mount).appendChild(cv);
       var g = cv.getContext("2d");
+      var first = true;
       function fit() {
         var r = cv.parentNode.getBoundingClientRect();
         var dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -187,7 +190,8 @@ function makeCtx(lib, mount, bar, stage) {
         cv.style.width = r.width + "px";
         cv.style.height = r.height + "px";
         g.setTransform(dpr, 0, 0, dpr, 0, 0);
-        if (onResize) onResize(r.width, r.height);
+        if (onResize && !first) onResize(r.width, r.height);
+        first = false;
       }
       fit();
       ctx.onResize(fit);
