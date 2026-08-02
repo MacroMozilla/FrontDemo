@@ -6,7 +6,7 @@
 
 ## 在线看
 
-启用 GitHub Pages 后地址是 <https://OWNER.github.io/FrontDemo/>
+启用 GitHub Pages 后地址是 <https://macromozilla.github.io/FrontDemo/>
 
 ## 收录判据
 
