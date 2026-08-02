@@ -260,6 +260,87 @@ B.vl = async function (ctx) {
   }
   render(spec);
   ctx.onDestroy(function () { if (view) view.finalize(); });
+
+  /* Swapping the whole spec is the point of a grammar: the same 120 rows
+     become a different chart because the description changed, not the code. */
+  var DATA = spec.data;
+  var PRESETS = {
+    "line + linked bars": spec,
+    "scatter with regression": {
+      $schema: spec.$schema, data: DATA, width: 430, height: 320,
+      layer: [
+        { mark: { type: "point", filled: true, size: 46, opacity: 0.7 },
+          encoding: {
+            x: { field: "day", type: "quantitative" },
+            y: { field: "value", type: "quantitative" },
+            color: { field: "channel", type: "nominal" } } },
+        { transform: [{ regression: "value", on: "day", groupby: ["channel"] }],
+          mark: { type: "line", strokeWidth: 2.4 },
+          encoding: {
+            x: { field: "day", type: "quantitative" },
+            y: { field: "value", type: "quantitative" },
+            color: { field: "channel", type: "nominal" } } }
+      ]
+    },
+    "binned heatmap": {
+      $schema: spec.$schema, data: DATA, width: 430, height: 300,
+      mark: "rect",
+      encoding: {
+        x: { field: "day", type: "quantitative", bin: { maxbins: 20 } },
+        y: { field: "channel", type: "nominal", title: null },
+        color: { aggregate: "mean", field: "value", type: "quantitative",
+                 scale: { scheme: "viridis" }, title: "mean" }
+      }
+    },
+    "histogram, faceted": {
+      $schema: spec.$schema, data: DATA, width: 130, height: 220,
+      mark: { type: "bar", cornerRadiusEnd: 3 },
+      encoding: {
+        x: { field: "value", type: "quantitative", bin: { maxbins: 12 } },
+        y: { aggregate: "count", type: "quantitative" },
+        color: { field: "channel", type: "nominal", legend: null },
+        column: { field: "channel", type: "nominal", title: null }
+      }
+    },
+    "box plot": {
+      $schema: spec.$schema, data: DATA, width: 430, height: 280,
+      mark: { type: "boxplot", extent: "min-max" },
+      encoding: {
+        x: { field: "channel", type: "nominal", title: null },
+        y: { field: "value", type: "quantitative" },
+        color: { field: "channel", type: "nominal", legend: null }
+      }
+    },
+    "cumulative area": {
+      $schema: spec.$schema, data: DATA, width: 430, height: 300,
+      transform: [{ sort: [{ field: "day" }], window: [{ op: "sum", field: "value", as: "total" }],
+                    groupby: ["channel"] }],
+      mark: { type: "area", line: true, opacity: 0.55 },
+      encoding: {
+        x: { field: "day", type: "quantitative", title: null },
+        y: { field: "total", type: "quantitative", stack: "zero", title: "cumulative" },
+        color: { field: "channel", type: "nominal" }
+      }
+    }
+  };
+
+  ctx.select("spec", Object.keys(PRESETS), function (v) {
+    var next = PRESETS[v];
+    editor.value = JSON.stringify(next, null, 2);
+    render(next);
+    out("rendering <b>" + ctx.esc(v) + "</b> — " + JSON.stringify(next).length + " characters of JSON");
+  }, "line + linked bars");
+  ctx.btn("Reset", function () {
+    editor.value = JSON.stringify(spec, null, 2);
+    render(spec);
+    out("brush the top chart — the bars below follow");
+  }, true);
+  ctx.btn("Count the spec", function () {
+    var txt = editor.value;
+    out("<b>" + txt.split("\n").length + "</b> lines of JSON · <b>" +
+      (txt.match(/"mark"|"layer"|"transform"|"encoding"/g) || []).length +
+      "</b> grammar keys · zero lines of drawing code");
+  });
 };
 
 /* ------------------------------------------------------------------ Vega */
@@ -324,12 +405,77 @@ B.vg = async function (ctx) {
   }
   render(spec);
 
-  ctx.editor(p.a, JSON.stringify(spec, null, 2), function (text) {
+  var editor = ctx.editor(p.a, JSON.stringify(spec, null, 2), function (text) {
     try { render(JSON.parse(text)); out("spec applied"); }
     catch (e) { out('<span style="color:' + T.bad + '">' + e.message.slice(0, 60) + "</span>"); }
   });
   var out = ctx.readout("the whole chart — scales, marks, the hover signal — is that one JSON document");
   ctx.onDestroy(function () { if (view) view.finalize(); });
+
+  /* Every control below edits the spec and re-parses it. Nothing reaches
+     into the rendered view, because in Vega the spec is the program. */
+  function edit(fn) {
+    var next = JSON.parse(JSON.stringify(spec));
+    fn(next);
+    editor.value = JSON.stringify(next, null, 2);
+    render(next);
+    return next;
+  }
+
+  ctx.select("mark", ["rect", "symbol", "line", "area"], function (v) {
+    edit(function (s2) {
+      s2.marks[0].type = v;
+      var enc = s2.marks[0].encode.enter;
+      if (v === "rect") {
+        s2.marks[0].encode.enter = {
+          x: { scale: "x", field: "c" }, width: { scale: "x", band: 1 },
+          y: { scale: "y", field: "v" }, y2: { scale: "y", value: 0 },
+          cornerRadiusTopLeft: { value: 4 }, cornerRadiusTopRight: { value: 4 }
+        };
+      } else {
+        s2.marks[0].encode.enter = {
+          x: { scale: "x", field: "c", band: 0.5 },
+          y: { scale: "y", field: "v" },
+          size: { value: 220 }, strokeWidth: { value: 2.5 },
+          stroke: { scale: "col", field: "c" }
+        };
+        if (v === "area") s2.marks[0].encode.enter.y2 = { scale: "y", value: 0 };
+      }
+    });
+    out("mark type is now <code>" + v + "</code> — one property in the spec");
+  }, "rect");
+
+  ctx.select("y scale", ["linear", "sqrt", "log", "pow"], function (v) {
+    edit(function (s2) {
+      s2.scales[1].type = v;
+      if (v === "log") s2.scales[1].domain = { data: "table", field: "v" };
+      if (v === "pow") s2.scales[1].exponent = 0.5;
+    });
+    out("y scale is <code>" + v + "</code>");
+  }, "linear");
+
+  ctx.select("palette", ["theme series", "blues", "warm", "greys"], function (v) {
+    var RANGES = {
+      "theme series": T.series,
+      blues: ["#0d4a8f", "#1d69c0", "#3d8ae0", "#69a9ee", "#a3c9f5"],
+      warm: ["#8c2d04", "#cc4c02", "#ec7014", "#fe9929", "#fec44f"],
+      greys: ["#3b4252", "#55606f", "#71808f", "#93a1af", "#b8c2cd"]
+    };
+    edit(function (s2) { s2.scales[2].range = RANGES[v]; });
+    out("ordinal colour range swapped");
+  }, "theme series");
+
+  ctx.btn("New numbers", function () {
+    edit(function (s2) {
+      s2.data[0].values.forEach(function (d) { d.v = Math.round(8 + Math.random() * 60); });
+    });
+    out("the data array changed — the same spec redrew itself");
+  }, true);
+  ctx.btn("Reset", function () {
+    editor.value = JSON.stringify(spec, null, 2);
+    render(spec);
+    out("the whole chart — scales, marks, the hover signal — is that one JSON document");
+  });
 };
 
 /* ------------------------------------------------------- Observable Plot */

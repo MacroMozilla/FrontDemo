@@ -27,7 +27,7 @@ const server = http.createServer((req, res) => {
     fs.createReadStream(f).pipe(res).on('error', () => res.destroy());
   });
 });
-const PORT = 8155;
+const PORT = Number(process.env.FD_PORT || 8155);
 await new Promise(r => server.listen(PORT, r));
 
 const win = {};

@@ -373,7 +373,31 @@ B.rc = async function (ctx) {
     return { month: m, plan: s[i], actual: Math.round(s[i] * (.8 + (i % 4) * .1) * 10) / 10 };
   });
 
+  /* The toolbar lives outside React, so the chart publishes a setter here
+     and every control is really just a prop change. */
+  var api = {};
+
   function App() {
+    var st = React.useState({ curve: "monotone", stacked: false, target: 60, showBrush: true, kind: "combo" });
+    var s = st[0];
+    api.set = function (patch) { st[1](Object.assign({}, s, patch)); };
+
+    var marks = [];
+    if (s.kind !== "line only") {
+      marks.push(h(R.Bar, { key: "plan", dataKey: "plan", fill: ctx.series(0),
+        radius: [4, 4, 0, 0], barSize: 18, stackId: s.stacked ? "a" : undefined }));
+    }
+    if (s.kind === "stacked bars") {
+      marks.push(h(R.Bar, { key: "actualBar", dataKey: "actual", fill: ctx.series(1),
+        radius: [4, 4, 0, 0], barSize: 18, stackId: "a" }));
+    } else if (s.kind === "area") {
+      marks.push(h(R.Area, { key: "actualArea", type: s.curve, dataKey: "actual",
+        stroke: ctx.series(1), fill: ctx.series(1), fillOpacity: 0.22, strokeWidth: 2.4 }));
+    } else {
+      marks.push(h(R.Line, { key: "actual", type: s.curve, dataKey: "actual",
+        stroke: ctx.series(1), strokeWidth: 2.4, dot: { r: 3, fill: ctx.series(1) } }));
+    }
+
     return h(R.ResponsiveContainer, { width: "100%", height: "100%" },
       h(R.ComposedChart, { data: data, margin: { top: 20, right: 24, left: 4, bottom: 8 } },
         h(R.CartesianGrid, { stroke: T.grid, strokeDasharray: "3 3" }),
@@ -384,12 +408,12 @@ B.rc = async function (ctx) {
           labelStyle: { color: T.ink }, itemStyle: { color: T.ink2 }
         }),
         h(R.Legend, { wrapperStyle: { fontSize: 12, color: T.ink2 } }),
-        h(R.ReferenceLine, { y: 60, stroke: ctx.series(3), strokeDasharray: "4 4",
-                             label: { value: "target", fill: ctx.series(3), fontSize: 10, position: "right" } }),
-        h(R.Bar, { dataKey: "plan", fill: ctx.series(0), radius: [4, 4, 0, 0], barSize: 18 }),
-        h(R.Line, { type: "monotone", dataKey: "actual", stroke: ctx.series(1), strokeWidth: 2.4,
-                    dot: { r: 3, fill: ctx.series(1) } }),
-        h(R.Brush, { dataKey: "month", height: 22, stroke: T.line2, fill: T.sunk, travellerWidth: 8 })
+        h(R.ReferenceLine, { y: s.target, stroke: ctx.series(3), strokeDasharray: "4 4",
+                             label: { value: "target " + s.target, fill: ctx.series(3),
+                                      fontSize: 10, position: "right" } }),
+        marks,
+        s.showBrush && h(R.Brush, { key: "brush", dataKey: "month", height: 22,
+          stroke: T.line2, fill: T.sunk, travellerWidth: 8 })
       ));
   }
 
@@ -398,7 +422,16 @@ B.rc = async function (ctx) {
   ctx.onDestroy(function () { root.unmount(); });
 
   ctx.el.style.padding = "10px";
-  ctx.readout("every axis, bar and the brush below are React components in one JSX tree");
+
+  ctx.select("marks", ["combo", "stacked bars", "area", "line only"], function (v) {
+    api.set({ kind: v, stacked: v === "stacked bars" });
+  }, "combo");
+  ctx.select("curve", ["monotone", "linear", "step", "basis", "natural"], function (v) {
+    api.set({ curve: v });
+  }, "monotone");
+  ctx.range("target line", { min: 20, max: 90, value: 60 }, function (v) { api.set({ target: v }); });
+  ctx.check("brush", true, function (v) { api.set({ showBrush: v }); });
+  ctx.readout("every axis, mark and the brush below is a React component — the toolbar only changes props");
 };
 
 /* -------------------------------------------------------------- Chartist */
