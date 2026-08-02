@@ -71,6 +71,8 @@ assets/fragments/*.html     HTML fragments the htmx demo fetches
 vendor/*.js                 pinned browser builds of every library
 scripts/check.mjs           static checks, run in CI before each deploy
 scripts/verify.mjs          drives all 102 pages in headless Chromium
+scripts/probe.mjs           prints what global a vendor build exposes
+scripts/shot.mjs            screenshots one route in either theme
 ```
 
 ## Adding a library
