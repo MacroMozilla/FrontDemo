@@ -171,10 +171,12 @@ B.localforage = async function (ctx) {
   ctx.tall();
 
   var host = ctx.mk("div");
-  host.innerHTML = '<p class="demo-h">One async API over three storage engines</p>' +
-    '<p class="demo-p">Same four lines of code, three different backends. localStorage can only hold ' +
-    "strings, so the Blob and the typed array go in as <code>[object Object]</code> there — the other " +
-    "two drivers store them intact.</p>";
+  host.innerHTML = '<p class="demo-h">One async API over whichever engine is available</p>' +
+    '<p class="demo-p">Same four lines of code, two different backends — and the surprise is that ' +
+    "they behave almost identically. localStorage can only hold strings, but localForage serialises " +
+    "Blobs and typed arrays into one before writing and reconstructs them on the way out, so only " +
+    "<code>Date</code> loses its type. What you actually trade is speed and capacity, measured on " +
+    "the right.</p>";
   ctx.el.appendChild(host);
 
   var p = ctx.mk("div", "demo-cols");
@@ -188,7 +190,8 @@ B.localforage = async function (ctx) {
   resCard.appendChild(resHost);
 
   var benchCard = card(ctx, colB, "WRITE THROUGHPUT",
-    "200 sequential setItem calls per driver, on this machine, right now.");
+    "200 sequential setItem calls per driver, on this machine, right now. localStorage is " +
+    "synchronous and wins on small values; IndexedDB is the one that survives a 40 MB blob.");
   var benchHost = ctx.mk("div");
   benchCard.appendChild(benchHost);
 
@@ -235,6 +238,7 @@ B.localforage = async function (ctx) {
       var store = localforage.createInstance({
         name: "fd-demo", storeName: "probe" + d, driver: DRIVERS[d].id
       });
+      await store.ready();
       var active = store.driver();
       for (var i = 0; i < VALUES.length; i++) {
         var v = VALUES[i].make();
@@ -247,7 +251,7 @@ B.localforage = async function (ctx) {
           '<td style="color:' + (ok ? T.yes : T.bad) + ';font-weight:700">' +
           (ok ? "intact" : "changed") + "</td></tr>");
       }
-      say("driver in use: <b>" + ctx.esc(active) + "</b>");
+      say("driver in use: <b>" + ctx.esc(String(active)) + "</b>");
     }
     resHost.innerHTML = '<table class="demo-tbl"><thead><tr><th>driver</th><th>value</th>' +
       "<th>read back as</th><th></th></tr></thead><tbody>" + rows.join("") + "</tbody></table>";
