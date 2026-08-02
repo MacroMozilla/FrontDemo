@@ -18,6 +18,7 @@ B.sortable = async function (ctx) {
   var board = ctx.mk("div", "demo-cols");
   ctx.el.appendChild(board);
 
+  var instances = [];
   var state = {};
   COLUMNS.forEach(function (col, ci) {
     state[col.id] = col.items.slice();
@@ -35,14 +36,14 @@ B.sortable = async function (ctx) {
     box.appendChild(list);
     board.appendChild(box);
 
-    new Sortable(list, {
+    instances.push(new Sortable(list, {
       group: "kanban",
       animation: 170,
       ghostClass: "sortable-ghost",
       chosenClass: "sortable-chosen",
       forceFallback: false,
       onEnd: report
-    });
+    }));
   });
 
   var style = ctx.mk("style");
@@ -68,7 +69,58 @@ B.sortable = async function (ctx) {
     out("order updated — this is the array you would persist");
   }
   report();
-  summary.textContent = summary.textContent;
+  ctx.onDestroy(function () { instances.forEach(function (i) { i.destroy(); }); });
+
+  /* Sortable's behaviour is almost entirely option-driven, so the toolbar
+     is the honest way to show what it does — every control below just sets
+     an option on the live instances. */
+  function setAll(key, value) {
+    instances.forEach(function (i) { i.option(key, value); });
+  }
+
+  ctx.range("animation", { min: 0, max: 600, step: 20, value: 170,
+    fmt: function (v) { return v + " ms"; } }, function (v) {
+    setAll("animation", v);
+    out("animation is <b>" + v + " ms</b> — 0 makes it snap");
+  });
+  ctx.range("swap threshold", { min: 0.2, max: 1, step: 0.05, value: 1,
+    fmt: function (v) { return v.toFixed(2); } }, function (v) {
+    setAll("swapThreshold", v);
+    out("a card now has to overlap <b>" + Math.round(v * 100) + "%</b> of its neighbour to displace it");
+  });
+  ctx.check("sort within a column", true, function (v) {
+    setAll("sort", v);
+    out(v ? "reordering allowed inside a column"
+          : "reordering disabled — you can still drag <b>between</b> columns");
+  });
+  ctx.check("lock the Done column", false, function (v) {
+    var done = instances[instances.length - 1];
+    done.option("group", v ? { name: "kanban", pull: false, put: true } : "kanban");
+    out(v ? "cards can enter <b>Done</b> but not leave it" : "Done unlocked");
+  });
+  ctx.check("fallback (no HTML5 DnD)", false, function (v) {
+    setAll("forceFallback", v);
+    out(v ? "using the mouse-event fallback — the path mobile takes"
+          : "using the browser's native drag and drop");
+  });
+  ctx.btn("Shuffle every column", function () {
+    board.querySelectorAll("[data-col]").forEach(function (list) {
+      var kids = [].slice.call(list.children);
+      kids.sort(function () { return Math.random() - 0.5; });
+      kids.forEach(function (k) { list.appendChild(k); });
+    });
+    report();
+  }, true);
+  ctx.btn("Log the order", function () {
+    var order = {};
+    board.querySelectorAll("[data-col]").forEach(function (list) {
+      order[list.dataset.col] = [].map.call(list.children, function (c) {
+        return c.querySelector(".sub").textContent;
+      });
+    });
+    summary.textContent = JSON.stringify(order, null, 2);
+    out("that JSON is exactly what <code>toArray()</code> would give you");
+  });
 };
 
 /* ------------------------------------------------------------ interact.js */

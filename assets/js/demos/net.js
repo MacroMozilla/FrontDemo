@@ -348,8 +348,44 @@ B.tantable = async function (ctx) {
   }
   render();
 
-  host.querySelector("#tt-filter").addEventListener("input", function () {
+  var filterInput = host.querySelector("#tt-filter");
+  filterInput.addEventListener("input", function () {
     table.setGlobalFilter(this.value);
+  });
+
+  /* Everything below is a state change on the headless instance. There is
+     no table widget to configure — the render() above is the entire view. */
+  ctx.select("page size", ["5", "10", "25", "50"], function (v) {
+    table.setPageSize(+v);
+  }, "10");
+  ctx.select("sort", [
+    { v: "", t: "none" },
+    { v: "points:desc", t: "points ↓" },
+    { v: "points:asc", t: "points ↑" },
+    { v: "cost:desc", t: "cost ↓" },
+    { v: "name:asc", t: "name A→Z" }
+  ], function (v) {
+    if (!v) { table.resetSorting(); return; }
+    var parts = v.split(":");
+    table.setSorting([{ id: parts[0], desc: parts[1] === "desc" }]);
+  }, "");
+  ctx.select("hide a column", [{ v: "", t: "none" }].concat(
+    table.getAllLeafColumns().map(function (c) { return { v: c.id, t: c.id }; })
+  ), function (v) {
+    var vis = {};
+    table.getAllLeafColumns().forEach(function (c) { vis[c.id] = c.id !== v; });
+    table.setColumnVisibility(vis);
+  }, "");
+  ctx.btn("Jump to the last page", function () {
+    table.setPageIndex(table.getPageCount() - 1);
+  }, true);
+  ctx.btn("Reset everything", function () {
+    filterInput.value = "";
+    table.resetSorting();
+    table.resetGlobalFilter();
+    table.setColumnVisibility({});
+    table.setPageIndex(0);
+    table.setPageSize(10);
   });
 };
 
