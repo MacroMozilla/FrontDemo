@@ -211,16 +211,101 @@ B.mathjs = async function (ctx) {
         T.line + '">' +
         '<code style="flex:1 1 50%;color:' + T.ink2 + '">' + ctx.esc(t) + "</code>" +
         '<code style="flex:1 1 50%;color:' + (bad ? T.bad : T.accent) + ';text-align:right;overflow-wrap:anywhere">' +
-        ctx.esc(math.format(result, { precision: 8 })) + "</code></div>";
+        ctx.esc(math.format(result, { precision: precision, notation: notation })) + "</code></div>";
     });
     document.getElementById("mj-out").innerHTML = html;
     out("<b>" + evaluated + "</b> expressions evaluated" +
-        (errors ? ' · <span style="color:' + T.bad + '">' + errors + " failed</span>" : ""));
+        (errors ? ' · <span style="color:' + T.bad + '">' + errors + " failed</span>" : "") +
+        " · precision <b>" + precision + "</b>");
   }
 
+  var precision = 8, notation = "auto";
   var editor = ctx.editor(p.a, SOURCE, run);
   run(SOURCE);
-  ctx.label("lines beginning with # are headings · everything else is evaluated in one shared scope");
+
+  /* Extra sheets, so the demo covers more of the library than one screen
+     of arithmetic — each one replaces the editor's contents. */
+  var SHEETS = {
+    "the tour": SOURCE,
+    "units and physics": [
+      "# units are first-class values",
+      "5.4 kg + 300 g",
+      "(12 cm * 3) to inch",
+      "90 km/h to m/s",
+      "0.5 kWh to J",
+      "40 degC to degF",
+      "",
+      "# they survive algebra",
+      "v = 90 km/h",
+      "t = 12 s",
+      "v * t to m",
+      "",
+      "# and they refuse nonsense",
+      "2 kg + 3 m"
+    ].join("\n"),
+    "matrices": [
+      "# construction",
+      "A = [[2, 1, -1], [-3, -1, 2], [-2, 1, 2]]",
+      "b = [8, -11, -3]",
+      "",
+      "# solve Ax = b",
+      "x = lusolve(A, b)",
+      "",
+      "# the usual operations",
+      "det(A)",
+      "inv(A)",
+      "transpose(A)",
+      "A * inv(A)",
+      "",
+      "# element-wise vs matrix",
+      "A .* A",
+      "A ^ 2"
+    ].join("\n"),
+    "symbolic algebra": [
+      "# simplify",
+      "simplify('2x + 3x + x^2 - x')",
+      "simplify('(x + 1)^2')",
+      "",
+      "# differentiate",
+      "derivative('x^3 + 2x^2 - 5x', 'x')",
+      "derivative('sin(x) * e^x', 'x')",
+      "derivative('log(x^2)', 'x')",
+      "",
+      "# rationalise, then read the tree",
+      "rationalize('2x/(x^2 - 1) + 1')",
+      "parse('a * b + c').toString()"
+    ].join("\n"),
+    "precision and floats": [
+      "# the classic",
+      "0.1 + 0.2",
+      "0.1 + 0.2 == 0.3",
+      "",
+      "# BigNumber, arbitrary precision",
+      "bignumber(0.1) + bignumber(0.2)",
+      "bignumber(1) / bignumber(3)",
+      "",
+      "# Fraction, exact",
+      "fraction(1, 3) + fraction(1, 6)",
+      "fraction(0.1) + fraction(0.2)",
+      "",
+      "# complex numbers",
+      "sqrt(-4)",
+      "(2 + 3i) * (1 - i)",
+      "arg(1 + i) / pi"
+    ].join("\n")
+  };
+
+  ctx.select("sheet", Object.keys(SHEETS), function (v) {
+    editor.value = SHEETS[v];
+    run(SHEETS[v]);
+  }, "the tour");
+  ctx.range("precision", { min: 3, max: 20, value: 8 }, function (v) {
+    precision = v; run(editor.value);
+  });
+  ctx.select("notation", ["auto", "fixed", "exponential", "engineering"], function (v) {
+    notation = v; run(editor.value);
+  }, "auto");
+  ctx.label("# lines are headings · everything else shares one scope");
 };
 
 /* ------------------------------------------------------------- DOMPurify */

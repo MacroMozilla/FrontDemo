@@ -10,6 +10,7 @@ B.preact = async function (ctx) {
 
   var h = htm.bind(preact.h);
   var useState = preactHooks.useState, useMemo = preactHooks.useMemo, useEffect = preactHooks.useEffect;
+  var api = {};
 
   function App() {
     var a = useState([
@@ -26,6 +27,26 @@ B.preact = async function (ctx) {
     var renders = d[0], setRenders = d[1];
 
     useEffect(function () { setRenders(function (n) { return n + 1; }); }, [items, filter]);
+
+    /* The toolbar lives outside the Preact tree, so the component publishes
+       its actions on each render. */
+    api.setFilter = setFilter;
+    api.add = function () {
+      var pool = ["Audit the bundle", "Drop a polyfill", "Try preact/compat", "Measure TTI",
+                  "Prerender the shell", "Move to signals"];
+      setItems(items.concat([{ id: Date.now(),
+        text: pool[Math.floor(Math.random() * pool.length)], done: false }]));
+    };
+    api.toggleRandom = function () {
+      if (!items.length) return;
+      var i = Math.floor(Math.random() * items.length);
+      setItems(items.map(function (it, j) {
+        return j === i ? Object.assign({}, it, { done: !it.done }) : it;
+      }));
+    };
+    api.clearDone = function () {
+      setItems(items.filter(function (it) { return !it.done; }));
+    };
 
     var shown = useMemo(function () {
       return items.filter(function (i) {
@@ -90,6 +111,11 @@ B.preact = async function (ctx) {
 
   preact.render(h`<${App} />`, ctx.el);
   ctx.onDestroy(function () { preact.render(null, ctx.el); });
+
+  ctx.btn("Add an item", function () { api.add(); }, true);
+  ctx.btn("Toggle a random one", function () { api.toggleRandom(); });
+  ctx.btn("Clear the done ones", function () { api.clearDone(); });
+  ctx.select("filter", ["all", "open", "done"], function (v) { api.setFilter(v); }, "all");
   ctx.readout("hooks, memoisation and effects — the React API surface at a fraction of the size");
 };
 
@@ -166,7 +192,39 @@ B.alpine = async function (ctx) {
       window.Alpine.initTree(host);
     }
   }
-  ctx.readout("no component file, no bundler — reactivity attached to server-rendered markup");
+  var out = ctx.readout("no component file, no bundler — reactivity attached to server-rendered markup");
+
+  /* Alpine.$data() hands back the reactive proxy for an x-data scope, which
+     is how anything outside the markup talks to it. */
+  function scope() {
+    var root = host.querySelector("[x-data]");
+    return root && window.Alpine && window.Alpine.$data ? window.Alpine.$data(root) : null;
+  }
+  function poke(fn, msg) {
+    var d = scope();
+    if (!d) { out("Alpine has not initialised this subtree yet"); return; }
+    fn(d);
+    out(msg);
+  }
+
+  ctx.btn("Open the panel", function () {
+    poke(function (d) { d.open = true; }, "set <code>open = true</code> from outside the markup");
+  }, true);
+  ctx.btn("Close it", function () {
+    poke(function (d) { d.open = false; }, "set <code>open = false</code> — x-transition ran");
+  });
+  ctx.select("size", ["S", "M", "L", "XL"], function (v) {
+    poke(function (d) { if (d.sizes.indexOf(v) >= 0) d.size = v; },
+      "set <code>size = '" + v + "'</code> — the buttons restyled themselves");
+  }, "M");
+  ctx.range("quantity", { min: 1, max: 9, value: 1 }, function (v) {
+    poke(function (d) { d.qty = v; }, "set <code>qty = " + v + "</code> — the total recomputed");
+  });
+  ctx.btn("Read the scope", function () {
+    var d = scope();
+    out(d ? "<code>" + ctx.esc(JSON.stringify({ open: d.open, size: d.size, qty: d.qty })) + "</code>"
+          : "no scope");
+  });
 };
 
 /* -------------------------------------------------------------------- Lit */
@@ -303,6 +361,55 @@ B.htmx = async function (ctx) {
 
   htmx.process(host);
   var out = ctx.readout("press a button — every response is an HTML fragment");
+
+  var panel = host.querySelector("#hx-panel");
+  function buttons() { return host.querySelectorAll("[hx-get]"); }
+
+  /* hx-swap is the whole vocabulary: where the returned HTML goes. Changing
+     it here rewrites the attribute and asks htmx to re-read the element. */
+  ctx.select("hx-swap", ["innerHTML", "outerHTML", "beforeend", "afterbegin", "delete", "none"],
+    function (v) {
+      buttons().forEach(function (b) {
+        if (b.getAttribute("hx-swap") === "beforeend" && v === "innerHTML") return;
+        b.setAttribute("hx-swap", v);
+      });
+      htmx.process(host);
+      line("hx-swap is now <b>" + v + "</b>");
+    }, "innerHTML");
+
+  ctx.range("swap delay", { min: 0, max: 1200, step: 100, value: 0,
+    fmt: function (v) { return v + " ms"; } }, function (v) {
+    buttons().forEach(function (b) {
+      var base = b.getAttribute("hx-swap").split(" ")[0];
+      b.setAttribute("hx-swap", v ? base + " swap:" + v + "ms" : base);
+    });
+    htmx.process(host);
+    line("responses will settle after <b>" + v + " ms</b>");
+  });
+
+  ctx.check("indicator class while in flight", true, function (v) {
+    buttons().forEach(function (b) {
+      if (v) b.setAttribute("hx-indicator", "#hx-panel");
+      else b.removeAttribute("hx-indicator");
+    });
+    htmx.process(host);
+    line(v ? "htmx-request will be added to the panel during a request"
+           : "no request indicator");
+  });
+
+  ctx.btn("Load the orders table", function () {
+    htmx.ajax("GET", "assets/fragments/orders.html", { target: "#hx-panel", swap: "innerHTML" });
+  }, true);
+  ctx.btn("Clear the panel", function () {
+    panel.innerHTML = '<p class="demo-note">Cleared. Press a button.</p>';
+    line("panel cleared from JavaScript — the one thing htmx does not ask you to do");
+  });
+
+  /* Load something straight away, so the page is not an empty box on
+     arrival. This is htmx.ajax — the same request the buttons make. */
+  ctx.after(120, function () {
+    htmx.ajax("GET", "assets/fragments/orders.html", { target: "#hx-panel", swap: "innerHTML" });
+  });
 };
 
 

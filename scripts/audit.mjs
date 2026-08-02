@@ -101,7 +101,7 @@ for (const l of libs) {
     if (st !== 'loading') break;
     await page.waitForTimeout(200);
   }
-  await page.waitForTimeout(1500);   /* let animations settle */
+  await page.waitForTimeout(Number(process.env.FD_SETTLE || 1500));   /* let animations settle */
 
   const stage = await page.$('#stage');
   let a = { ink: 0, colours: 0, spanX: 0, spanY: 0 };
