@@ -500,7 +500,39 @@ B.bak = async function (ctx) {
   engine.runOnce();
   ctx.onDestroy(function () { engine.stop(); });
 
+  var nodeCount = 4;
+  function stats() {
+    out("<b>" + editor.graph.nodes.length + "</b> nodes · <b>" +
+      editor.graph.connections.length + "</b> connections — change any Number and the " +
+      "engine recomputes everything downstream");
+  }
+
+  ctx.select("operation", ["Add", "Subtract", "Multiply"], function (v) {
+    m.inputs.op.value = v;
+    engine.runOnce();
+  }, "Multiply");
+  ctx.btn("Randomise the inputs", function () {
+    n1.inputs.value.value = Math.round(Math.random() * 100) / 10;
+    n2.inputs.value.value = Math.round(Math.random() * 100) / 10;
+    engine.runOnce();
+  }, true);
+  ctx.btn("Add a stage", function () {
+    /* Grow the graph at runtime: a new Number and a new Math node wired
+       into the existing result, so the engine has more to walk. */
+    var extra = place(new NumberNode(), 300 + nodeCount * 20, 430);
+    var stage = place(new MathNode(), 580 + nodeCount * 20, 380);
+    extra.inputs.value.value = Math.round(Math.random() * 90) / 10;
+    editor.graph.addConnection(m.outputs.result, stage.inputs.a);
+    editor.graph.addConnection(extra.outputs.value, stage.inputs.b);
+    var show = place(new DisplayNode(), 860 + nodeCount * 20, 400);
+    editor.graph.addConnection(stage.outputs.result, show.inputs.value);
+    nodeCount += 3;
+    engine.runOnce();
+    stats();
+  });
+  ctx.btn("Recompute", function () { engine.runOnce(); });
   ctx.label("change a Number, watch Result follow");
+  stats();
 };
 
 /* --------------------------------------------------------------- maxGraph */
