@@ -1,0 +1,21 @@
+import { chromium } from 'playwright';
+import fs from 'fs'; import path from 'path'; import http from 'http';
+import { fileURLToPath } from 'url';
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const MIME = {'.js':'text/javascript','.css':'text/css','.html':'text/html','.woff2':'font/woff2'};
+const srv = http.createServer((rq,rs)=>{let p=decodeURIComponent(rq.url.split('?')[0]);if(p==='/')p='/index.html';
+  const f=path.join(ROOT,p);
+  fs.stat(f,(e,st)=>{if(e||!st.isFile()){rs.writeHead(404);return rs.end()}
+    rs.writeHead(200,{'Content-Type':MIME[path.extname(f)]||'application/octet-stream','Content-Length':st.size});
+    fs.createReadStream(f).pipe(rs)})});
+await new Promise(r=>srv.listen(8131,r));
+const b = await chromium.launch({args:['--enable-unsafe-swiftshader','--use-angle=swiftshader','--use-gl=angle']});
+const [route, theme, w, h] = [process.argv[2]||'/', process.argv[3]||'dark', +(process.argv[4]||1440), +(process.argv[5]||950)];
+const pg = await b.newPage({viewport:{width:w,height:h}, locale:'en-US'});
+await pg.goto('http://localhost:8131/');
+await pg.evaluate(t=>localStorage.setItem('fd-theme',t), theme);
+await pg.goto('http://localhost:8131/#'+route);
+await pg.reload();
+await pg.waitForTimeout(4200);
+await pg.screenshot({path:'/tmp/fd-shots/view.png'});
+await b.close(); srv.close();
