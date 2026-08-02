@@ -1,387 +1,73 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FrontDemo — 前端开源图形库全景（56 个，全部真跑）</title>
-<meta name="description" content="56 个仍在维护的前端开源图形库，按 13 个领域分类，每一个都在页面里真实运行。">
-<link rel="stylesheet" href="assets/css/page.css">
+<title>FrontDemo — a playground for front-end libraries</title>
+<meta name="description" content="102 front-end open-source libraries, each one actually running in the page. Pick one from the sidebar and play with it.">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236EA8FE'/><text x='16' y='23' font-size='19' font-family='monospace' font-weight='bold' text-anchor='middle' fill='%23111'>F</text></svg>">
+<link rel="stylesheet" href="assets/css/app.css">
 <link rel="stylesheet" href="assets/css/vendor.css">
 </head>
 <body>
-<div class="wrap"><div class="col">
 
-  <header>
-    <p class="eyebrow">FrontDemo · 全领域 · 全部真机运行</p>
-    <h1>前端开源图形库全景</h1>
-    <p class="lede"><b>56 个库、13 个领域，每一个都在这一页里真实运行</b> —— 没有截图、没有还原图。
-      先<b>挑领域</b>、再<b>勾能力</b>，表格和下面的 demo 会同时收窄；看中的可以<b>勾选后一键复制</b>。<br>
-      收录判据四条缺一不可：<code>npm</code> 装得到的<b>开源库</b> · <b>一年内发过版</b> · 仍在维护 · 协议允许商用。</p>
-  </header>
+<div class="shell">
 
-  <section class="panel">
-    <div class="filt" id="cats"><span class="lbl">① 挑领域 · 不选 = 全部 13 个</span></div>
-    <div class="filt" id="caps"><span class="lbl">② 再勾能力 · 两个条件同时生效</span></div>
-    <div class="tscroll"><table class="m"><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
-    <div class="legend"><span><b style="color:var(--yes)">&#10003;</b> 能</span><span><b style="color:var(--part)">&#9680;</b> 部分/要自己接</span><span><b style="color:var(--no)">&#10007;</b> 不能</span><span><b style="color:#2C3038">&#8212;</b> 不适用</span></div>
-  </section>
+  <aside class="side" id="side">
+    <div class="side-top">
+      <div class="brand">
+        <span class="logo">F</span>
+        <h1>FrontDemo</h1>
+        <span class="count" id="brandCount"></span>
+      </div>
+      <p class="tagline">Front-end libraries you can actually poke at. Nothing here is a screenshot.</p>
+      <div class="searchbox">
+        <span class="ico">⌕</span>
+        <input id="q" type="search" placeholder="Search libraries…" autocomplete="off" spellcheck="false" aria-label="Search libraries">
+        <button class="clr" id="qclr" type="button" hidden aria-label="Clear search">×</button>
+      </div>
+    </div>
+    <nav class="side-nav" id="nav"></nav>
+  </aside>
 
-  <div class="secttl">
-    <h3>真机 demo</h3><span class="cnt2" id="cnt2"></span>
-    <div class="perbar" style="margin-left:auto"><span>一排</span><span id="perbtns"></span></div>
-  </div>
+  <div class="scrim" id="scrim"></div>
 
-  <div class="grid" id="grid" style="--per:4;--h:270px">
-    <section class="lib" id="d-x6" data-cat="flow">
-      <header class="lh"><h2>AntV X6</h2><span class="pkg">@antv/x6</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="x6-m"></div><div class="err" id="x6-err"></div></div>
-      <div class="lf"><em>试试</em><span>停在节点上冒出锚点 → 拖到另一个节点即连线，自动走直角</span></div>
-    </section>
-    <section class="lib" id="d-xyf" data-cat="flow">
-      <header class="lh"><h2>React Flow</h2><span class="pkg">@xyflow/react</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="xyf-m"></div><div class="err" id="xyf-err"></div></div>
-      <div class="lf"><em>试试</em><span>节点是 React 组件 · 从小圆点拖到另一个节点</span></div>
-    </section>
-    <section class="lib" id="d-vf" data-cat="flow">
-      <header class="lh"><h2>Vue Flow</h2><span class="pkg">@vue-flow/core</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="vf-m"></div><div class="err" id="vf-err"></div></div>
-      <div class="lf"><em>试试</em><span>React Flow 的 Vue 版 —— 同一套模型，写法换成 Vue</span></div>
-    </section>
-    <section class="lib" id="d-joint" data-cat="flow">
-      <header class="lh"><h2>JointJS</h2><span class="pkg">@joint/core</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="joint-m"></div><div class="err" id="joint-err"></div></div>
-      <div class="lf"><em>试试</em><span>拖色块 · 拖连线中段加折点 · 拖端点改接到别的元素</span></div>
-    </section>
-    <section class="lib" id="d-djs" data-cat="flow">
-      <header class="lh"><h2>diagram-js</h2><span class="pkg">diagram-js</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="djs-m"></div><div class="err" id="djs-err"></div></div>
-      <div class="lf"><em>试试</em><span>bpmn.io 的内核：35 KB，图形和交互全靠自己注册</span></div>
-    </section>
-    <section class="lib" id="d-bak" data-cat="flow">
-      <header class="lh"><h2>Baklava.js</h2><span class="pkg">baklavajs</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="bak-m"></div><div class="err" id="bak-err"></div></div>
-      <div class="lf"><em>试试</em><span>拖接口连线 · 改数字 → 右边节点的结果跟着重算</span></div>
-    </section>
-    <section class="lib" id="d-max" data-cat="flow">
-      <header class="lh"><h2>maxGraph</h2><span class="pkg">@maxgraph/core</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="max-m"></div><div class="err" id="max-err"></div></div>
-      <div class="lf"><em>试试</em><span>拖节点 · 从节点边缘拖出连线 —— mxGraph 那套能力的现代版</span></div>
-    </section>
-    <section class="lib" id="d-g6" data-cat="graph">
-      <header class="lh"><h2>AntV G6</h2><span class="pkg">@antv/g6</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="g6-m"></div><div class="err" id="g6-err"></div></div>
-      <div class="lf"><em>试试</em><span>位置是力导向算出来的，不是我摆的 · 拖节点会牵动整张图</span></div>
-    </section>
-    <section class="lib" id="d-cy" data-cat="graph">
-      <header class="lh"><h2>Cytoscape.js</h2><span class="pkg">cytoscape</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="cy-m"></div><div class="err" id="cy-err"></div></div>
-      <div class="lf"><em>试试</em><span>图算法内置</span><button id="cy-btn" type="button">跑真的 Dijkstra 最短路径</button></div>
-    </section>
-    <section class="lib" id="d-vn" data-cat="graph">
-      <header class="lh"><h2>vis-network</h2><span class="pkg">vis-network</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="vn-m"></div><div class="err" id="vn-err"></div></div>
-      <div class="lf"><em>试试</em><span>物理引擎在跑 —— 松手后节点会自己弹回平衡位置</span></div>
-    </section>
-    <section class="lib" id="d-fg" data-cat="graph">
-      <header class="lh"><h2>force-graph</h2><span class="pkg">force-graph</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="fg-m"></div><div class="err" id="fg-err"></div></div>
-      <div class="lf"><em>试试</em><span>一行配置就有力导向 + 滚轮缩放 + 拖拽</span></div>
-    </section>
-    <section class="lib" id="d-rg" data-cat="graph">
-      <header class="lh"><h2>Reagraph</h2><span class="pkg">reagraph</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="rg-m"></div><div class="err" id="rg-err"></div></div>
-      <div class="lf"><em>试试</em><span>React + WebGL：万级节点还点得中、选得上</span></div>
-    </section>
-    <section class="lib" id="d-sig" data-cat="graph">
-      <header class="lh"><h2>Sigma.js</h2><span class="pkg">sigma</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="sig-m"></div><div class="err" id="sig-err"></div></div>
-      <div class="lf"><em>试试</em><span>WebGL 渲染：这里 300 个节点，换成 3 万个照样拖得动</span></div>
-    </section>
-    <section class="lib" id="d-fg3" data-cat="graph">
-      <header class="lh"><h2>3d-force-graph</h2><span class="pkg">3d-force-graph</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="fg3-m"></div><div class="err" id="fg3-err"></div></div>
-      <div class="lf"><em>试试</em><span>同一张关系图进 3D —— 拖着转，滚轮进出</span></div>
-    </section>
-    <section class="lib" id="d-ec" data-cat="chart">
-      <header class="lh"><h2>ECharts</h2><span class="pkg">echarts</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="ec-m"></div><div class="err" id="ec-err"></div></div>
-      <div class="lf"><em>试试</em><span>悬停出十字准星和提示框 · 图例可点</span></div>
-    </section>
-    <section class="lib" id="d-cjs" data-cat="chart">
-      <header class="lh"><h2>Chart.js</h2><span class="pkg">chart.js</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="cjs-m"></div><div class="err" id="cjs-err"></div></div>
-      <div class="lf"><em>试试</em><span>200 KB 出这些 —— 悬停有动画提示</span></div>
-    </section>
-    <section class="lib" id="d-g2" data-cat="chart">
-      <header class="lh"><h2>AntV G2</h2><span class="pkg">@antv/g2</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="g2-m"></div><div class="err" id="g2-err"></div></div>
-      <div class="lf"><em>试试</em><span>图形语法：这张图是"柱 + 折线"两层拼出来的，不是选了个图种</span></div>
-    </section>
-    <section class="lib" id="d-bb" data-cat="chart">
-      <header class="lh"><h2>billboard.js</h2><span class="pkg">billboard.js</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="bb-m"></div><div class="err" id="bb-err"></div></div>
-      <div class="lf"><em>试试</em><span>拖着框选一段 · 点图例开关系列</span></div>
-    </section>
-    <section class="lib" id="d-pl" data-cat="chart">
-      <header class="lh"><h2>Plotly.js</h2><span class="pkg">plotly.js-basic-dist-min</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="pl-m"></div><div class="err" id="pl-err"></div></div>
-      <div class="lf"><em>试试</em><span>右上角是它自带的工具栏：框选缩放 / 平移 / 导出 PNG</span></div>
-    </section>
-    <section class="lib" id="d-rc" data-cat="chart">
-      <header class="lh"><h2>Recharts</h2><span class="pkg">recharts</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="rc-m"></div><div class="err" id="rc-err"></div></div>
-      <div class="lf"><em>试试</em><span>整张图就是一段 JSX —— 每根柱子都是组件</span></div>
-    </section>
-    <section class="lib" id="d-cst" data-cat="chart">
-      <header class="lh"><h2>Chartist</h2><span class="pkg">chartist</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="cst-m"></div><div class="err" id="cst-err"></div></div>
-      <div class="lf"><em>试试</em><span>37 KB · 纯 SVG，线的粗细颜色全归 CSS 管</span></div>
-    </section>
-    <section class="lib" id="d-xk" data-cat="chart">
-      <header class="lh"><h2>chart.xkcd</h2><span class="pkg">chart.xkcd</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="xk-m"></div><div class="err" id="xk-err"></div></div>
-      <div class="lf"><em>试试</em><span>手绘抖动是实时算的 —— 每次刷新线条都不一样</span></div>
-    </section>
-    <section class="lib" id="d-lw" data-cat="perf">
-      <header class="lh"><h2>Lightweight Charts</h2><span class="pkg">lightweight-charts</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="lw-m"></div><div class="err" id="lw-err"></div></div>
-      <div class="lf"><em>试试</em><span>滚轮缩放 · 拖拽平移 —— TradingView 的图表内核</span></div>
-    </section>
-    <section class="lib" id="d-dy" data-cat="perf">
-      <header class="lh"><h2>Dygraphs</h2><span class="pkg">dygraphs</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="dy-m"></div><div class="err" id="dy-err"></div></div>
-      <div class="lf"><em>试试</em><span>这里 2 万个点 —— 横向拖着框选就能放大</span></div>
-    </section>
-    <section class="lib" id="d-wgl" data-cat="perf">
-      <header class="lh"><h2>webgl-plot</h2><span class="pkg">webgl-plot</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="wgl-m"></div><div class="err" id="wgl-err"></div></div>
-      <div class="lf"><em>试试</em><span>webgl-plot：79 KB 跑实时波形 —— 但这一版我没接通</span></div>
-    </section>
-    <section class="lib" id="d-vl" data-cat="gram">
-      <header class="lh"><h2>Vega-Lite</h2><span class="pkg">vega-lite</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="vl-m"></div><div class="err" id="vl-err"></div></div>
-      <div class="lf"><em>试试</em><span>这张图只写了十几行 JSON —— 刷子选一段，下面跟着变</span></div>
-    </section>
-    <section class="lib" id="d-vg" data-cat="gram">
-      <header class="lh"><h2>Vega</h2><span class="pkg">vega</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="vg-m"></div><div class="err" id="vg-err"></div></div>
-      <div class="lf"><em>试试</em><span>整张图由一段 JSON 规格描述 —— 换语言也能用同一份</span></div>
-    </section>
-    <section class="lib" id="d-ag" data-cat="table">
-      <header class="lh"><h2>AG Grid</h2><span class="pkg">ag-grid-community</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="ag-m"></div><div class="err" id="ag-err"></div></div>
-      <div class="lf"><em>试试</em><span>这里 5000 行 —— 拖滚动条不掉帧，点表头排序</span></div>
-    </section>
-    <section class="lib" id="d-tb" data-cat="table">
-      <header class="lh"><h2>Tabulator</h2><span class="pkg">tabulator-tables</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="tb-m"></div><div class="err" id="tb-err"></div></div>
-      <div class="lf"><em>试试</em><span>双击单元格可以直接改 · 拖列头换顺序</span></div>
-    </section>
-    <section class="lib" id="d-s2" data-cat="table">
-      <header class="lh"><h2>AntV S2</h2><span class="pkg">@antv/s2</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="s2-m"></div><div class="err" id="s2-err"></div></div>
-      <div class="lf"><em>试试</em><span>Canvas 渲染的多维透视表 —— 行列都可以是多层</span></div>
-    </section>
-    <section class="lib" id="d-bar" data-cat="table">
-      <header class="lh"><h2>JsBarcode</h2><span class="pkg">jsbarcode</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="bar-m"></div><div class="err" id="bar-err"></div></div>
-      <div class="lf"><em>试试</em><span>换一行文字就换一张码 —— 十几种码制</span></div>
-    </section>
-    <section class="lib" id="d-ws" data-cat="table">
-      <header class="lh"><h2>WaveSurfer.js</h2><span class="pkg">wavesurfer.js</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="ws-m"></div><div class="err" id="ws-err"></div></div>
-      <div class="lf"><em>试试</em><span>WaveSurfer.js：音频波形 —— 但这一版我没接通</span></div>
-    </section>
-    <section class="lib" id="d-kv" data-cat="canvas">
-      <header class="lh"><h2>Konva</h2><span class="pkg">konva</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="kv-m"></div><div class="err" id="kv-err"></div></div>
-      <div class="lf"><em>试试</em><span>每个形状都能拖 · 拖动时有阴影，是它自带的</span></div>
-    </section>
-    <section class="lib" id="d-fb" data-cat="canvas">
-      <header class="lh"><h2>Fabric.js</h2><span class="pkg">fabric</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="fb-m"></div><div class="err" id="fb-err"></div></div>
-      <div class="lf"><em>试试</em><span>Fabric.js：自带选框/旋转/序列化 —— 但这一版我没接通</span></div>
-    </section>
-    <section class="lib" id="d-px" data-cat="canvas">
-      <header class="lh"><h2>PixiJS</h2><span class="pkg">pixi.js</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="px-m"></div><div class="err" id="px-err"></div></div>
-      <div class="lf"><em>试试</em><span>2000 个精灵在 WebGL 上一起转 —— 换成 5 万个照样 60 帧</span></div>
-    </section>
-    <section class="lib" id="d-sv" data-cat="canvas">
-      <header class="lh"><h2>SVG.js</h2><span class="pkg">@svgdotjs/svg.js</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="sv-m"></div><div class="err" id="sv-err"></div></div>
-      <div class="lf"><em>试试</em><span>90 KB 把操作 SVG 变得像 jQuery —— 这些形状都是链式写出来的</span></div>
-    </section>
-    <section class="lib" id="d-tw" data-cat="canvas">
-      <header class="lh"><h2>Two.js</h2><span class="pkg">two.js</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="tw-m"></div><div class="err" id="tw-err"></div></div>
-      <div class="lf"><em>试试</em><span>同一套 API 可以输出 SVG / Canvas / WebGL —— 这里是 SVG</span></div>
-    </section>
-    <section class="lib" id="d-zr" data-cat="canvas">
-      <header class="lh"><h2>ZRender</h2><span class="pkg">zrender</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="zr-m"></div><div class="err" id="zr-err"></div></div>
-      <div class="lf"><em>试试</em><span>ECharts 的渲染内核 —— 图表全是在它上面搭出来的</span></div>
-    </section>
-    <section class="lib" id="d-exc" data-cat="board">
-      <header class="lh"><h2>Excalidraw</h2><span class="pkg">@excalidraw/excalidraw</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="exc-m"></div><div class="err" id="exc-err"></div></div>
-      <div class="lf"><em>试试</em><span>完整白板：左边选工具直接画 · 手绘抖动是 rough.js 实时算的</span></div>
-    </section>
-    <section class="lib" id="d-pf" data-cat="board">
-      <header class="lh"><h2>perfect-freehand</h2><span class="pkg">perfect-freehand</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="pf-m"></div><div class="err" id="pf-err"></div></div>
-      <div class="lf"><em>试试</em><span>在画面里按住拖动 —— 笔画的粗细跟着速度变，那就是它算的</span></div>
-    </section>
-    <section class="lib" id="d-ml" data-cat="geo">
-      <header class="lh"><h2>MapLibre GL</h2><span class="pkg">maplibre-gl</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="ml-m"></div><div class="err" id="ml-err"></div></div>
-      <div class="lf"><em>试试</em><span>拖拽 / 滚轮缩放 / 右键倾斜 —— 数据是内联 GeoJSON，没走网络</span></div>
-    </section>
-    <section class="lib" id="d-dk" data-cat="geo">
-      <header class="lh"><h2>deck.gl</h2><span class="pkg">deck.gl</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="dk-m"></div><div class="err" id="dk-err"></div></div>
-      <div class="lf"><em>试试</em><span>2 万个点 + 弧线全在 GPU 上 —— 拖着转，帧率不掉</span></div>
-    </section>
-    <section class="lib" id="d-ol" data-cat="geo">
-      <header class="lh"><h2>OpenLayers</h2><span class="pkg">ol</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="ol-m"></div><div class="err" id="ol-err"></div></div>
-      <div class="lf"><em>试试</em><span>点任一个圆 → 高亮；这是它的矢量图层 + 选择交互</span></div>
-    </section>
-    <section class="lib" id="d-l7" data-cat="geo">
-      <header class="lh"><h2>AntV L7</h2><span class="pkg">@antv/l7</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="l7-m"></div><div class="err" id="l7-err"></div></div>
-      <div class="lf"><em>试试</em><span>国内地理可视化：这是它的点图层 + 自带的暗色底</span></div>
-    </section>
-    <section class="lib" id="d-th" data-cat="three">
-      <header class="lh"><h2>Three.js</h2><span class="pkg">three</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="th-m"></div><div class="err" id="th-err"></div></div>
-      <div class="lf"><em>试试</em><span>拖着转 —— 网格、光照、材质全是它算的，没有贴图</span></div>
-    </section>
-    <section class="lib" id="d-bab" data-cat="three">
-      <header class="lh"><h2>Babylon.js</h2><span class="pkg">@babylonjs/core</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="bab-m"></div><div class="err" id="bab-err"></div></div>
-      <div class="lf"><em>试试</em><span>拖着转 · 滚轮进出 —— 相机/材质/PBR 全是引擎自带的</span></div>
-    </section>
-    <section class="lib" id="d-m3d" data-cat="three">
-      <header class="lh"><h2>3Dmol.js</h2><span class="pkg">3dmol</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="m3d-m"></div><div class="err" id="m3d-err"></div></div>
-      <div class="lf"><em>试试</em><span>拖着转分子 · 这是真的 PDB 结构解析出来的，不是画的</span></div>
-    </section>
-    <section class="lib" id="d-mer" data-cat="text">
-      <header class="lh"><h2>Mermaid</h2><span class="pkg">mermaid</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="svgbox" id="mer-m"></div><div class="err" id="mer-err"></div></div>
-      <div class="lf"><em>试试</em><span>整张图的输入只有 9 行文本</span><button id="mer-btn" type="button">看输入的文本</button></div>
-    </section>
-    <section class="lib" id="d-viz" data-cat="text">
-      <header class="lh"><h2>Viz.js (Graphviz)</h2><span class="pkg">@viz-js/viz</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="svgbox" id="viz-m"></div><div class="err" id="viz-err"></div></div>
-      <div class="lf"><em>试试</em><span>真 Graphviz 编进 WASM —— 布局是 dot 算的</span><button id="viz-btn" type="button">看 DOT 源码</button></div>
-    </section>
-    <section class="lib" id="d-wd" data-cat="text">
-      <header class="lh"><h2>WaveDrom</h2><span class="pkg">wavedrom</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="svgbox" id="wd-m"></div><div class="err" id="wd-err"></div></div>
-      <div class="lf"><em>试试</em><span>硬件时序波形：这一段 JSON 就是全部输入</span></div>
-    </section>
-    <section class="lib" id="d-pin" data-cat="text">
-      <header class="lh"><h2>Pintora</h2><span class="pkg">@pintora/standalone</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="svgbox" id="pin-m"></div><div class="err" id="pin-err"></div></div>
-      <div class="lf"><em>试试</em><span>Mermaid 的中文替代 —— 体积只有它六分之一</span></div>
-    </section>
-    <section class="lib" id="d-fgt" data-cat="time">
-      <header class="lh"><h2>Frappe Gantt</h2><span class="pkg">frappe-gantt</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="fgt-m"></div><div class="err" id="fgt-err"></div></div>
-      <div class="lf"><em>试试</em><span>拖任务条改工期 · 拖两端改起止 · 依赖箭头会跟着走</span></div>
-    </section>
-    <section class="lib" id="d-vt" data-cat="time">
-      <header class="lh"><h2>vis-timeline</h2><span class="pkg">vis-timeline</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="vt-m"></div><div class="err" id="vt-err"></div></div>
-      <div class="lf"><em>试试</em><span>滚轮缩放时间尺 —— 从年一路缩到毫秒 · 拖条目改时间</span></div>
-    </section>
-    <section class="lib" id="d-jg" data-cat="time">
-      <header class="lh"><h2>jsGantt Improved</h2><span class="pkg">jsgantt-improved</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="jg-m"></div><div class="err" id="jg-err"></div></div>
-      <div class="lf"><em>试试</em><span>工期 / 进度 / 负责人 —— 项目管理那套概念齐全</span></div>
-    </section>
-    <section class="lib" id="d-me" data-cat="mind">
-      <header class="lh"><h2>Mind Elixir</h2><span class="pkg">mind-elixir</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="me-m"></div><div class="err" id="me-err"></div></div>
-      <div class="lf"><em>试试</em><span>Mind Elixir：开箱即用的脑图编辑器 —— 但这一版我没接通</span></div>
-    </section>
-    <section class="lib" id="d-jm" data-cat="mind">
-      <header class="lh"><h2>jsMind</h2><span class="pkg">jsmind</span>
-        <span class="right"></span></header>
-      <div class="stage"><div class="mount" id="jm-m"></div><div class="err" id="jm-err"></div></div>
-      <div class="lf"><em>试试</em><span>老牌稳定 —— 50 KB，中文文档齐全</span></div>
-    </section>
-    <div class="empty" id="empty" hidden>这个组合下没有方案满足 —— 少勾几项试试。</div>
-  </div>
+  <main class="main" id="main">
+    <div class="topbar">
+      <button class="iconbtn burger" id="burger" type="button" aria-label="Open navigation">☰</button>
+      <div class="crumb" id="crumb"></div>
+      <span class="spacer"></span>
+      <button class="iconbtn" id="themeBtn" type="button" title="Switch theme"></button>
+      <a class="iconbtn" id="repoLink" href="https://github.com/MacroMozilla/FrontDemo" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <div id="view"></div>
+  </main>
 
-  <footer class="panel" style="margin-top:18px">
-    <p class="lede" style="font-size:12px;color:var(--muted)">
-      源码 · 数据 · 每个 demo 的写法都在 <a href="https://github.com/MacroMozilla/FrontDemo" style="color:var(--accent)">GitHub 仓库</a> 里。
-      想加一个库：改 <code>assets/js/data.js</code> 加一行，再在 <code>assets/js/demos.js</code> 里写一段 builder。
-    </p>
-  </footer>
-
-</div></div>
+</div>
 
 <script src="assets/js/data.js"></script>
-<script src="assets/js/page.js"></script>
-<script src="assets/js/demos.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/demos/diagram.js"></script>
+<script src="assets/js/demos/graph.js"></script>
+<script src="assets/js/demos/chart.js"></script>
+<script src="assets/js/demos/grammar.js"></script>
+<script src="assets/js/demos/canvas.js"></script>
+<script src="assets/js/demos/creative.js"></script>
+<script src="assets/js/demos/geo.js"></script>
+<script src="assets/js/demos/three.js"></script>
+<script src="assets/js/demos/anim.js"></script>
+<script src="assets/js/demos/text.js"></script>
+<script src="assets/js/demos/time.js"></script>
+<script src="assets/js/demos/table.js"></script>
+<script src="assets/js/demos/doc.js"></script>
+<script src="assets/js/demos/editor.js"></script>
+<script src="assets/js/demos/ui.js"></script>
+<script src="assets/js/demos/data.js"></script>
+<script src="assets/js/demos/util.js"></script>
+<script src="assets/js/demos/framework.js"></script>
+<script src="assets/js/demos/media.js"></script>
+<script>window.__boot();</script>
+
 </body>
 </html>

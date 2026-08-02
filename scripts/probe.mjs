@@ -1,0 +1,14 @@
+import { chromium } from 'playwright';
+import fs from 'fs'; import path from 'path'; import http from 'http';
+const ROOT='/home/user/FrontDemo';
+const MIME={'.js':'text/javascript','.css':'text/css','.html':'text/html'};
+const s=http.createServer((rq,rs)=>{let p=decodeURIComponent(rq.url.split('?')[0]);if(p==='/')p='/index.html';
+ fs.readFile(path.join(ROOT,p),(e,d)=>{if(e){rs.writeHead(404);return rs.end()}rs.writeHead(200,{'Content-Type':MIME[path.extname(p)]||'application/octet-stream'});rs.end(d)})});
+await new Promise(r=>s.listen(8125,r));
+const b=await chromium.launch(); const pg=await b.newPage();
+await pg.goto('http://localhost:8125/scripts/blank.html');
+const [file, expr] = process.argv.slice(2);
+await pg.addScriptTag({url:'/vendor/'+file+'.js'});
+await pg.waitForTimeout(200);
+console.log(await pg.evaluate(e=>{try{return eval(e)}catch(err){return 'ERR '+err.message}}, expr));
+await b.close(); s.close();
