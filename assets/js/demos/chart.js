@@ -462,7 +462,9 @@ B.xk = async function (ctx) {
           { label: "reading docs", data: series(10, 4, 2.4, 3).map(function (v, i) { return { x: i + 1, y: v }; }) },
           { label: "actually building", data: series(10, 2, 1.6, 19).map(function (v, i) { return { x: i + 1, y: v }; }) }
         ] },
-        options: Object.assign({ xTickCount: 5, yTickCount: 5, legendPosition: chartXkcd.config.positionType.upLeft },
+        options: Object.assign({ showLine: true, timeFormat: undefined, dotSize: 1,
+                                 xTickCount: 5, yTickCount: 5,
+                                 legendPosition: chartXkcd.config.positionType.upLeft },
                                common.options)
       }));
     } else if (kind === "bar") {

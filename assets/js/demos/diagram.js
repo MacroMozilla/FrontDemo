@@ -466,10 +466,11 @@ B.bak = async function (ctx) {
     node.position = { x: x, y: y };
     return node;
   }
-  var n1 = place(new NumberNode(), 30, 40),
-      n2 = place(new NumberNode(), 30, 230),
-      m  = place(new MathNode(),  310, 110),
-      dp = place(new DisplayNode(), 610, 150);
+  /* Clear of the node palette that Baklava docks on the left. */
+  var n1 = place(new NumberNode(), 300, 40),
+      n2 = place(new NumberNode(), 300, 250),
+      m  = place(new MathNode(),  580, 120),
+      dp = place(new DisplayNode(), 860, 160);
 
   editor.graph.addConnection(n1.outputs.value, m.inputs.a);
   editor.graph.addConnection(n2.outputs.value, m.inputs.b);
@@ -478,18 +479,26 @@ B.bak = async function (ctx) {
   /* The dependency engine is what makes this a dataflow graph rather
      than a drawing: change an input and everything downstream recomputes. */
   var engine = new Engine.DependencyEngine(editor);
-  engine.start();
-  ctx.onDestroy(function () { engine.stop(); });
-
   var out = ctx.readout("engine idle");
+
+  /* applyResult is the step that writes each node's computed value back
+     into its interfaces — without it the graph runs but nothing updates. */
   engine.events.afterRun.subscribe(ctx, function (res) {
-    var vals = [];
+    engine.pause();
+    Engine.applyResult(res, editor);
+    engine.resume();
+
+    var shown = [];
     res.forEach(function (outputs, nodeId) {
       var node = editor.graph.nodes.find(function (n) { return n.id === nodeId; });
-      if (node && node.type === "Display") vals.push(outputs.get("shown"));
+      if (node && node.type === "Display") shown.push(outputs.get("shown"));
     });
-    out(vals.length ? "recomputed → <b>" + vals.join(", ") + "</b>" : "engine running");
+    out(shown.length ? "engine recomputed → <b>" + shown.join(", ") + "</b>" : "engine running");
   });
+
+  engine.start();
+  engine.runOnce();
+  ctx.onDestroy(function () { engine.stop(); });
 
   ctx.label("change a Number, watch Result follow");
 };

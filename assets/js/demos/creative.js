@@ -99,72 +99,112 @@ B.p5 = async function (ctx) {
 B.matter = async function (ctx) {
   var T = ctx.T;
   var M = Matter;
+  ctx.tall();
+
+  /* Measure after layout, or the walls end up outside the visible area. */
   var W = ctx.el.clientWidth, H = ctx.el.clientHeight;
 
   var engine = M.Engine.create();
   var render = M.Render.create({
     element: ctx.el, engine: engine,
-    options: { width: W, height: H, wireframes: false, background: T.stage, pixelRatio: Math.min(devicePixelRatio || 1, 2) }
+    options: { width: W, height: H, wireframes: false, background: T.stage,
+               pixelRatio: Math.min(devicePixelRatio || 1, 2) }
   });
 
-  function wall(x, y, w, h) {
-    return M.Bodies.rectangle(x, y, w, h, { isStatic: true, render: { fillStyle: T.line } });
+  function wall(x, y, w, h, angle) {
+    return M.Bodies.rectangle(x, y, w, h, {
+      isStatic: true, angle: angle || 0,
+      render: { fillStyle: angle ? T.line2 : T.line }
+    });
   }
+  /* Floor, side walls, and two ramps for things to tumble down. */
   M.Composite.add(engine.world, [
-    wall(W / 2, H + 24, W * 2, 50),
-    wall(-24, H / 2, 50, H * 2),
-    wall(W + 24, H / 2, 50, H * 2),
-    M.Bodies.rectangle(W * .32, H * .58, W * .38, 16, {
-      isStatic: true, angle: .13, render: { fillStyle: T.line2 } })
+    wall(W / 2, H + 20, W * 2, 40),
+    wall(-20, H / 2, 40, H * 3),
+    wall(W + 20, H / 2, 40, H * 3),
+    wall(W * 0.30, H * 0.45, W * 0.42, 14, 0.16),
+    wall(W * 0.74, H * 0.70, W * 0.38, 14, -0.19)
   ]);
+
+  var out = ctx.readout("");
+  function count() {
+    return M.Composite.allBodies(engine.world).filter(function (b) { return !b.isStatic; }).length;
+  }
+  function report() { out("<b>" + count() + "</b> rigid bodies simulated · grab one and throw it"); }
 
   function spawn(n) {
     var bodies = [];
     for (var i = 0; i < n; i++) {
-      var x = 60 + Math.random() * (W - 120), y = -Math.random() * 400;
-      var col = ctx.series(i % 8);
-      var kind = i % 3;
-      var body = kind === 0 ? M.Bodies.circle(x, y, 12 + Math.random() * 14)
-               : kind === 1 ? M.Bodies.rectangle(x, y, 26 + Math.random() * 26, 26 + Math.random() * 26)
-               : M.Bodies.polygon(x, y, 5, 18 + Math.random() * 12);
-      body.restitution = .55;
-      body.friction = .18;
-      body.render.fillStyle = col;
+      /* Drop just above the top edge, inside the walls. */
+      var x = 40 + Math.random() * (W - 80);
+      var y = -40 - Math.random() * 260;
+      var kind = i % 4;
+      var body =
+        kind === 0 ? M.Bodies.circle(x, y, 11 + Math.random() * 15) :
+        kind === 1 ? M.Bodies.rectangle(x, y, 24 + Math.random() * 30, 24 + Math.random() * 30) :
+        kind === 2 ? M.Bodies.polygon(x, y, 5, 16 + Math.random() * 12) :
+                     M.Bodies.polygon(x, y, 3, 18 + Math.random() * 12);
+      body.restitution = 0.62;
+      body.friction = 0.15;
+      body.frictionAir = 0.006;
+      body.angle = Math.random() * Math.PI;
+      body.render.fillStyle = ctx.series(i % 8);
       body.render.strokeStyle = T.stage;
       body.render.lineWidth = 1.5;
       bodies.push(body);
     }
     M.Composite.add(engine.world, bodies);
-    out("<b>" + M.Composite.allBodies(engine.world).filter(function (b) { return !b.isStatic; }).length +
-        "</b> rigid bodies being simulated");
+    report();
   }
 
   /* The mouse constraint is why this is playable in three lines. */
   var mouse = M.Mouse.create(render.canvas);
   var mc = M.MouseConstraint.create(engine, {
     mouse: mouse,
-    constraint: { stiffness: .16, render: { strokeStyle: ctx.series(0), lineWidth: 2 } }
+    constraint: { stiffness: 0.16, render: { strokeStyle: ctx.series(0), lineWidth: 2 } }
   });
   M.Composite.add(engine.world, mc);
   render.mouse = mouse;
+  /* Let the page keep its own scrolling. */
+  mouse.element.removeEventListener("wheel", mouse.mousewheel);
 
   var runner = M.Runner.create();
   M.Runner.run(runner, engine);
   M.Render.run(render);
 
-  var out = ctx.readout("");
-  spawn(48);
+  spawn(60);
 
-  ctx.range("gravity", { min: -10, max: 20, value: 10, fmt: function (v) { return (v / 10).toFixed(1) + "g"; } },
+  ctx.range("gravity", { min: -10, max: 20, value: 10,
+                         fmt: function (v) { return (v / 10).toFixed(1) + "g"; } },
             function (v) { engine.gravity.y = v / 10; });
-  ctx.btn("Drop 25 more", function () { spawn(25); });
+  ctx.range("bounciness", { min: 0, max: 100, value: 62,
+                            fmt: function (v) { return (v / 100).toFixed(2); } },
+            function (v) {
+              M.Composite.allBodies(engine.world).forEach(function (b) {
+                if (!b.isStatic) b.restitution = v / 100;
+              });
+            });
+  ctx.btn("Drop 30 more", function () { spawn(30); }, true);
+  ctx.btn("Explode", function () {
+    M.Composite.allBodies(engine.world).forEach(function (b) {
+      if (b.isStatic) return;
+      M.Body.applyForce(b, b.position,
+        { x: (Math.random() - 0.5) * 0.22, y: -Math.random() * 0.24 });
+    });
+  });
   ctx.btn("Clear", function () {
     M.Composite.allBodies(engine.world).forEach(function (b) {
       if (!b.isStatic) M.Composite.remove(engine.world, b);
     });
-    out("<b>0</b> rigid bodies being simulated");
+    report();
   });
 
+  ctx.onResize(function () {
+    W = ctx.el.clientWidth; H = ctx.el.clientHeight;
+    render.canvas.width = W; render.canvas.height = H;
+    render.options.width = W; render.options.height = H;
+    M.Render.setPixelRatio(render, Math.min(devicePixelRatio || 1, 2));
+  });
   ctx.onDestroy(function () {
     M.Render.stop(render);
     M.Runner.stop(runner);
