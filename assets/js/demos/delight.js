@@ -222,7 +222,7 @@ B.typed = async function (ctx) {
   var term = ctx.mk("div");
   term.style.cssText = "font:500 13px " + T.mono + ";line-height:1.9;color:" + T.ink2 +
     ";background:" + T.sunk + ";border:1px solid " + T.line + ";border-radius:10px;padding:14px 16px;" +
-    "min-height:150px";
+    "min-height:150px;white-space:pre-wrap";
   term.innerHTML = '<span id="fd-typed-term"></span>';
   termCard.appendChild(term);
 
