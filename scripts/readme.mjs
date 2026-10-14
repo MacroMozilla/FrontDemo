@@ -1,6 +1,6 @@
 /* Regenerates the "Every library" tables in README.md from assets/js/data.js,
    so the registry stays the single source of truth. Run it after adding a
-   library; scripts/check.mjs fails the build if the README is stale. */
+   library. CI runs it with --check, which fails when the README is stale. */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';

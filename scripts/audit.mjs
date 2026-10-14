@@ -34,6 +34,11 @@ const win = {};
 new Function('window', fs.readFileSync(path.join(ROOT, 'assets/js/data.js'), 'utf8'))(win);
 const only = process.argv.slice(2).filter(a => !a.startsWith('--'));
 const libs = win.LIBS.filter(l => !only.length || only.includes(l.k));
+const unknown = only.filter(k => !win.LIBS.some(l => l.k === k));
+if (unknown.length) {
+  console.error('no such library: ' + unknown.join(' ') + '\nkeys: ' + win.LIBS.map(l => l.k).join(' '));
+  process.exit(2);
+}
 
 fs.mkdirSync('/tmp/fd-audit', { recursive: true });
 

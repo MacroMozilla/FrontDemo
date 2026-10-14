@@ -1,4 +1,4 @@
-/* Static sanity checks, run in CI before every deploy.
+/* Static sanity checks, run in CI on every pull request and push to main.
    Catches the mistakes that would otherwise ship a blank page:
    a library with no builder, a vendor file that is not there,
    a duplicate key, a malformed capability string. */
@@ -20,7 +20,10 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(CHECKED || '')) fail.push('window.CHECKED is not
 
 const catIds = new Set(CATS.map(c => c.id));
 const groupIds = new Set(GROUPS.map(g => g.id));
-CATS.forEach(c => { if (!groupIds.has(c.g)) fail.push(`category ${c.id} points at unknown group ${c.g}`); });
+CATS.forEach(c => {
+  if (!groupIds.has(c.g)) fail.push(`category ${c.id} points at unknown group ${c.g}`);
+  if (!LIBS.some(l => l.cat === c.id)) fail.push(`category ${c.id} has no libraries`);
+});
 
 /* ---- registry integrity ---- */
 const seen = new Set();
@@ -32,6 +35,8 @@ for (const l of LIBS) {
   const marks = String(l.c).trim().split(/\s+/);
   if (marks.length !== CAPS.length) fail.push(`${at}: ${marks.length} capability marks, expected ${CAPS.length}`);
   marks.forEach(m => { if (!MK[m]) fail.push(`${at}: bad capability mark "${m}"`); });
+  const rn = CAPS.findIndex(c => c.id === 'rn');
+  if (rn >= 0 && !/^[ypn]$/.test(marks[rn])) fail.push(`${at}: the React Native mark must be y, p or n`);
   for (const f of ['n', 'pkg', 'ver', 'pub', 'lic', 'kb', 'st', 'what', 'pro', 'con', 'try', 'rnNote', 'site', 'js']) {
     if (l[f] === undefined || l[f] === '') fail.push(`${at}: missing field "${f}"`);
   }

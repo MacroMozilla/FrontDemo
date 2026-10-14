@@ -17,8 +17,9 @@
 var GROUPS = window.GROUPS, CATS = window.CATS, CAPS = window.CAPS,
     LIBS = window.LIBS, MK = window.MK, CHECKED = window.CHECKED;
 var B = window.B = {};                       /* key -> builder            */
-var byKey = {};  LIBS.forEach(function (l) { byKey[l.k] = l; });
-var catById = {}; CATS.forEach(function (c) { catById[c.id] = c; });
+/* No prototype, so a route like #/l/constructor finds nothing. */
+var byKey = Object.create(null);   LIBS.forEach(function (l) { byKey[l.k] = l; });
+var catById = Object.create(null); CATS.forEach(function (c) { catById[c.id] = c; });
 
 var $ = function (s, r) { return (r || document).querySelector(s); };
 var el = function (tag, cls, html) {
@@ -74,10 +75,15 @@ function setTheme(name) {
 
 /* ------------------------------------------------------------------
    Vendor loading. Scripts are loaded strictly in the order given,
-   because several of them expect a peer global to already exist
-   (vueflow needs vue, plot needs d3, floatingui needs its core).
+   because some expect a peer global to already exist (LogicFlow's
+   extension needs its core). A failed load is forgotten, so the next
+   visit tries again.
+
+   A library's stylesheet applies only while its page is open (see
+   destroyLive): some carry page-wide rules, such as LogicFlow's
+   :focus { outline: none }.
    ------------------------------------------------------------------ */
-var jsCache = {}, cssCache = {};
+var jsCache = {}, cssCache = {}, cssLinks = {};
 
 function loadJS(id) {
   if (jsCache[id]) return jsCache[id];
@@ -85,19 +91,24 @@ function loadJS(id) {
     var s = document.createElement("script");
     s.src = "vendor/" + id + ".js";
     s.onload = function () { res(); };
-    s.onerror = function () { rej(new Error("could not load vendor/" + id + ".js")); };
+    s.onerror = function () {
+      delete jsCache[id]; s.remove();
+      rej(new Error("could not load vendor/" + id + ".js"));
+    };
     document.head.appendChild(s);
   });
   return jsCache[id];
 }
 
 function loadCSS(id) {
+  if (cssLinks[id]) cssLinks[id].disabled = false;
   if (cssCache[id]) return cssCache[id];
   cssCache[id] = new Promise(function (res) {
-    var l = document.createElement("link");
+    var l = cssLinks[id] = document.createElement("link");
     l.rel = "stylesheet";
     l.href = "assets/css/lib/" + id + ".css";
-    l.onload = l.onerror = function () { res(); };
+    l.onload = function () { res(); };
+    l.onerror = function () { delete cssCache[id]; delete cssLinks[id]; l.remove(); res(); };
     document.head.appendChild(l);
   });
   return cssCache[id];
@@ -122,7 +133,8 @@ function destroyLive() {
   live.destroyers.forEach(function (fn) { try { fn(); } catch (e) {} });
   live.rafs.forEach(function (id) { cancelAnimationFrame(id); });
   live.timers.forEach(function (id) { clearInterval(id); clearTimeout(id); });
-  live.listeners.forEach(function (l) { l[0].removeEventListener(l[1], l[2]); });
+  live.listeners.forEach(function (l) { l[0].removeEventListener(l[1], l[2], l[3]); });
+  live.css.forEach(function (id) { if (cssLinks[id]) cssLinks[id].disabled = true; });
   /* Browsers cap live WebGL contexts at around 16 and drop the oldest
      silently. Anything a demo left behind gets released here, otherwise
      the 3D pages start failing after enough navigation. */
@@ -141,7 +153,7 @@ function destroyLive() {
 }
 
 function makeCtx(lib, mount, bar, stage) {
-  var rec = { dead: false, destroyers: [], rafs: [], timers: [], listeners: [], mount: mount };
+  var rec = { dead: false, destroyers: [], rafs: [], timers: [], listeners: [], css: [], mount: mount };
   live = rec;
 
   function ctl(label) {
@@ -282,8 +294,13 @@ function makeCtx(lib, mount, bar, stage) {
       return function (h) { r.innerHTML = h; };
     },
 
-    /* ---- lifecycle ---- */
-    onDestroy: function (fn) { rec.destroyers.push(fn); },
+    /* ---- lifecycle ----
+       A builder can still be awaiting something when its page is left;
+       whatever it registers after that is torn down on the spot. */
+    onDestroy: function (fn) {
+      if (rec.dead) { try { fn(); } catch (e) {} return; }
+      rec.destroyers.push(fn);
+    },
     dead: function () { return rec.dead; },
 
     /** Shows a failure that happens after the builder returned, where a
@@ -298,27 +315,36 @@ function makeCtx(lib, mount, bar, stage) {
 
     /** requestAnimationFrame loop that stops itself when the demo unmounts. */
     raf: function (fn) {
-      var last = performance.now();
+      if (rec.dead) return;
+      var last = performance.now(), slot = rec.rafs.length;   /* one id per loop */
       function step(now) {
         if (rec.dead) return;
         var dt = Math.min(now - last, 100); last = now;
         if (fn(dt, now) === false) return;
-        rec.rafs.push(requestAnimationFrame(step));
+        rec.rafs[slot] = requestAnimationFrame(step);
       }
-      rec.rafs.push(requestAnimationFrame(step));
+      rec.rafs[slot] = requestAnimationFrame(step);
     },
-    every: function (ms, fn) { var id = setInterval(function () { if (!rec.dead) fn(); }, ms); rec.timers.push(id); return id; },
-    after: function (ms, fn) { var id = setTimeout(function () { if (!rec.dead) fn(); }, ms); rec.timers.push(id); return id; },
+    every: function (ms, fn) {
+      if (rec.dead) return 0;
+      var id = setInterval(function () { if (!rec.dead) fn(); }, ms); rec.timers.push(id); return id;
+    },
+    after: function (ms, fn) {
+      if (rec.dead) return 0;
+      var id = setTimeout(function () { if (!rec.dead) fn(); }, ms); rec.timers.push(id); return id;
+    },
 
     on: function (target, type, fn, opts) {
+      if (rec.dead) return;
       target.addEventListener(type, fn, opts);
-      rec.listeners.push([target, type, fn]);
+      rec.listeners.push([target, type, fn, opts]);
     },
 
     /** Debounced resize hook, cleaned up on unmount. */
     onResize: function (fn) {
       var t = null;
       var h = function () { clearTimeout(t); t = setTimeout(function () { if (!rec.dead) fn(); }, 140); };
+      if (rec.dead) return h;
       window.addEventListener("resize", h);
       rec.listeners.push([window, "resize", h]);
       return h;
@@ -329,7 +355,10 @@ function makeCtx(lib, mount, bar, stage) {
     mk: el,                       /* element factory — ctx.el is the mount node */
     need: need,
     css: function () {
-      return Promise.all([].slice.call(arguments).map(loadCSS));
+      var ids = [].slice.call(arguments);
+      if (rec.dead) return Promise.resolve();
+      rec.css = rec.css.concat(ids);
+      return Promise.all(ids.map(loadCSS));
     },
     /** Deterministic pseudo-random, so demos look the same on every reload. */
     rng: function (seed) {
@@ -612,7 +641,7 @@ function renderLib(k) {
   var marks = l.c.split(/\s+/);
   var rn = marks[6];
   crumb.innerHTML = '<a href="#/">Overview</a><span class="sep">/</span>' +
-                    "<span>" + esc(cat.name) + '</span><span class="sep">/</span><b>' + esc(l.n) + "</b>";
+                    '<span class="cat">' + esc(cat.name) + '</span><span class="sep">/</span><b>' + esc(l.n) + "</b>";
   document.title = l.n + " — FrontDemo";
 
   var licWarn = /SEE LICENSE|no-charge|LGPL|MPL/i.test(l.lic);
@@ -731,7 +760,7 @@ async function runDemo(l) {
   var ctx = makeCtx(l, mount, bar, stage);
   var mine = live;
   try {
-    if (l.css && l.css.length) await Promise.all(l.css.map(loadCSS));
+    if (l.css && l.css.length) await ctx.css.apply(null, l.css);
     if (l.js && l.js.length) await need.apply(null, l.js);
     /* An ES-module build (it lazy-loads chunks of its own) is imported
        rather than script-tagged, and handed to the builder as ctx.mod. */
@@ -790,24 +819,35 @@ window.__boot = function () {
   $("#themeBtn").addEventListener("click", function () {
     var next = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
     setTheme(next);
-    /* Demos bake colours in at build time, so re-run the current one. */
-    var h = location.hash.replace(/^#/, "");
-    if (h.indexOf("/l/") === 0) { destroyLive(); renderLib(h.slice(3)); }
+    /* Demos bake colours in at build time, so re-run the current one,
+       unless it is an editor: editors keep their own white surface in
+       either theme, and re-running one would throw away what was drawn. */
+    var h = location.hash.replace(/^#/, ""), l = h.indexOf("/l/") === 0 && byKey[h.slice(3)];
+    if (l && l.cat !== "flow") { destroyLive(); renderLib(l.k); }
   });
 
   var q = $("#q");
   q.addEventListener("input", function () { searchTerm = q.value; applySearch(); });
   $("#qclr").addEventListener("click", function () { q.value = ""; searchTerm = ""; applySearch(); q.focus(); });
 
+  /* "/" jumps to the search box, unless it is being typed somewhere:
+     a field, or an editor's in-place text (maxGraph and Drawnix edit
+     labels in contenteditable elements). */
   document.addEventListener("keydown", function (e) {
-    if (e.key === "/" && document.activeElement !== q && !/input|textarea/i.test(document.activeElement.tagName)) {
-      e.preventDefault(); q.focus(); q.select();
+    var t = e.target, typing = t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName || "");
+    if (e.key === "/" && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      if ($("#burger").offsetParent) openDrawer();     /* narrow screens keep the search in the drawer */
+      q.focus(); q.select();
     }
     if (e.key === "Escape" && document.activeElement === q) { q.value = ""; searchTerm = ""; applySearch(); q.blur(); }
   });
 
   $("#burger").addEventListener("click", openDrawer);
   $("#scrim").addEventListener("click", closeDrawer);
+  /* Following a link closes the drawer, even to the page already open
+     (no hashchange then). */
+  $("#side").addEventListener("click", function (e) { if (e.target.closest("a[href^='#']")) closeDrawer(); });
 
   window.addEventListener("hashchange", route);
   route();

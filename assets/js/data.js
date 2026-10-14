@@ -49,7 +49,7 @@ window.CHECKED = "2026-10-14";
 
 /* ------------------------------------------------------------------
    Libraries.
-     k       key — also the DOM id prefix and the URL hash
+     k       key, used in the URL (#/l/key)
      n/pkg   display name / npm package
      ver     latest version on npm (draw.io: latest GitHub release)
      pub     when that version was published
@@ -227,7 +227,7 @@ window.LIBS = [
   what:"WebGL graph rendering as React components, built on three.js.",
   pro:"Tens of thousands of nodes that you can still click and select",
   con:"Heavy bundle, and three.js comes along for the ride",
-  try:"Click a node to select it; drag the background to orbit. All of this is WebGL, not SVG.",
+  try:"Click a node to select it and light up its neighbours; drag the background to pan, or to rotate in force 3D. All of this is WebGL, not SVG.",
   rnNote:"Built on three.js, so a react-three-fiber/native port is conceivable but does not exist today.",
   js:["reagraph"], site:"https://reagraph.dev/", repo:"reaviz/reagraph" },
 

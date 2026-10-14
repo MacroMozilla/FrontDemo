@@ -174,12 +174,12 @@ vendor/*.js                   browser builds of every library
 vendor/drawnix/               Drawnix as an ES module, with its lazily loaded chunks
 scripts/bundles/              how the builds in vendor/ are produced
 scripts/freshness.mjs         refreshes versions, release and commit dates, and sizes in data.js
-scripts/check.mjs             static checks, run in CI before each deploy
+scripts/check.mjs             static checks, run in CI on every pull request and push to main
 scripts/verify.mjs            drives every page in headless Chromium
 scripts/audit.mjs             screenshots every stage and measures what was actually painted
 scripts/montage.mjs           tiles the audit screenshots into contact sheets
 scripts/readme.mjs            regenerates the library tables in this file from data.js
-scripts/probe.mjs             prints what global a vendor build exposes
+scripts/probe.mjs             loads one vendor build and evaluates an expression against it
 scripts/shot.mjs              screenshots one route in either theme
 ```
 
@@ -222,17 +222,25 @@ node scripts/verify.mjs mylib      # just yours
 node scripts/audit.mjs mylib       # did it actually paint anything?
 ```
 
-`scripts/verify.mjs` needs Playwright's Chromium; `npm i -D playwright` if you do not have it. Both
-browser scripts present an ordinary Chrome user agent and honour `HTTPS_PROXY`, because the draw.io
-page has to reach embed.diagrams.net.
+The browser scripts need Playwright and its Chromium, and `audit.mjs` and `montage.mjs` also need
+pngjs. Without a `package.json` at the root, install them without saving one:
+
+```bash
+npm i --no-save playwright pngjs
+npx playwright install chromium
+```
+
+`verify.mjs`, `audit.mjs` and `shot.mjs` present an ordinary Chrome user agent and honour `HTTPS_PROXY`,
+because the draw.io page has to reach embed.diagrams.net.
 
 ## Deployment
 
 GitHub Pages publishes the `main` branch as it is: there is no build step, and `.nojekyll` keeps
 Pages from processing it. `.github/workflows/deploy.yml` runs `scripts/check.mjs` and
-`scripts/readme.mjs --check` on every pull request and push, so a library with no builder, a missing
-`vendor/` file, a stale README table or any CJK text shows up as a red check before it is merged. The
-workflow's own deploy job only runs if the repository's Pages source is switched to GitHub Actions.
+`scripts/readme.mjs --check` on every pull request and every push to `main`, so a library with no
+builder, a missing `vendor/` file, a stale README table or any CJK text shows up as a red check
+before it is merged. The workflow's own deploy job only runs if the repository's Pages source is
+switched to GitHub Actions.
 
 ## A note on licences
 

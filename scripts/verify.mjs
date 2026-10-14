@@ -44,6 +44,11 @@ const args = process.argv.slice(2);
 const shots = args.includes('--shots');
 const only = args.filter(a => !a.startsWith('--'));
 const libs = win.LIBS.filter(l => !only.length || only.includes(l.k));
+const unknown = only.filter(k => !win.LIBS.some(l => l.k === k));
+if (unknown.length) {
+  console.error('no such library: ' + unknown.join(' ') + '\nkeys: ' + win.LIBS.map(l => l.k).join(' '));
+  process.exit(2);
+}
 
 if (shots) fs.mkdirSync('/tmp/fd-shots', { recursive: true });
 

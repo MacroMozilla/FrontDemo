@@ -1,4 +1,9 @@
-name: Deploy to GitHub Pages
+# The checks run on every pull request and every push to main. GitHub Pages
+# publishes the main branch by itself (Settings → Pages → Source: deploy
+# from a branch), so a failing check flags a problem but cannot hold that
+# back. The deploy job below only runs if the Pages source is switched to
+# GitHub Actions; then a failing check does stop the deploy.
+name: Checks
 
 on:
   push:
@@ -18,7 +23,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Runs everywhere: a branch that fails the checks never reaches deploy.
   build:
     runs-on: ubuntu-latest
     outputs:
@@ -51,9 +55,10 @@ jobs:
           fi
 
       - uses: actions/configure-pages@v5
-        continue-on-error: true
+        if: steps.pages_source.outputs.actions == 'true'
 
       - name: Upload site
+        if: steps.pages_source.outputs.actions == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
