@@ -47,12 +47,19 @@ const libs = win.LIBS.filter(l => !only.length || only.includes(l.k));
 
 if (shots) fs.mkdirSync('/tmp/fd-shots', { recursive: true });
 
+/* The draw.io page loads embed.diagrams.net, so go through the environment's
+   proxy if it has one. Passed as a flag rather than Playwright's proxy option,
+   which would also route the local server through it. */
+const PROXY = process.env.HTTPS_PROXY ? ['--proxy-server=' + process.env.HTTPS_PROXY] : [];
 const browser = await chromium.launch({
   args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--use-gl=angle',
-         '--enable-webgl', '--ignore-gpu-blocklist']
+         '--enable-webgl', '--ignore-gpu-blocklist', ...PROXY]
 });
-/* The container reports en-US@posix, which Intl rejects — pin a real locale. */
-const page = await browser.newPage({ viewport: { width: 1440, height: 950 }, locale: 'en-US', timezoneId: 'UTC' });
+/* The container reports en-US@posix, which Intl rejects — pin a real locale.
+   diagrams.net's Cloudflare front refuses the "HeadlessChrome" user agent,
+   so present an ordinary one. */
+const page = await browser.newPage({ viewport: { width: 1440, height: 950 }, locale: 'en-US', timezoneId: 'UTC',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' });
 
 let errors = [];
 page.on('pageerror', e => errors.push('pageerror: ' + e.message.split('\n')[0].slice(0, 160)));

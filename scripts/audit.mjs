@@ -37,10 +37,14 @@ const libs = win.LIBS.filter(l => !only.length || only.includes(l.k));
 
 fs.mkdirSync('/tmp/fd-audit', { recursive: true });
 
+/* Proxy as a flag, as in verify.mjs, so the local server stays direct. */
+const PROXY = process.env.HTTPS_PROXY ? ['--proxy-server=' + process.env.HTTPS_PROXY] : [];
 const browser = await chromium.launch({
-  args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--use-gl=angle']
+  args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--use-gl=angle', ...PROXY]
 });
-const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, locale: 'en-US', timezoneId: 'UTC' });
+/* An ordinary user agent: diagrams.net refuses "HeadlessChrome" (see verify.mjs). */
+const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, locale: 'en-US', timezoneId: 'UTC',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' });
 /* Playwright's screenshot waits for the page to be visually stable, which a
    demo driving requestAnimationFrame forever never is. Go straight to CDP. */
 const cdp = await page.context().newCDPSession(page);

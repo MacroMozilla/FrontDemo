@@ -1,2 +1,2 @@
 * text=auto eol=lf
-vendor/* binary
+vendor/** binary
