@@ -426,6 +426,15 @@ table.m td.sz { font-family: var(--mono); font-size: 10.5px; color: var(--muted)
 .legend { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 9px; font-size: 11.5px; color: var(--muted); }
 .legend b { font-weight: 700; }
 
+/* The overview's comparison of the editors: prose cells, not marks. */
+table.m.cmp { min-width: 940px; }
+table.m.cmp td { text-align: left; color: var(--ink-2); line-height: 1.5; vertical-align: top; }
+table.m.cmp thead th { text-align: left; cursor: default; }
+table.m.cmp td.nm { width: 190px; }
+table.m.cmp td.ver { font-family: var(--mono); font-size: 11px; white-space: nowrap; }
+table.m.cmp td.ver .p { display: block; font-size: 9.5px; color: var(--muted); }
+.pad:not(.wide) > .tscroll { max-height: none; }
+
 /* ---------------- responsive ---------------- */
 @media (max-width: 940px) {
   .shell { grid-template-columns: minmax(0, 1fr); }
@@ -537,3 +546,11 @@ table.m td.sz { font-family: var(--mono); font-size: 10.5px; color: var(--muted)
 }
 .demo-log .t { color: var(--muted); }
 .demo-log .m { color: var(--accent); }
+
+/* The Data panel diagram demos open over their stage. */
+.demo-json {
+  position: absolute; top: 10px; right: 10px; bottom: 10px; width: min(46%, 520px); z-index: 6;
+  margin: 0; padding: 10px 12px; overflow: auto; white-space: pre;
+  background: var(--panel); color: var(--ink-2); border: 1px solid var(--line); border-radius: 8px;
+  font-family: var(--mono); font-size: 11px; line-height: 1.55; box-shadow: var(--shadow);
+}

@@ -433,32 +433,45 @@ function stars(n) {
 
 function renderHome() {
   crumb.innerHTML = "<b>Overview</b>";
-  var byGroup = GROUPS.map(function (g) {
-    return { g: g, cats: CATS.filter(function (c) { return c.g === g.id; }) };
-  });
-  var vizCount = LIBS.filter(function (l) { return catById[l.cat].g === "viz"; }).length;
-  var rnYes = LIBS.filter(function (l) { return l.c.split(/\s+/)[6] === "y"; }).length;
+  var editors = LIBS.filter(function (l) { return l.cat === "flow"; });
+  var graphs = LIBS.filter(function (l) { return l.cat === "graph"; });
 
   var h = '<div class="pad">';
   h += '<div class="hero">' +
-       '<p class="eyebrow">Every library on this site is running, not pictured</p>' +
-       "<h2>A playground for front-end libraries</h2>" +
-       "<p>Pick anything from the sidebar. You get the library mounted on a real stage with controls " +
-       "to push it around, the honest trade-off, whether it survives a React Native app, and the exact " +
-       "source that produced what you are looking at.</p>" +
+       '<p class="eyebrow">One flowchart · nine frameworks · each in its stock look</p>' +
+       "<h2>Which diagram framework feels right in your hands?</h2>" +
+       "<p>Every editor in the first section draws the same approval flowchart using only what the framework " +
+       "ships with: its stock shapes, its default theme, its own toolbars and panels. Drag nodes, wire up new " +
+       "edges, undo, delete — then open the source at the bottom of each page to see how much code the same " +
+       "result took. The second section keeps seven libraries for graphs you analyse rather than draw.</p>" +
        "</div>";
 
   h += '<div class="stats">' +
-       '<div class="stat"><div class="v">' + LIBS.length + '</div><div class="k">libraries</div></div>' +
-       '<div class="stat"><div class="v">' + CATS.length + '</div><div class="k">categories</div></div>' +
-       '<div class="stat"><div class="v">' + vizCount + '</div><div class="k">graphics libs</div></div>' +
-       '<div class="stat"><div class="v">' + rnYes + '</div><div class="k">React Native ready</div></div>' +
+       '<div class="stat"><div class="v">' + editors.length + '</div><div class="k">diagram &amp; flow editors</div></div>' +
+       '<div class="stat"><div class="v">' + graphs.length + '</div><div class="k">graph &amp; network libraries</div></div>' +
+       '<div class="stat"><div class="v">1</div><div class="k">flowchart, drawn every way</div></div>' +
+       '<div class="stat"><div class="v">0</div><div class="k">custom colours or themes</div></div>' +
        "</div>";
 
-  byGroup.forEach(function (b) {
-    h += '<div class="sechead"><h3>' + esc(b.g.name) + "</h3><span>" + esc(b.g.blurb) + "</span></div>";
+  h += '<div class="sechead"><h3>The nine editors at a glance</h3><span>In the order of the brief. ' +
+       'Each name opens its live page.</span></div>';
+  h += '<div class="tscroll"><table class="m cmp"><thead><tr>' +
+       '<th class="nm">Framework</th><th>Draws with</th><th>You write it in</th>' +
+       "<th>In the box — and used on its page</th><th>License</th><th>Latest</th>" +
+       "</tr></thead><tbody>";
+  editors.forEach(function (l) {
+    h += "<tr>" +
+         '<td class="nm"><a href="#/l/' + l.k + '">' + esc(l.n) + '</a><span class="p">' + esc(l.pkg) + "</span></td>" +
+         "<td>" + esc(l.render) + "</td><td>" + esc(l.ui) + "</td><td>" + esc(l.box) + "</td>" +
+         "<td>" + esc(l.lic) + "</td>" +
+         '<td class="ver">' + esc(l.ver) + '<span class="p">' + esc(l.pub) + "</span></td></tr>";
+  });
+  h += "</tbody></table></div>";
+
+  GROUPS.forEach(function (g) {
+    h += '<div class="sechead"><h3>' + esc(g.name) + "</h3><span>" + esc(g.blurb) + "</span></div>";
     h += '<div class="grpgrid">';
-    b.cats.forEach(function (c) {
+    CATS.filter(function (c) { return c.g === g.id; }).forEach(function (c) {
       var libs = LIBS.filter(function (l) { return l.cat === c.id; });
       h += '<a class="grpcard" href="#/l/' + libs[0].k + '">' +
            "<h4>" + esc(c.name) + ' <span class="n">' + libs.length + "</span></h4>" +
@@ -470,16 +483,17 @@ function renderHome() {
 
   h += '<div class="sechead"><h3>How to read the pages</h3></div>';
   h += '<div class="cards">' +
-       '<div class="card"><h4>Stage</h4><p>The library is mounted for real and loaded only when you open its page. ' +
-       'Controls in the grey bar drive the actual API — they are not canned states.</p></div>' +
-       '<div class="card"><h4>React Native column</h4><p><b class="mk y">✓</b> runs on a device, natively or as pure JS you can ' +
-       'drive <code>react-native-svg</code> with. <b class="mk p">◐</b> works on Expo web only; native needs a WebView. ' +
-       '<b class="mk n">✗</b> no path into a React Native app at all.</p></div>' +
+       '<div class="card"><h4>Same flowchart</h4><p>Start → Submit request → Approved? → Place order / Notify ' +
+       "requester → End. Each editor draws it with its own default shapes; where a framework has no diamond or " +
+       "terminator, its plain node stands in rather than a hand-made one.</p></div>" +
+       '<div class="card"><h4>Stage</h4><p>The framework is loaded only when you open its page and mounted for real. ' +
+       "Its own panels and toolbars sit inside the stage; the grey bar above calls its API — undo, add, fit, " +
+       "and <b>Data</b>, which shows what the framework would save.</p></div>" +
        '<div class="card"><h4>Source</h4><p>Every page ends with the exact builder function that drew the stage — ' +
-       'no elisions, no pseudo-code.</p></div>' +
-       '<div class="card"><h4>Versions</h4><p>The version badge is the latest release on npm. ' +
-       '<code>vendor/</code> holds a pinned browser build; where that build is an older major line, ' +
-       'the page says <b>running X here</b> and the demo is written against that API.</p></div>' +
+       "no elisions, no pseudo-code — so the amount of code each framework needed is there to compare.</p></div>" +
+       '<div class="card"><h4>Versions</h4><p>The version badge is the latest release. Most builds are copied or ' +
+       "bundled from npm by <code>scripts/bundles</code>; where the page runs something else, it says so " +
+       "(<b>running X here</b>, or where the build came from).</p></div>" +
        "</div>";
 
   h += "</div>";
@@ -579,17 +593,23 @@ function renderLib(k) {
   h += '<header class="lib-head">' +
        '<div class="lib-title"><h2>' + esc(l.n) + "</h2>" +
        '<span class="stars" title="How readily I would reach for it">' + stars(l.st) + "</span>" +
-       '<button class="npm" id="cpNpm" type="button" title="Copy install command">npm i ' + esc(l.pkg) +
-       ' <span class="cp">copy</span></button></div>' +
+       (l.npm === false
+         ? '<a class="npm" href="' + esc(l.site) + '" target="_blank" rel="noopener" title="How it is embedded">' +
+           esc(l.ext || l.pkg) + ' <span class="cp">embed docs</span></a>'
+         : '<button class="npm" id="cpNpm" type="button" title="Copy install command">npm i ' + esc(l.pkg) +
+           ' <span class="cp">copy</span></button>') + "</div>" +
        '<p class="lib-what">' + esc(l.what) + "</p>" +
        '<div class="facts">' +
-       '<span class="fact">npm <b>' + esc(l.ver) + "</b></span>" +
+       '<span class="fact">' + (l.npm === false ? "release" : "npm") + " <b>" + esc(l.ver) + "</b></span>" +
        '<span class="fact">published <b>' + esc(l.pub) + "</b></span>" +
        (l.vend ? '<span class="fact warn" title="The browser build pinned in this repo is an older ' +
                  'major line than npm latest, so the demo is written against that API.">running <b>' +
                  esc(l.vend) + "</b> here</span>" : "") +
+       (l.build ? '<span class="fact">' + esc(l.build) + "</span>" : "") +
        '<span class="fact' + (licWarn ? " warn" : "") + '">' + esc(l.lic) + "</span>" +
-       '<span class="fact">build here <b>' + (l.kb >= 1024 ? (l.kb / 1024).toFixed(1) + " MB" : l.kb + " KB") + "</b></span>" +
+       '<span class="fact">' + (l.ext ? "loads" : "build here") + " <b>" +
+       (l.kb >= 1024 ? (l.kb / 1024).toFixed(1) + " MB" : l.kb + " KB") + "</b>" +
+       (l.ext ? " from " + esc(l.ext) : "") + "</span>" +
        '<span class="fact">' + esc(cat.name) + "</span>" +
        "</div></header>";
 
@@ -618,7 +638,9 @@ function renderLib(k) {
        }).join("") + "</div></div>";
   h += '<div class="card"><h4>Links</h4><div class="linkrow">' +
        '<a href="' + esc(l.site) + '" target="_blank" rel="noopener">Homepage</a>' +
-       '<a href="https://www.npmjs.com/package/' + esc(l.pkg) + '" target="_blank" rel="noopener">npm</a>' +
+       (l.repo ? '<a href="https://github.com/' + esc(l.repo) + '" target="_blank" rel="noopener">GitHub</a>' : "") +
+       (l.npm === false ? "" :
+         '<a href="https://www.npmjs.com/package/' + esc(l.pkg) + '" target="_blank" rel="noopener">npm</a>') +
        '<a href="#/matrix">Compare</a></div></div>';
   h += "</div>";
 
@@ -630,7 +652,7 @@ function renderLib(k) {
 
   view.innerHTML = h;
 
-  $("#cpNpm").addEventListener("click", function () {
+  if ($("#cpNpm")) $("#cpNpm").addEventListener("click", function () {
     var b = this;
     navigator.clipboard.writeText("npm i " + l.pkg).then(function () {
       var s = b.querySelector(".cp");
@@ -683,6 +705,9 @@ async function runDemo(l) {
   try {
     if (l.css && l.css.length) await Promise.all(l.css.map(loadCSS));
     if (l.js && l.js.length) await need.apply(null, l.js);
+    /* An ES-module build (it lazy-loads chunks of its own) is imported
+       rather than script-tagged, and handed to the builder as ctx.mod. */
+    if (l.esm) ctx.mod = await import(new URL("vendor/" + l.esm, document.baseURI).href);
     if (mine.dead) return;
     await fn(ctx);
     if (mine.dead) return;
@@ -701,7 +726,7 @@ async function runDemo(l) {
 function route() {
   destroyLive();
   var h = location.hash.replace(/^#/, "") || "/";
-  document.title = "FrontDemo — a playground for front-end libraries";
+  document.title = "FrontDemo — diagram editors and graph libraries, side by side";
   $("#main").scrollTop = 0;
   closeDrawer();
 

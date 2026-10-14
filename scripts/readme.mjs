@@ -36,7 +36,8 @@ for (const grp of GROUPS) {
     out.push('|---|---|---|---|---|:--:|---|');
     for (const l of libs) {
       const rn = RN[l.c.split(/\s+/)[6]] || '?';
-      out.push('| **' + esc(l.n) + '** | `' + esc(l.pkg) + '` | ' + '★'.repeat(l.st) +
+      const pkg = l.npm === false ? '— (embedded from ' + esc(l.ext) + ')' : '`' + esc(l.pkg) + '`';
+      out.push('| **' + esc(l.n) + '** | ' + pkg + ' | ' + '★'.repeat(l.st) +
         ' | ' + esc(l.lic) + ' | ' + size(l.kb) + ' | ' + rn + ' | ' + esc(l.what) + ' |');
     }
     out.push('');

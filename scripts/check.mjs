@@ -39,6 +39,7 @@ for (const l of LIBS) {
   for (const j of l.js || []) {
     if (!fs.existsSync(path.join(ROOT, 'vendor', j + '.js'))) fail.push(`${at}: vendor/${j}.js is missing`);
   }
+  if (l.esm && !fs.existsSync(path.join(ROOT, 'vendor', l.esm))) fail.push(`${at}: vendor/${l.esm} is missing`);
   for (const c of l.css || []) {
     if (!fs.existsSync(path.join(ROOT, 'assets/css/lib', c + '.css'))) fail.push(`${at}: assets/css/lib/${c}.css is missing`);
   }
