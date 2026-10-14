@@ -15,7 +15,7 @@
 "use strict";
 
 var GROUPS = window.GROUPS, CATS = window.CATS, CAPS = window.CAPS,
-    LIBS = window.LIBS, MK = window.MK;
+    LIBS = window.LIBS, MK = window.MK, CHECKED = window.CHECKED;
 var B = window.B = {};                       /* key -> builder            */
 var byKey = {};  LIBS.forEach(function (l) { byKey[l.k] = l; });
 var catById = {}; CATS.forEach(function (c) { catById[c.id] = c; });
@@ -286,6 +286,16 @@ function makeCtx(lib, mount, bar, stage) {
     onDestroy: function (fn) { rec.destroyers.push(fn); },
     dead: function () { return rec.dead; },
 
+    /** Shows a failure that happens after the builder returned, where a
+        thrown error would show it; returns a function that hides it again. */
+    fail: function (text) {
+      var m = $("#msg");
+      if (rec.dead) return function () {};
+      m.className = "stage-msg on err";
+      m.innerHTML = "<p>" + esc(text) + "</p>";
+      return function () { if (!rec.dead) m.classList.remove("on"); };
+    },
+
     /** requestAnimationFrame loop that stops itself when the demo unmounts. */
     raf: function (fn) {
       var last = performance.now();
@@ -431,6 +441,21 @@ function stars(n) {
   return "★".repeat(n) + "<i>" + "★".repeat(5 - n) + "</i>";
 }
 
+function size(kb) {
+  return kb >= 1024 ? (kb / 1024).toFixed(1) + " MB" : kb + " KB";
+}
+
+/* A library's last update: the newer of its latest release and the newest
+   commit to its repository (ISO dates compare as strings). */
+function lastUpdate(l) {
+  return l.commit && l.commit > l.pub ? l.commit : l.pub;
+}
+function lastUpdateTitle(l) {
+  return "The newer of its latest release (" + l.pub + ")" +
+         (l.commit ? " and the newest commit to its repository (" + l.commit + ")" : "") +
+         ". Looked up " + CHECKED + ".";
+}
+
 function renderHome() {
   crumb.innerHTML = "<b>Overview</b>";
   var editors = LIBS.filter(function (l) { return l.cat === "flow"; });
@@ -454,17 +479,18 @@ function renderHome() {
        "</div>";
 
   h += '<div class="sechead"><h3>The nine editors at a glance</h3><span>In the order of the brief. ' +
-       'Each name opens its live page.</span></div>';
+       "Each name opens its live page. Versions and dates checked " + esc(CHECKED) + ".</span></div>";
   h += '<div class="tscroll"><table class="m cmp"><thead><tr>' +
        '<th class="nm">Framework</th><th>Draws with</th><th>You write it in</th>' +
-       "<th>In the box — and used on its page</th><th>License</th><th>Latest</th>" +
+       "<th>In the box — and used on its page</th><th>License</th><th>Last update</th>" +
        "</tr></thead><tbody>";
   editors.forEach(function (l) {
     h += "<tr>" +
          '<td class="nm"><a href="#/l/' + l.k + '">' + esc(l.n) + '</a><span class="p">' + esc(l.pkg) + "</span></td>" +
          "<td>" + esc(l.render) + "</td><td>" + esc(l.ui) + "</td><td>" + esc(l.box) + "</td>" +
          "<td>" + esc(l.lic) + "</td>" +
-         '<td class="ver">' + esc(l.ver) + '<span class="p">' + esc(l.pub) + "</span></td></tr>";
+         '<td class="ver" title="' + esc(lastUpdateTitle(l)) + '"><b>' + esc(lastUpdate(l)) + "</b>" +
+         '<span class="p">' + esc(l.ver) + " released " + esc(l.pub) + "</span></td></tr>";
   });
   h += "</tbody></table></div>";
 
@@ -508,7 +534,7 @@ function renderMatrix() {
   h += '<div class="sechead"><h3>All ' + LIBS.length + " libraries</h3><span>Tick a capability to narrow the list. Hover a column header for what it means.</span></div>";
   h += '<div class="filters" id="capFilters"></div>';
   h += '<div class="tscroll"><table class="m"><thead><tr>' +
-       '<th class="nm">Library</th><th class="sz">Size</th>' +
+       '<th class="nm">Library</th><th class="sz">Size</th><th class="up">Last update</th>' +
        CAPS.map(function (c) { return '<th data-cap="' + c.id + '" title="' + esc(c.full) + '">' + c.short + "</th>"; }).join("") +
        "</tr></thead><tbody id=\"mbody\"></tbody></table></div>";
   h += '<div class="legend">' +
@@ -550,13 +576,14 @@ function renderMatrix() {
     CATS.forEach(function (c) {
       var rows = LIBS.filter(function (l) { return l.cat === c.id && pass(l); });
       if (!rows.length) return;
-      body += '<tr class="cathead"><td colspan="' + (CAPS.length + 2) + '">' +
+      body += '<tr class="cathead"><td colspan="' + (CAPS.length + 3) + '">' +
               esc(c.name) + '<span class="n">' + rows.length + "</span></td></tr>";
       rows.forEach(function (l) {
         n++;
         body += "<tr>" +
           '<td class="nm"><a href="#/l/' + l.k + '">' + esc(l.n) + '</a><span class="p">' + esc(l.pkg) + "</span></td>" +
-          '<td class="sz">' + (l.kb >= 1024 ? (l.kb / 1024).toFixed(1) + " MB" : l.kb + " KB") + "</td>" +
+          '<td class="sz">' + size(l.kb) + "</td>" +
+          '<td class="up" title="' + esc(lastUpdateTitle(l)) + '">' + esc(lastUpdate(l)) + "</td>" +
           l.c.split(/\s+/).map(function (m) {
             var d = MK[m] || MK.n;
             return '<td><span class="mk ' + d[0] + '">' + d[1] + "</span></td>";
@@ -600,15 +627,16 @@ function renderLib(k) {
            ' <span class="cp">copy</span></button>') + "</div>" +
        '<p class="lib-what">' + esc(l.what) + "</p>" +
        '<div class="facts">' +
+       '<span class="fact upd" title="' + esc(lastUpdateTitle(l)) + '">last update <b>' + esc(lastUpdate(l)) + "</b></span>" +
        '<span class="fact">' + (l.npm === false ? "release" : "npm") + " <b>" + esc(l.ver) + "</b></span>" +
-       '<span class="fact">published <b>' + esc(l.pub) + "</b></span>" +
-       (l.vend ? '<span class="fact warn" title="The browser build pinned in this repo is an older ' +
-                 'major line than npm latest, so the demo is written against that API.">running <b>' +
+       '<span class="fact">released <b>' + esc(l.pub) + "</b></span>" +
+       (l.commit ? '<span class="fact">last commit <b>' + esc(l.commit) + "</b></span>" : "") +
+       (l.vend ? '<span class="fact warn" title="The build in this repo is not the latest npm version, ' +
+                 'so the demo is written against the one running here.">running <b>' +
                  esc(l.vend) + "</b> here</span>" : "") +
        (l.build ? '<span class="fact">' + esc(l.build) + "</span>" : "") +
        '<span class="fact' + (licWarn ? " warn" : "") + '">' + esc(l.lic) + "</span>" +
-       '<span class="fact">' + (l.ext ? "loads" : "build here") + " <b>" +
-       (l.kb >= 1024 ? (l.kb / 1024).toFixed(1) + " MB" : l.kb + " KB") + "</b>" +
+       '<span class="fact">' + (l.ext ? "loads" : "build here") + " <b>" + size(l.kb) + "</b>" +
        (l.ext ? " from " + esc(l.ext) : "") + "</span>" +
        '<span class="fact">' + esc(cat.name) + "</span>" +
        "</div></header>";

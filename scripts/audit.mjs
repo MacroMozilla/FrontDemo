@@ -3,7 +3,7 @@
    this catches the ones that run and still show nothing worth looking at.
 
      node scripts/audit.mjs             all libraries
-     node scripts/audit.mjs d3 leaflet  only these
+     node scripts/audit.mjs xyf x6      only these
    Screenshots land in /tmp/fd-audit/. */
 import { chromium } from 'playwright';
 import { PNG } from 'pngjs';

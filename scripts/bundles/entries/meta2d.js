@@ -1,6 +1,7 @@
 /* The same entry as meta2d's own browser bundle (packages/meta2d.js/src/index.ts
    in le5le-com/meta2d.js), rebuilt against the current 1.x packages on npm.
-   Exposes window.Meta2d, window.registerCommonDiagram and window.meta2djs. */
+   Exposes window.Meta2d, window.registerCommonDiagram and window.meta2djs
+   (including meta2djs.setLocale, see below). */
 import { Meta2d } from '@meta2d/core';
 import { classPens } from '@meta2d/class-diagram';
 import { sequencePens, sequencePensbyCtx } from '@meta2d/sequence-diagram';
@@ -11,6 +12,11 @@ import { formPens } from '@meta2d/form-diagram';
 import { ftaPens, ftaPensbyCtx, ftaAnchors } from '@meta2d/fta-diagram';
 import { chartsPens } from '@meta2d/le5le-charts';
 export * from '@meta2d/core';
+/* Added to the official entry: meta2d's UI strings default to Chinese and its
+   locale is module-wide, but setLocale is only reachable from an instance,
+   after the constructor has already built its dialogs. Exported here so a
+   page can choose a language before creating one. */
+export { setLocale } from '@meta2d/core/src/locale/index.js';
 
 globalThis.Meta2d = Meta2d;
 globalThis.registerCommonDiagram = function () {

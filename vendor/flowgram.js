@@ -97,7 +97,7 @@ Trying to resolve bindings for "${fl(c.serviceIdentifier)}"`),new Error(p)}case 
   left: 50%;
   top: 50%;
   position: absolute;
-  // 非 hover 状态下的样式
+  // \u975e hover \u72b6\u6001\u4e0b\u7684\u6837\u5f0f
   border: none;
 
   & > .symbol {

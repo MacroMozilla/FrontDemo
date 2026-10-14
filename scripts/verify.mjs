@@ -1,7 +1,7 @@
 /* Drives every library page in headless Chromium and reports anything
    that fails to start. Usage:
      node scripts/verify.mjs            all libraries
-     node scripts/verify.mjs d3 leaflet only these
+     node scripts/verify.mjs xyf x6     only these
      node scripts/verify.mjs --shots    also write screenshots to /tmp/fd-shots
 */
 import { chromium } from 'playwright';

@@ -1,12 +1,14 @@
 {
   "name": "frontdemo-bundles",
   "private": true,
-  "description": "Produces the vendor/ builds of the diagram frameworks. See build.mjs.",
+  "description": "Produces the vendor/ builds of every library on the site. See build.mjs.",
   "type": "module",
   "scripts": {
     "build": "node build.mjs"
   },
   "dependencies": {
+    "3d-force-graph": "1.80.1",
+    "@antv/g6": "5.1.1",
     "@antv/x6": "3.1.8",
     "@floating-ui/react": "0.26.28",
     "@flowgram.ai/free-layout-editor": "1.0.16",
@@ -37,19 +39,26 @@
     "ahooks": "3.10.0",
     "browser-fs-access": "0.38.0",
     "classnames": "2.5.1",
+    "cytoscape": "3.34.3",
+    "d3": "7.9.0",
+    "force-graph": "1.52.0",
+    "graphology": "0.26.0",
     "is-hotkey": "0.2.0",
     "laser-pen": "1.0.1",
     "localforage": "1.10.0",
     "mobile-detect": "1.4.5",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "reagraph": "4.32.0",
     "roughjs": "4.6.6",
+    "sigma": "4.0.1",
     "slate": "0.116.0",
     "slate-dom": "0.116.0",
     "slate-history": "0.115.0",
     "slate-react": "0.116.0",
     "styled-components": "6.6.0",
-    "tslib": "2.8.1"
+    "tslib": "2.8.1",
+    "vis-network": "10.1.2"
   },
   "devDependencies": {
     "esbuild": "0.28.2",

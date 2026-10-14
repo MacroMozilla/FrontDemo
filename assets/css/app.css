@@ -554,3 +554,8 @@ table.m.cmp td.ver .p { display: block; font-size: 9.5px; color: var(--muted); }
   background: var(--panel); color: var(--ink-2); border: 1px solid var(--line); border-radius: 8px;
   font-family: var(--mono); font-size: 11px; line-height: 1.55; box-shadow: var(--shadow);
 }
+
+/* "last update" stands out from the other facts. */
+.fact.upd { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent); }
+.fact.upd b { color: var(--accent); }
+table.m td.up, table.m th.up { font-family: var(--mono); font-size: 10.5px; color: var(--muted); white-space: nowrap; }

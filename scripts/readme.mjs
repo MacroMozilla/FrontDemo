@@ -11,7 +11,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const sandbox = { window: {} };
 const src = fs.readFileSync(path.join(ROOT, 'assets/js/data.js'), 'utf8');
 new Function('window', src)(sandbox.window);
-const { GROUPS, CATS, LIBS } = sandbox.window;
+const { GROUPS, CATS, LIBS, CHECKED } = sandbox.window;
 
 const START = '<!-- LIBRARY-TABLES:START -->';
 const END = '<!-- LIBRARY-TABLES:END -->';
@@ -25,20 +25,26 @@ function esc(s) {
   return String(s).replace(/\|/g, '\\|');
 }
 
-const out = [];
+/* The newer of the latest release and the newest commit, as on the site. */
+function lastUpdate(l) {
+  return l.commit && l.commit > l.pub ? l.commit : l.pub;
+}
+
+const out = ['_Versions, release dates and commit dates checked ' + CHECKED +
+             ' (`node scripts/freshness.mjs --write` refreshes them)._', ''];
 for (const grp of GROUPS) {
   out.push('### ' + grp.name, '');
   for (const cat of CATS.filter((c) => c.g === grp.id)) {
     const libs = LIBS.filter((l) => l.cat === cat.id);
     if (!libs.length) continue;
     out.push('#### ' + cat.name + ' (' + libs.length + ')', '');
-    out.push('| Library | npm | Pick | License | Size | RN | What it is |');
-    out.push('|---|---|---|---|---|:--:|---|');
+    out.push('| Library | npm | Pick | License | Size | Last update | RN | What it is |');
+    out.push('|---|---|---|---|---|---|:--:|---|');
     for (const l of libs) {
       const rn = RN[l.c.split(/\s+/)[6]] || '?';
       const pkg = l.npm === false ? '— (embedded from ' + esc(l.ext) + ')' : '`' + esc(l.pkg) + '`';
       out.push('| **' + esc(l.n) + '** | ' + pkg + ' | ' + '★'.repeat(l.st) +
-        ' | ' + esc(l.lic) + ' | ' + size(l.kb) + ' | ' + rn + ' | ' + esc(l.what) + ' |');
+        ' | ' + esc(l.lic) + ' | ' + size(l.kb) + ' | ' + lastUpdate(l) + ' | ' + rn + ' | ' + esc(l.what) + ' |');
     }
     out.push('');
   }

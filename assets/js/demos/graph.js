@@ -148,7 +148,7 @@ B.vn = async function (ctx) {
   var T = ctx.T;
   var data = sample(42, 12);
   var nodes = new vis.DataSet(data.nodes.map(function (n) {
-    return { id: n.id, label: n.label, group: n.group };
+    return { id: n.id, label: n.label, group: String(n.group) };   /* vis matches group names as strings */
   }));
   var edges = new vis.DataSet(data.links.map(function (l, i) {
     return { id: "e" + i, from: l.source, to: l.target };
@@ -299,18 +299,16 @@ B.sig = async function (ctx) {
   }
   relayout(220);
 
+  /* Sigma 4 styles layer over its defaults, which already read x, y, size,
+     colour and label from the node attributes; only the labels change here. */
   var renderer = new Sigma(g, ctx.el, {
-    labelColor: { color: T.muted },
-    labelFont: T.mono, labelSize: 9,
-    defaultEdgeColor: T.edge,
-    renderLabels: false,
-    allowInvalidContainer: true
+    settings: { renderLabels: false, allowInvalidContainer: true },
+    styles: { nodes: [SigmaLib.DEFAULT_STYLES.nodes, { labelColor: T.muted, labelFont: T.mono, labelSize: 9 }] }
   });
-  renderer.getCamera().animatedReset();
 
   ctx.check("labels", false, function (on) { renderer.setSetting("renderLabels", on); });
   ctx.btn("Re-run layout", function () { relayout(140); renderer.refresh(); });
-  ctx.btn("Reset view", function () { renderer.getCamera().animatedReset(); });
+  ctx.btn("Reset view", function () { renderer.getCamera().reset(); });
   ctx.readout("<b>" + g.order + "</b> nodes · <b>" + g.size + "</b> edges, drawn by WebGL");
 
   ctx.onResize(function () { renderer.refresh(); });

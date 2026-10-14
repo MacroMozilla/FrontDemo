@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - claude/frontend-lib-demo-3z4888
   pull_request:
   workflow_dispatch:
 

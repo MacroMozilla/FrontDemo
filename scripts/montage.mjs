@@ -1,7 +1,7 @@
 /* Tiles the audit screenshots into contact sheets so a whole batch of
    stages can be eyeballed at once.
      node scripts/montage.mjs                 every screenshot in /tmp/fd-audit
-     node scripts/montage.mjs wgl zr wd xterm just these  */
+     node scripts/montage.mjs xyf x6 sig      just these  */
 import { PNG } from 'pngjs';
 import fs from 'fs';
 
