@@ -41,6 +41,7 @@ B.fgt = async function (ctx) {
     bar_height: 22,
     padding: 16,
     readonly: false,
+    scroll_to: "start",          /* open on the first task rather than today */
     on_date_change: function (task, start, end) {
       out("<b>" + task.name + "</b> → " + iso(start) + " … " + iso(end) +
           " (" + Math.round((end - start) / DAY) + " days)");
@@ -128,9 +129,12 @@ B.jg = async function (ctx) {
   var T = ctx.T;
   ctx.tall();
 
+  /* jsGantt draws a white sheet and leaves the text colour to the page, so
+     give it dark ink in either theme rather than the dark theme's pale one. */
+  ctx.ownTheme();
   var host = ctx.mk("div");
   host.id = "jsgantt-host";
-  host.style.cssText = "position:absolute;inset:0;overflow:auto";
+  host.style.cssText = "position:absolute;inset:0;overflow:auto;background:#fff;color:#1A2130";
   ctx.el.appendChild(host);
 
   var g = new JSGantt.GanttChart(host, "week");
@@ -179,8 +183,10 @@ B.me = async function (ctx) {
   var T = ctx.T;
   ctx.tall();
 
+  /* Sized explicitly: Mind Elixir sets position:relative on its element,
+     which would drop inset:0 and let it grow to the map's own height. */
   var host = ctx.mk("div");
-  host.style.cssText = "position:absolute;inset:0";
+  host.style.cssText = "position:absolute;inset:0;width:100%;height:100%";
   ctx.el.appendChild(host);
 
   var data = {
@@ -218,6 +224,10 @@ B.me = async function (ctx) {
   me.init(data);
 
   var out = ctx.readout("double-click a node to rename · Tab adds a child · Enter adds a sibling");
+  /* Centre the map and shrink it to fit the stage if it is bigger
+     (scaleFit never zooms past 100%), now and whenever the stage resizes. */
+  me.scaleFit();
+  ctx.onResize(function () { me.scaleFit(); });
   me.bus.addListener("operation", function (op) {
     out("operation <b>" + op.name + "</b> — undo and redo are built in");
   });

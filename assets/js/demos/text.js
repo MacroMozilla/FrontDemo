@@ -7,8 +7,11 @@ var B = window.B;
 function split(ctx, source, render, hint) {
   var p = ctx.panes("42%");
   ctx.tall();
+  /* The result is centred by auto margins rather than flex alignment, so
+     one bigger than the pane still scrolls from its top-left corner; a
+     rendered SVG is scaled down to fit the pane (svg.fit). */
   var out = ctx.mk("div");
-  out.style.cssText = "min-height:100%;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto";
+  out.style.cssText = "height:100%;display:flex;padding:18px;overflow:auto";
   p.b.appendChild(out);
 
   var status = ctx.readout(hint || "edit the source — it re-renders as you type");
@@ -19,7 +22,11 @@ function split(ctx, source, render, hint) {
       if (ctx.dead()) return;
       Promise.resolve()
         .then(function () { return render(text, out); })
-        .then(function () { status(hint || "rendered · " + text.split("\n").length + " lines of source"); })
+        .then(function () {
+          var c = out.firstElementChild;
+          if (c) { c.style.margin = "auto"; if (c.tagName.toLowerCase() === "svg") c.classList.add("fit"); }
+          status(hint || "rendered · " + text.split("\n").length + " lines of source");
+        })
         .catch(function (e) {
           status('<span style="color:' + ctx.T.bad + '">' + String((e && e.message) || e).slice(0, 90) + "</span>");
         });

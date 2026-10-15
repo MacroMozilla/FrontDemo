@@ -274,7 +274,8 @@ B.pickr = async function (ctx) {
       "<dt>CMYK</dt><dd>" + colour.toCMYK().toString(2) + "</dd>";
     out("one picker, <b>five</b> output formats");
   }
-  pickr.on("init", function (p) { show(p.getColor()); });
+  /* Pickr 1.10 ignores the default option above, so set it once it is up. */
+  pickr.on("init", function (p) { p.setColor(ctx.series(0), true); show(p.getColor()); });
   pickr.on("change", show);
 };
 
