@@ -1,13 +1,15 @@
-/* Diagram & flow editors.
+/* Diagrams & node editors.
 
-   Every builder below draws the same flowchart (FLOW) with nothing but
-   what its framework ships: stock shapes, stock theme, stock panels and
-   toolbars, wired up the way the framework's own getting-started code
-   does it. Where a framework has no diamond or terminator, its plain node
-   stands in — nothing here is a hand-made custom shape.
+   The nine frameworks from the brief draw the same flowchart (FLOW) with
+   nothing but what each ships: stock shapes, stock theme, stock panels
+   and toolbars, wired up the way its own getting-started code does it.
+   Where a framework has no diamond or terminator, its plain node stands
+   in — nothing there is a hand-made custom shape. The only code shared
+   between those builders is the flowchart itself, the white page the
+   editors sit on, and the Data / count helpers.
 
-   The only code shared between builders is the flowchart itself, the
-   white page the editors sit on, and the Data / count helpers. */
+   Vue Flow, diagram-js and Baklava.js follow at the end with demos of
+   their own, in the site's theme. */
 (function () {
 "use strict";
 var B = window.B;
@@ -37,7 +39,7 @@ var FLOW = {
 /* Editors sit on a plain white page with black text, the way their own
    docs show them, rather than inheriting this site's (possibly dark) theme. */
 function paper(ctx) {
-  ctx.tall();
+  ctx.tall().ownTheme();
   ctx.el.style.background = "#fff";
   ctx.el.style.color = "#000";
   ctx.el.style.colorScheme = "light";
@@ -856,6 +858,271 @@ B.x6 = async function (ctx) {
   ctx.btn("Redo", function () { graph.redo(); });
   ctx.btn("Fit", fit);
   dataButton(ctx, function () { return graph.toJSON(); });
+};
+
+/* -------------------------------------------------------------- Vue Flow */
+B.vf = async function (ctx) {
+  var T = ctx.T;
+  var h = Vue.h;
+  var mount = ctx.el;
+
+  var nodeStyle = {
+    background: T.nodeFill, color: T.ink, border: "1px solid " + T.nodeLine,
+    borderRadius: "8px", fontSize: "12px", width: "128px", padding: "9px 0",
+    textAlign: "center", fontFamily: T.sans
+  };
+
+  var nodes = Vue.reactive([
+    { id: "1", position: { x: 40, y: 30 },  data: { label: "Form input" }, style: nodeStyle },
+    { id: "2", position: { x: 40, y: 150 }, data: { label: "Validate" },   style: nodeStyle },
+    { id: "3", position: { x: 250, y: 150 },data: { label: "Persist" },    style: nodeStyle },
+    { id: "4", position: { x: 250, y: 270 },data: { label: "Notify" },     style: nodeStyle }
+  ]);
+  var edges = Vue.reactive([
+    { id: "e1", source: "1", target: "2", animated: true, style: { stroke: T.accent } },
+    { id: "e2", source: "2", target: "3", style: { stroke: T.edge } },
+    { id: "e3", source: "3", target: "4", style: { stroke: T.edge } }
+  ]);
+
+  var app = Vue.createApp({
+    setup: function () {
+      return function () {
+        return h(VueFlow.VueFlow, {
+          nodes: nodes, edges: edges, fitViewOnInit: true,
+          style: { width: "100%", height: "100%", background: T.stage },
+          onConnect: function (c) {
+            edges.push({ id: "u" + edges.length, source: c.source, target: c.target,
+                         animated: true, style: { stroke: T.accent } });
+            update();
+          }
+        });
+      };
+    }
+  });
+  app.mount(mount);
+  ctx.onDestroy(function () { app.unmount(); });
+
+  var out = ctx.readout("");
+  function update() { out("<b>" + nodes.length + "</b> nodes · <b>" + edges.length + "</b> edges"); }
+  update();
+
+  var n = 0;
+  ctx.btn("Add node", function () {
+    n++;
+    nodes.push({ id: "n" + n, position: { x: 430, y: 40 + n * 60 },
+                 data: { label: "Step " + n }, style: nodeStyle });
+    update();
+  });
+  ctx.label("drag between handles to connect");
+};
+
+/* ----------------------------------------------------------- diagram-js */
+B.djs = async function (ctx) {
+  var T = ctx.T;
+  var D = window.DJS;
+
+  /* diagram-js ships no shapes at all, so a renderer is the first thing
+     you write. This one is the entire visual language of the demo. */
+  function Renderer(eventBus, styles) {
+    D.Diagram.prototype;                       /* (keeps the bundler honest) */
+    this.canRender = function () { return true; };
+    this.drawShape = function (parent, el) {
+      var r = D.svgCreate("rect");
+      D.svgAttr(r, { x: 0, y: 0, width: el.width, height: el.height, rx: 8, ry: 8,
+                     fill: el.color || T.nodeFill, stroke: T.nodeLine, strokeWidth: 1.4 });
+      D.svgAppend(parent, r);
+      var t = D.svgCreate("text");
+      D.svgAttr(t, { x: el.width / 2, y: el.height / 2 + 4, "text-anchor": "middle",
+                     fill: T.ink, "font-size": "12.5px", "font-family": T.sans });
+      t.textContent = el.name || el.id;
+      D.svgAppend(parent, t);
+      return r;
+    };
+    this.drawConnection = function (parent, con) {
+      var pts = con.waypoints.map(function (p) { return p.x + "," + p.y; }).join(" ");
+      var l = D.svgCreate("polyline");
+      D.svgAttr(l, { points: pts, fill: "none", stroke: T.edge, strokeWidth: 1.8,
+                     "marker-end": "url(#djs-arrow)" });
+      D.svgAppend(parent, l);
+      return l;
+    };
+    this.getShapePath = function (s) {
+      return "M" + s.x + "," + s.y + "h" + s.width + "v" + s.height + "h-" + s.width + "z";
+    };
+  }
+  Renderer.$inject = ["eventBus", "styles"];
+
+  var CustomRenderer = {
+    __init__: ["customRenderer"],
+    customRenderer: ["type", Renderer]
+  };
+
+  var diagram = new D.Diagram({
+    canvas: { container: ctx.el },
+    modules: [
+      D.ModelingModule, D.MoveModule, D.MoveCanvasModule, D.ZoomScrollModule,
+      D.SelectionModule, D.OutlineModule, D.ResizeModule, D.ConnectModule,
+      D.BendpointsModule, D.RulesModule, D.LassoToolModule, CustomRenderer
+    ]
+  });
+
+  var canvas = diagram.get("canvas"),
+      factory = diagram.get("elementFactory"),
+      modeling = diagram.get("modeling"),
+      stack = diagram.get("commandStack"),
+      bus = diagram.get("eventBus");
+
+  /* Arrow marker for the connection renderer. */
+  var defs = D.svgCreate("defs");
+  defs.innerHTML = '<marker id="djs-arrow" viewBox="0 0 10 10" refX="9" refY="5" ' +
+                   'markerWidth="7" markerHeight="7" orient="auto-start-reverse">' +
+                   '<path d="M0,0 L10,5 L0,10 z" fill="' + T.edge + '"/></marker>';
+  D.svgAppend(canvas.getLayer("base").parentNode, defs);
+
+  var root = canvas.getRootElement();
+  function shape(x, y, name, color) {
+    var s = factory.createShape({ x: x, y: y, width: 132, height: 54, name: name, color: color });
+    canvas.addShape(s, root);
+    return s;
+  }
+  var a = shape(70, 60, "Request", T.dark ? "#243046" : "#E8EFFC"),
+      b = shape(300, 60, "Handler"),
+      c = shape(300, 220, "Queue");
+  modeling.connect(a, b);
+  modeling.connect(b, c);
+
+  var out = ctx.readout("");
+  function report() {
+    out("command stack — undo <b>" + (stack.canUndo() ? "ready" : "empty") +
+        "</b> · redo <b>" + (stack.canRedo() ? "ready" : "empty") + "</b>");
+  }
+  bus.on("commandStack.changed", report);
+  report();
+
+  ctx.btn("Undo", function () { if (stack.canUndo()) stack.undo(); });
+  ctx.btn("Redo", function () { if (stack.canRedo()) stack.redo(); });
+  var n = 0;
+  ctx.btn("Add + connect", function () {
+    n++;
+    var s = shape(70 + (n % 3) * 170, 380, "Node " + n);
+    modeling.connect(c, s);
+  }, true);
+  ctx.label("drag shapes · every change is one undoable command");
+
+  ctx.onDestroy(function () { diagram.destroy(); });
+};
+
+/* ----------------------------------------------------------- Baklava.js */
+B.bak = async function (ctx) {
+  var Core = BaklavaJS.Core, RV = BaklavaJS.RendererVue, Engine = BaklavaJS.Engine;
+
+  /* createBaklava mounts the Vue editor and hands back its view model. */
+  var baklava = BaklavaJS.createBaklava(ctx.el);
+  var editor = baklava.editor;
+  ctx.el.style.background = ctx.T.stage;
+
+  var NumberNode = Core.defineNode({
+    type: "Number", title: "Number",
+    inputs:  { set: function () { return new RV.NumberInterface("Value", 4).setPort(false); } },
+    outputs: { value: function () { return new Core.NodeInterface("Out", 0); } },
+    calculate: function (i) { return { value: i.set }; }
+  });
+
+  var MathNode = Core.defineNode({
+    type: "Math", title: "Math",
+    inputs: {
+      a: function () { return new Core.NodeInterface("A", 0); },
+      b: function () { return new Core.NodeInterface("B", 0); },
+      op: function () { return new RV.SelectInterface("Operation", "Multiply", ["Add", "Subtract", "Multiply"]).setPort(false); }
+    },
+    outputs: { result: function () { return new Core.NodeInterface("Result", 0); } },
+    calculate: function (i) {
+      var r = i.op === "Add" ? i.a + i.b : i.op === "Subtract" ? i.a - i.b : i.a * i.b;
+      return { result: r };
+    }
+  });
+
+  var DisplayNode = Core.defineNode({
+    type: "Display", title: "Result",
+    inputs: { value: function () { return new Core.NodeInterface("Value", 0); } },
+    outputs: { shown: function () { return new RV.TextInterface("=", "0"); } },
+    calculate: function (i) { return { shown: String(Math.round(i.value * 1000) / 1000) }; }
+  });
+
+  [NumberNode, MathNode, DisplayNode].forEach(function (t) { editor.registerNodeType(t); });
+
+  function place(node, x, y) {
+    editor.graph.addNode(node);
+    node.position = { x: x, y: y };
+    return node;
+  }
+  /* Clear of the node palette that Baklava docks on the left. */
+  var n1 = place(new NumberNode(), 300, 40),
+      n2 = place(new NumberNode(), 300, 250),
+      m  = place(new MathNode(),  580, 120),
+      dp = place(new DisplayNode(), 860, 160);
+
+  editor.graph.addConnection(n1.outputs.value, m.inputs.a);
+  editor.graph.addConnection(n2.outputs.value, m.inputs.b);
+  editor.graph.addConnection(m.outputs.result, dp.inputs.value);
+
+  /* The dependency engine is what makes this a dataflow graph rather
+     than a drawing: change an input and everything downstream recomputes. */
+  var engine = new Engine.DependencyEngine(editor);
+  var out = ctx.readout("engine idle");
+
+  /* applyResult is the step that writes each node's computed value back
+     into its interfaces — without it the graph runs but nothing updates. */
+  engine.events.afterRun.subscribe(ctx, function (res) {
+    engine.pause();
+    Engine.applyResult(res, editor);
+    engine.resume();
+
+    var shown = [];
+    res.forEach(function (outputs, nodeId) {
+      var node = editor.graph.nodes.find(function (n) { return n.id === nodeId; });
+      if (node && node.type === "Display") shown.push(outputs.get("shown"));
+    });
+    out(shown.length ? "engine recomputed → <b>" + shown.join(", ") + "</b>" : "engine running");
+  });
+
+  engine.start();
+  engine.runOnce();
+  ctx.onDestroy(function () { engine.stop(); });
+
+  var nodeCount = 4;
+  function stats() {
+    out("<b>" + editor.graph.nodes.length + "</b> nodes · <b>" +
+      editor.graph.connections.length + "</b> connections — change any Number and the " +
+      "engine recomputes everything downstream");
+  }
+
+  ctx.select("operation", ["Add", "Subtract", "Multiply"], function (v) {
+    m.inputs.op.value = v;
+    engine.runOnce();
+  }, "Multiply");
+  ctx.btn("Randomise the inputs", function () {
+    n1.inputs.value.value = Math.round(Math.random() * 100) / 10;
+    n2.inputs.value.value = Math.round(Math.random() * 100) / 10;
+    engine.runOnce();
+  }, true);
+  ctx.btn("Add a stage", function () {
+    /* Grow the graph at runtime: a new Number and a new Math node wired
+       into the existing result, so the engine has more to walk. */
+    var extra = place(new NumberNode(), 300 + nodeCount * 20, 430);
+    var stage = place(new MathNode(), 580 + nodeCount * 20, 380);
+    extra.inputs.value.value = Math.round(Math.random() * 90) / 10;
+    editor.graph.addConnection(m.outputs.result, stage.inputs.a);
+    editor.graph.addConnection(extra.outputs.value, stage.inputs.b);
+    var show = place(new DisplayNode(), 860 + nodeCount * 20, 400);
+    editor.graph.addConnection(stage.outputs.result, show.inputs.value);
+    nodeCount += 3;
+    engine.runOnce();
+    stats();
+  });
+  ctx.btn("Recompute", function () { engine.runOnce(); });
+  ctx.label("change a Number, watch Result follow");
+  stats();
 };
 
 })();

@@ -16,6 +16,10 @@ new Function('window', fs.readFileSync(path.join(ROOT, 'assets/js/data.js'), 'ut
 const { GROUPS, CATS, CAPS, LIBS, MK, CHECKED } = win;
 
 if (!LIBS?.length) { console.error('data.js exposed no LIBS'); process.exit(1); }
+
+/* Where the version running here is recorded (see scripts/freshness.mjs). */
+const bundled = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/bundles/package.json'), 'utf8')).dependencies;
+const pinned = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/vendor-versions.json'), 'utf8'));
 if (!/^\d{4}-\d{2}-\d{2}$/.test(CHECKED || '')) fail.push('window.CHECKED is not a yyyy-mm-dd date');
 
 const catIds = new Set(CATS.map(c => c.id));
@@ -47,6 +51,9 @@ for (const l of LIBS) {
     if (!fs.existsSync(path.join(ROOT, 'vendor', j + '.js'))) fail.push(`${at}: vendor/${j}.js is missing`);
   }
   if (l.esm && !fs.existsSync(path.join(ROOT, 'vendor', l.esm))) fail.push(`${at}: vendor/${l.esm} is missing`);
+  if (!l.ext && !(l.k in pinned) && !bundled[l.pkg])
+    fail.push(`${at}: its build's version is in neither scripts/vendor-versions.json nor scripts/bundles/package.json`);
+  if (!l.repo) fail.push(`${at}: missing field "repo" (GitHub owner/name, for the commit date)`);
   for (const c of l.css || []) {
     if (!fs.existsSync(path.join(ROOT, 'assets/css/lib', c + '.css'))) fail.push(`${at}: assets/css/lib/${c}.css is missing`);
   }
