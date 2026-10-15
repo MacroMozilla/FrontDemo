@@ -302,6 +302,8 @@ function makeCtx(lib, mount, bar, stage) {
       rec.destroyers.push(fn);
     },
     dead: function () { return rec.dead; },
+    /** The demo looks the same in either theme, so a theme switch leaves it running. */
+    ownTheme: function () { rec.ownTheme = true; return ctx; },
 
     /** Shows a failure that happens after the builder returned, where a
         thrown error would show it; returns a function that hides it again. */
@@ -487,28 +489,34 @@ function lastUpdateTitle(l) {
 
 function renderHome() {
   crumb.innerHTML = "<b>Overview</b>";
-  var editors = LIBS.filter(function (l) { return l.cat === "flow"; });
-  var graphs = LIBS.filter(function (l) { return l.cat === "graph"; });
+  var byGroup = GROUPS.map(function (g) {
+    return { g: g, cats: CATS.filter(function (c) { return c.g === g.id; }) };
+  });
+  var vizCount = LIBS.filter(function (l) { return catById[l.cat].g === "viz"; }).length;
+  var rnYes = LIBS.filter(function (l) { return l.c.split(/\s+/)[6] === "y"; }).length;
+  /* The diagram editors that draw the shared flowchart carry a profile
+     (render / ui / box) for the comparison table. */
+  var editors = LIBS.filter(function (l) { return l.render; });
 
   var h = '<div class="pad">';
   h += '<div class="hero">' +
-       '<p class="eyebrow">One flowchart · nine frameworks · each in its stock look</p>' +
-       "<h2>Which diagram framework feels right in your hands?</h2>" +
-       "<p>Every editor in the first section draws the same approval flowchart using only what the framework " +
-       "ships with: its stock shapes, its default theme, its own toolbars and panels. Drag nodes, wire up new " +
-       "edges, undo, delete — then open the source at the bottom of each page to see how much code the same " +
-       "result took. The second section keeps seven libraries for graphs you analyse rather than draw.</p>" +
+       '<p class="eyebrow">Every library on this site is running, not pictured</p>' +
+       "<h2>A playground for front-end libraries</h2>" +
+       "<p>Pick anything from the sidebar. You get the library mounted on a real stage with controls " +
+       "to push it around, the honest trade-off, whether it survives a React Native app, when it was last " +
+       "updated, and the exact source that produced what you are looking at.</p>" +
        "</div>";
 
   h += '<div class="stats">' +
-       '<div class="stat"><div class="v">' + editors.length + '</div><div class="k">diagram &amp; flow editors</div></div>' +
-       '<div class="stat"><div class="v">' + graphs.length + '</div><div class="k">graph &amp; network libraries</div></div>' +
-       '<div class="stat"><div class="v">1</div><div class="k">flowchart, drawn every way</div></div>' +
-       '<div class="stat"><div class="v">0</div><div class="k">custom colours or themes</div></div>' +
+       '<div class="stat"><div class="v">' + LIBS.length + '</div><div class="k">libraries</div></div>' +
+       '<div class="stat"><div class="v">' + CATS.length + '</div><div class="k">categories</div></div>' +
+       '<div class="stat"><div class="v">' + vizCount + '</div><div class="k">graphics libs</div></div>' +
+       '<div class="stat"><div class="v">' + rnYes + '</div><div class="k">React Native ready</div></div>' +
        "</div>";
 
-  h += '<div class="sechead"><h3>The nine editors at a glance</h3><span>In the order of the brief. ' +
-       "Each name opens its live page. Versions and dates checked " + esc(CHECKED) + ".</span></div>";
+  h += '<div class="sechead"><h3>' + editors.length + " diagram editors, one flowchart</h3><span>Each draws the same " +
+       "approval flowchart with its stock shapes, theme and panels. Each name opens its live page. " +
+       "Versions and dates checked " + esc(CHECKED) + ".</span></div>";
   h += '<div class="tscroll"><table class="m cmp"><thead><tr>' +
        '<th class="nm">Framework</th><th>Draws with</th><th>You write it in</th>' +
        "<th>In the box — and used on its page</th><th>License</th><th>Last update</th>" +
@@ -523,10 +531,10 @@ function renderHome() {
   });
   h += "</tbody></table></div>";
 
-  GROUPS.forEach(function (g) {
-    h += '<div class="sechead"><h3>' + esc(g.name) + "</h3><span>" + esc(g.blurb) + "</span></div>";
+  byGroup.forEach(function (b) {
+    h += '<div class="sechead"><h3>' + esc(b.g.name) + "</h3><span>" + esc(b.g.blurb) + "</span></div>";
     h += '<div class="grpgrid">';
-    CATS.filter(function (c) { return c.g === g.id; }).forEach(function (c) {
+    b.cats.forEach(function (c) {
       var libs = LIBS.filter(function (l) { return l.cat === c.id; });
       h += '<a class="grpcard" href="#/l/' + libs[0].k + '">' +
            "<h4>" + esc(c.name) + ' <span class="n">' + libs.length + "</span></h4>" +
@@ -538,17 +546,17 @@ function renderHome() {
 
   h += '<div class="sechead"><h3>How to read the pages</h3></div>';
   h += '<div class="cards">' +
-       '<div class="card"><h4>Same flowchart</h4><p>Start → Submit request → Approved? → Place order / Notify ' +
-       "requester → End. Each editor draws it with its own default shapes; where a framework has no diamond or " +
-       "terminator, its plain node stands in rather than a hand-made one.</p></div>" +
-       '<div class="card"><h4>Stage</h4><p>The framework is loaded only when you open its page and mounted for real. ' +
-       "Its own panels and toolbars sit inside the stage; the grey bar above calls its API — undo, add, fit, " +
-       "and <b>Data</b>, which shows what the framework would save.</p></div>" +
+       '<div class="card"><h4>Stage</h4><p>The library is mounted for real and loaded only when you open its page. ' +
+       'Controls in the grey bar drive the actual API — they are not canned states.</p></div>' +
+       '<div class="card"><h4>React Native column</h4><p><b class="mk y">✓</b> runs on a device, natively or as pure JS you can ' +
+       'drive <code>react-native-svg</code> with. <b class="mk p">◐</b> works on Expo web only; native needs a WebView. ' +
+       '<b class="mk n">✗</b> no path into a React Native app at all.</p></div>' +
        '<div class="card"><h4>Source</h4><p>Every page ends with the exact builder function that drew the stage — ' +
-       "no elisions, no pseudo-code — so the amount of code each framework needed is there to compare.</p></div>" +
-       '<div class="card"><h4>Versions</h4><p>The version badge is the latest release. Most builds are copied or ' +
-       "bundled from npm by <code>scripts/bundles</code>; where the page runs something else, it says so " +
-       "(<b>running X here</b>, or where the build came from).</p></div>" +
+       'no elisions, no pseudo-code.</p></div>' +
+       '<div class="card"><h4>Last update</h4><p>Every page leads with the newer of the latest release and the newest ' +
+       'commit to the repository. The version badge is the latest release on npm; where the build in ' +
+       '<code>vendor/</code> is another version, the page says <b>running X here</b> and the demo is written ' +
+       'against that API.</p></div>' +
        "</div>";
 
   h += "</div>";
@@ -783,7 +791,7 @@ async function runDemo(l) {
 function route() {
   destroyLive();
   var h = location.hash.replace(/^#/, "") || "/";
-  document.title = "FrontDemo — diagram editors and graph libraries, side by side";
+  document.title = "FrontDemo — a playground for front-end libraries";
   $("#main").scrollTop = 0;
   closeDrawer();
 
@@ -820,10 +828,10 @@ window.__boot = function () {
     var next = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
     setTheme(next);
     /* Demos bake colours in at build time, so re-run the current one,
-       unless it is an editor: editors keep their own white surface in
-       either theme, and re-running one would throw away what was drawn. */
+       unless it keeps its own look in either theme (ctx.ownTheme): the
+       diagram editors on their white page would only lose what was drawn. */
     var h = location.hash.replace(/^#/, ""), l = h.indexOf("/l/") === 0 && byKey[h.slice(3)];
-    if (l && l.cat !== "flow") { destroyLive(); renderLib(l.k); }
+    if (l && !(live && live.ownTheme)) { destroyLive(); renderLib(l.k); }
   });
 
   var q = $("#q");

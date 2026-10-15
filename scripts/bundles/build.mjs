@@ -1,10 +1,14 @@
-/* Produces every library build in vendor/ (and the stylesheets that go with
-   them), so each can be regenerated from package.json alone.
+/* Produces the vendor/ builds of the diagram editors and graph libraries
+   (and the stylesheets that go with them), so each can be regenerated from
+   package.json alone. Every other file in vendor/ is a pinned browser build,
+   copied as its library published it; the ascii task below keeps those
+   free of CJK text too.
 
      cd scripts/bundles
      npm ci
      node build.mjs                 everything
      node build.mjs xyflow drawnix  only these
+     node build.mjs ascii           only escape CJK text in pinned builds
 
    Libraries that publish a browser build that works as documented are
    copied from their dist/ folder. The others only publish ES modules, or a
@@ -14,7 +18,8 @@
    Every file written to vendor/ is ASCII: non-ASCII characters in strings
    and regular expressions are written as \uXXXX escapes (see asciiOnly),
    so the code that runs is the same while the repository stays free of
-   non-English text.
+   non-English text. Pinned builds that contain CJK text get the same
+   treatment from the ascii task.
 
    Drawnix stopped publishing to npm in December 2025, so its source is
    cloned at the commit pinned below and compiled together with the Plait
@@ -216,6 +221,16 @@ const TASKS = {
 
   async d3() {
     await copyJs('d3/dist/d3.min.js', 'd3.js');
+  },
+
+  /* ---- pinned builds ---- */
+  async ascii() {
+    for (const f of fs.readdirSync(VENDOR)) {
+      const file = path.join(VENDOR, f);
+      if (!f.endsWith('.js') || !CJK.test(fs.readFileSync(file, 'utf8'))) continue;
+      asciiOnly(file);
+      report(file);
+    }
   }
 };
 
