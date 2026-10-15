@@ -81,7 +81,7 @@ and are switched to English through their own APIs.
 | FlowGram | `@flowgram.ai/free-layout-editor` 1.0.16 | esbuild bundle with React 19.2 |
 | AntV X6 | `@antv/x6` 3.1.8 | esbuild bundle from its ES modules |
 | AntV G6, Cytoscape.js, vis-network, force-graph, 3d-force-graph | latest on npm | their published browser builds |
-| Reagraph, Sigma.js | `reagraph` 4.32.0, `sigma` 4.0.1 + graphology | esbuild bundles |
+| Reagraph, Sigma.js | `reagraph` 4.32.0, `sigma` 4.0.2 + graphology | esbuild bundles |
 
 The exact versions, release dates and commit dates are in the tables at the end of this file and on
 each page. Published browser builds are copied with comments other than their licence header
@@ -269,7 +269,7 @@ are generated from `assets/js/data.js` by `node scripts/readme.mjs` — edit the
 
 <!-- LIBRARY-TABLES:START -->
 
-_Versions, release dates and commit dates checked 2026-10-14 (`node scripts/freshness.mjs --write` refreshes them)._
+_Versions, release dates and commit dates checked 2026-10-15 (`node scripts/freshness.mjs --write` refreshes them)._
 
 ### Graphs
 
@@ -281,11 +281,11 @@ _Versions, release dates and commit dates checked 2026-10-14 (`node scripts/fres
 | **meta2d.js** | `@meta2d/core` | ★★★ | MIT | 766 KB | 2026-10-14 | ◐ | Le5le's canvas engine for interactive 2D diagrams and SCADA screens. Shapes ('pens') and lines live on one canvas with anchors, resize and rotate handles, animation and live data binding. |
 | **JointJS** | `@joint/core` | ★★★★ | MPL-2.0 | 463 KB | 2026-10-14 | ◐ | The open-source core of JointJS: a graph model of cells and an SVG paper that renders it, with standard shapes, ports, routers, connectors and interactive tools. |
 | **LogicFlow** | `@logicflow/core` | ★★★★ | Apache-2.0 | 991 KB | 2026-10-10 | ◐ | Didi's flowchart editing framework: an MVC core with built-in flowchart nodes and a large set of first-party extensions — drag-in panel, control bar, menus, minimap, BPMN. |
-| **maxGraph** | `@maxgraph/core` | ★★★ | Apache-2.0 | 613 KB | 2026-10-14 | ◐ | The TypeScript successor to mxGraph, the engine draw.io was built on, maintained by the community since mxGraph was archived. A graph model, an SVG view, and a deep set of handlers, styles and layouts. |
+| **maxGraph** | `@maxgraph/core` | ★★★ | Apache-2.0 | 613 KB | 2026-10-15 | ◐ | The TypeScript successor to mxGraph, the engine draw.io was built on, maintained by the community since mxGraph was archived. A graph model, an SVG view, and a deep set of handlers, styles and layouts. |
 | **draw.io** | — (embedded from embed.diagrams.net) | ★★★★ | Apache-2.0 | 9.7 MB | 2026-10-08 | ◐ | The complete draw.io editor, embedded the way draw.io documents it: an iframe in embed mode, driven over postMessage with a small JSON protocol. Not a library — the whole application. |
 | **Plait / Drawnix** | `@plait/core` | ★★★ | MIT | 681 KB | 2026-09-23 | ◐ | Plait is a plugin-based drawing framework — flowchart shapes, mind maps, freehand — and Drawnix is the open-source whiteboard built on it. This page mounts the Drawnix React component. |
 | **FlowGram** | `@flowgram.ai/free-layout-editor` | ★★★★ | MIT | 1000 KB | 2026-10-13 | ◐ | ByteDance's workflow-canvas framework, the engine behind Coze-style AI workflow builders. Nodes are React components backed by a form engine; plugins add minimap, snapping, auto-layout and history. |
-| **AntV X6** | `@antv/x6` | ★★★★ | MIT | 590 KB | 2026-10-14 | ◐ | Ant Group's graph-editing engine: SVG nodes and edges with ports, routers and connectors, plus stencil, selection, snapline, history, clipboard, keyboard, transform and minimap — all in the core package since 3.0. |
+| **AntV X6** | `@antv/x6` | ★★★★ | MIT | 590 KB | 2026-10-15 | ◐ | Ant Group's graph-editing engine: SVG nodes and edges with ports, routers and connectors, plus stencil, selection, snapline, history, clipboard, keyboard, transform and minimap — all in the core package since 3.0. |
 
 #### Graphs & networks (7)
 
@@ -296,7 +296,7 @@ _Versions, release dates and commit dates checked 2026-10-14 (`node scripts/fres
 | **vis-network** | `vis-network` | ★★★★ | Apache-2.0 OR MIT | 640 KB | 2026-09-13 | ◐ | Network graphs with a physics simulation that keeps running while you interact. |
 | **force-graph** | `force-graph` | ★★★★ | MIT | 169 KB | 2026-09-29 | ◐ | d3-force plus a canvas renderer, wrapped so that one config object gets you a working graph. |
 | **Reagraph** | `reagraph` | ★★★★ | Apache-2.0 | 1.9 MB | 2026-06-25 | ◐ | WebGL graph rendering as React components, built on three.js. |
-| **Sigma.js** | `sigma` | ★★★★ | MIT | 437 KB | 2026-10-13 | ◐ | A WebGL renderer for graphology graphs. Rendering only — the data model lives in graphology. |
+| **Sigma.js** | `sigma` | ★★★★ | MIT | 437 KB | 2026-10-14 | ◐ | A WebGL renderer for graphology graphs. Rendering only — the data model lives in graphology. |
 | **3d-force-graph** | `3d-force-graph` | ★★★ | MIT | 1.3 MB | 2026-09-29 | ◐ | The same force-graph idea, but the simulation runs in three dimensions and renders through three.js. |
 
 <!-- LIBRARY-TABLES:END -->

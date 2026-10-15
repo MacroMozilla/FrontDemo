@@ -7,7 +7,6 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "3d-force-graph": "1.80.1",
     "@antv/g6": "5.1.1",
     "@antv/x6": "3.1.8",
     "@floating-ui/react": "0.26.28",
@@ -36,6 +35,7 @@
     "@plait/mind": "0.94.1",
     "@plait/text-plugins": "0.94.1",
     "@xyflow/react": "12.12.0",
+    "3d-force-graph": "1.80.1",
     "ahooks": "3.10.0",
     "browser-fs-access": "0.38.0",
     "classnames": "2.5.1",
@@ -51,7 +51,7 @@
     "react-dom": "19.2.0",
     "reagraph": "4.32.0",
     "roughjs": "4.6.6",
-    "sigma": "4.0.1",
+    "sigma": "4.0.2",
     "slate": "0.116.0",
     "slate-dom": "0.116.0",
     "slate-history": "0.115.0",

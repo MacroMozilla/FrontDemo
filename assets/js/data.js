@@ -45,7 +45,7 @@ window.MK = { y: ["y", "✓"], p: ["p", "◐"], n: ["n", "✗"], a: ["a", "—"]
 
 /* The day the versions, release dates and commit dates below were last
    looked up. `node scripts/freshness.mjs --write` refreshes them all. */
-window.CHECKED = "2026-10-14";
+window.CHECKED = "2026-10-15";
 
 /* ------------------------------------------------------------------
    Libraries.
@@ -53,7 +53,7 @@ window.CHECKED = "2026-10-14";
      n/pkg   display name / npm package
      ver     latest version on npm (draw.io: latest GitHub release)
      pub     when that version was published
-     commit  date of the newest commit on the repository's default branch
+     commit  date of the newest commit on the repository's main line
      vend    the version actually running here, when it is not ver
      lic     license as declared on npm
      kb      size of the browser build the demo downloads
@@ -128,7 +128,7 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["logicflow","logicflow-ext"], css:["logicflow","logicflow-ext"], site:"https://site.logic-flow.cn/", repo:"didi/LogicFlow" },
 
-{ k:"max", n:"maxGraph", pkg:"@maxgraph/core", ver:"0.25.0", pub:"2026-10-06", commit:"2026-10-14", lic:"Apache-2.0", kb:613, cat:"flow", st:3,
+{ k:"max", n:"maxGraph", pkg:"@maxgraph/core", ver:"0.25.0", pub:"2026-10-06", commit:"2026-10-15", lic:"Apache-2.0", kb:613, cat:"flow", st:3,
   c:"y y p n n p p y",
   render:"SVG", ui:"any (plain JS)",
   box:"rubber-band select, connections, in-place label editing, undo manager, keyboard handler, XML codec",
@@ -174,7 +174,7 @@ window.LIBS = [
   rnNote:"No React Native renderer; WebView on native.",
   js:["flowgram"], css:["flowgram"], site:"https://flowgram.ai/", repo:"bytedance/flowgram.ai" },
 
-{ k:"x6", n:"AntV X6", pkg:"@antv/x6", ver:"3.1.8", pub:"2026-08-11", commit:"2026-10-14", lic:"MIT", kb:590, cat:"flow", st:4,
+{ k:"x6", n:"AntV X6", pkg:"@antv/x6", ver:"3.1.8", pub:"2026-08-11", commit:"2026-10-15", lic:"MIT", kb:590, cat:"flow", st:4,
   c:"y y p n p y p y",
   render:"SVG (HTML nodes optional)", ui:"any (React and Vue node shapes)",
   box:"stencil, ports, selection, snaplines, history, clipboard, keyboard, transform, minimap",
@@ -231,7 +231,7 @@ window.LIBS = [
   rnNote:"Built on three.js, so a react-three-fiber/native port is conceivable but does not exist today.",
   js:["reagraph"], site:"https://reagraph.dev/", repo:"reaviz/reagraph" },
 
-{ k:"sig", n:"Sigma.js", pkg:"sigma", ver:"4.0.1", pub:"2026-10-13", commit:"2026-10-13", lic:"MIT", kb:437, cat:"graph", st:4,
+{ k:"sig", n:"Sigma.js", pkg:"sigma", ver:"4.0.2", pub:"2026-10-14", commit:"2026-10-14", lic:"MIT", kb:437, cat:"graph", st:4,
   c:"y y y y n y p y",
   what:"A WebGL renderer for graphology graphs. Rendering only — the data model lives in graphology.",
   pro:"Very large graphs stay interactive",

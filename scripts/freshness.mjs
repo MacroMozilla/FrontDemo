@@ -2,7 +2,7 @@
 
      ver     latest version on npm (draw.io: latest GitHub release tag)
      pub     when that version was published
-     commit  date of the newest commit on the repository's default branch
+     commit  date of the newest commit on the repository's main line
      vend    the version actually running here, when it is not ver
              (taken from the pins in scripts/bundles/package.json)
      kb      size of the files the demo loads from vendor/ and assets/css/lib/
@@ -43,11 +43,25 @@ async function npmLatest(pkg) {
 }
 
 /* The newest commit on a ref, fetched without history. */
-function commitDate(repo, ref = 'HEAD') {
+function commitDate(repo, ref) {
   const dir = path.join(tmp, repo.replace('/', '_') + '_' + ref.replace(/\W/g, ''));
   git('init', '-q', '--bare', dir);
   git('-C', dir, 'fetch', '-q', '--depth', '1', 'https://github.com/' + repo + '.git', ref);
   return git('-C', dir, 'log', '-1', '--format=%cs', 'FETCH_HEAD');
+}
+
+/* The newest commit on the repository's main line: HEAD, main or master,
+   whichever is newest, because a repository can point HEAD at an old
+   branch (sigma.js's HEAD is archive/v0.1, last touched in 2014). */
+function newestCommit(repo) {
+  const seen = new Set(), dates = [];
+  for (const line of git('ls-remote', 'https://github.com/' + repo + '.git', 'HEAD', 'refs/heads/main', 'refs/heads/master').split('\n')) {
+    const [sha, ref] = line.split('\t');
+    if (!ref || seen.has(sha)) continue;
+    seen.add(sha);
+    dates.push(commitDate(repo, ref));
+  }
+  return dates.sort().pop() || '';
 }
 
 /* draw.io is not on npm: its releases are vX.Y.Z tags on GitHub. */
@@ -74,7 +88,7 @@ for (const l of win.LIBS) {
   const r = { k: l.k, n: l.n };
   try {
     Object.assign(r, l.npm === false ? latestTag(l.repo) : await npmLatest(l.pkg));
-    r.commit = l.repo ? commitDate(l.repo) : '';
+    r.commit = l.repo ? newestCommit(l.repo) : '';
   } catch (e) {
     console.error('  ' + l.k + ': ' + e.message);
     Object.assign(r, { ver: l.ver, pub: l.pub, commit: l.commit || '' });
