@@ -36,14 +36,9 @@ var FLOW = {
   ]
 };
 
-/* Editors sit on a plain white page with black text, the way their own
-   docs show them, rather than inheriting this site's (possibly dark) theme. */
-function paper(ctx) {
-  ctx.tall().ownTheme();
-  ctx.el.style.background = "#fff";
-  ctx.el.style.color = "#000";
-  ctx.el.style.colorScheme = "light";
-}
+/* Editors sit on paper (ctx.paper): a plain white page with black text,
+   the way their own docs show them, rather than this site's (possibly
+   dark) theme. */
 
 /* "Data": what the framework itself would save, in its own format.
    `read` may return an object, a string, or a promise of either. */
@@ -74,7 +69,7 @@ function counter(ctx) {
 /* ------------------------------------------------------------ React Flow */
 B.xyf = async function (ctx) {
   var RF = XYFlow, React = RF.React, h = React.createElement;
-  paper(ctx);
+  ctx.paper();
   var count = counter(ctx);
 
   /* Stock node types: "input" has only a source handle, "output" only a
@@ -134,7 +129,7 @@ B.xyf = async function (ctx) {
 
 /* -------------------------------------------------------------- meta2d.js */
 B.m2d = async function (ctx) {
-  paper(ctx);
+  ctx.paper();
   var count = counter(ctx);
 
   /* meta2d's own UI strings default to Chinese, and its dialogs are built in
@@ -205,7 +200,7 @@ B.m2d = async function (ctx) {
 
 /* ---------------------------------------------------------------- JointJS */
 B.joint = async function (ctx) {
-  paper(ctx);
+  ctx.paper();
   var count = counter(ctx);
 
   var namespace = joint.shapes;
@@ -293,7 +288,7 @@ B.joint = async function (ctx) {
 
 /* -------------------------------------------------------------- LogicFlow */
 B.lf = async function (ctx) {
-  paper(ctx);
+  ctx.paper();
   var count = counter(ctx);
   var LogicFlow = Core.LogicFlow || Core.default, X = Extension;
 
@@ -377,7 +372,7 @@ B.lf = async function (ctx) {
 
 /* --------------------------------------------------------------- maxGraph */
 B.max = async function (ctx) {
-  paper(ctx);
+  ctx.paper();
   var count = counter(ctx);
   var M = maxGraph;
 
@@ -438,7 +433,7 @@ B.max = async function (ctx) {
 
 /* ---------------------------------------------------------------- draw.io */
 B.drawio = async function (ctx) {
-  paper(ctx);
+  ctx.paper();
   var count = counter(ctx);
 
   /* The flowchart in draw.io's own XML, with the styles its General
@@ -511,7 +506,7 @@ B.drawio = async function (ctx) {
 
 /* -------------------------------------------------------- Plait / Drawnix */
 B.dnx = async function (ctx) {
-  paper(ctx);
+  ctx.paper();
   var count = counter(ctx);
   var D = ctx.mod, React = D.React, h = React.createElement;
 
@@ -571,7 +566,7 @@ B.dnx = async function (ctx) {
 
 /* --------------------------------------------------------------- FlowGram */
 B.fgm = async function (ctx) {
-  paper(ctx);
+  ctx.paper();
   var count = counter(ctx);
   var F = FlowGram, React = F.React, h = React.createElement;
 
@@ -740,7 +735,7 @@ B.fgm = async function (ctx) {
 
 /* ---------------------------------------------------------------- AntV X6 */
 B.x6 = async function (ctx) {
-  paper(ctx);
+  ctx.paper();
   var count = counter(ctx);
 
   /* Stencil on the left, graph on the right, minimap in the corner — the

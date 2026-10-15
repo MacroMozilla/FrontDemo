@@ -35,7 +35,7 @@ A category opens as a grid of panels, one per library, all running at once:
   a tap before it takes a drag, and the draw.io panel (an iframe) a click.
 - **⤢ widens a panel** to the full row and most of the screen's height, and the demo refits.
 - A panel starts its library when it scrolls into view, and keeps running after that; off screen its
-  animation loops idle. Each panel header has the name, rating, version, last update and a one-line
+  animation pauses. Each panel header has the name, rating, version, last update and a one-line
   summary; **Details** opens the library's own page.
 
 Each library's own page gives you:
@@ -259,19 +259,22 @@ B.mylib = async function (ctx) {
 ```
 
 The context object gives you `el`, `T`, `series(i)`, layout helpers (`panes`, `canvas`, `editor`,
-`tall`, `mount`), toolbar controls (`btn`, `select`, `range`, `check`, `text`, `readout`, `label`),
-`mod` for an ES-module build, and lifecycle hooks (`raf`, `every`, `after`, `on`, `onResize`,
-`onDestroy`) that are all torn down automatically when you navigate away. A builder that throws gets
-its error shown on the stage; `fail(text)` does the same for a failure noticed later, and `ownTheme()`
-marks a demo that looks the same in either theme, so a theme switch leaves it running. A diagram
-editor in `diagram.js` uses that file's helpers instead: `paper(ctx)` for the white page, `counter`
-for the node and edge readout, `dataButton` for the Data panel, and `FLOW` for the flowchart.
+`tall`, `mount`, `paper`), toolbar controls (`btn`, `select`, `range`, `check`, `text`, `readout`,
+`label`), `mod` for an ES-module build, and lifecycle hooks (`raf`, `every`, `after`, `on`,
+`onResize`, `onVisible`, `onDestroy`) that are all torn down automatically when you navigate away.
+A builder that throws gets its error shown on the stage; `fail(text)` does the same for a failure
+noticed later, and `ownTheme()` marks a demo that looks the same in either theme, so a theme switch
+leaves it running. `paper()` puts a library that draws its own light page (the diagram editors,
+jsGantt) on a white sheet in either theme. A diagram editor in `diagram.js` also uses that file's
+helpers: `counter` for the node and edge readout, `dataButton` for the Data panel, and `FLOW` for the
+flowchart.
 
 Your demo runs in a panel next to every other library of its category, so it has to share the page:
 prefix any element ids, look elements up inside `ctx.el` rather than the whole document, and add
 window or document listeners with `ctx.on`, so they go when the panel does. `onResize` fires whenever
-the stage changes size — a resized window, a widened panel, a toolbar that wrapped — and a demo that
-uses `ctx.raf` for its animation gets paused for free while its panel is off screen.
+the stage changes size — a resized window, a widened panel, a toolbar that wrapped. While the panel is
+off screen, `ctx.raf` loops stop asking for frames by themselves; a library that runs a loop of its own
+(Babylon.js, PixiJS, Matter.js here) pauses it from `ctx.onVisible`.
 
 4. Run the checks:
 

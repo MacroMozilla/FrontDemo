@@ -127,14 +127,13 @@ B.vt = async function (ctx) {
 /* -------------------------------------------------------- jsGantt Improved */
 B.jg = async function (ctx) {
   var T = ctx.T;
-  ctx.tall();
-
   /* jsGantt draws a white sheet and leaves the text colour to the page, so
-     give it dark ink in either theme rather than the dark theme's pale one. */
-  ctx.ownTheme();
+     it goes on paper: dark ink in either theme, not the dark theme's pale one. */
+  ctx.paper();
+
   var host = ctx.mk("div");
   host.id = "jsgantt-host";
-  host.style.cssText = "position:absolute;inset:0;overflow:auto;background:#fff;color:#1A2130";
+  host.style.cssText = "position:absolute;inset:0;overflow:auto";
   ctx.el.appendChild(host);
 
   var g = new JSGantt.GanttChart(host, "week");

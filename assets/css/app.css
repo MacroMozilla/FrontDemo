@@ -222,7 +222,7 @@ kbd {
 .fact.warn { border-color: color-mix(in srgb, var(--part) 45%, var(--line)); color: var(--part); }
 
 /* ---------------- demo stage ---------------- */
-.stage-card {
+.stage-card, .panel {
   background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
   overflow: hidden; box-shadow: var(--shadow);
 }
@@ -235,12 +235,12 @@ kbd {
 .stage-bar .grow { flex: 1 1 auto; }
 .ctl { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
 .ctl > span.k { color: var(--muted); font-size: 11px; }
-.ctl button, .stage-bar button {
+.ctl button, .stage-bar button, .pa button, .pa a {
   font: inherit; font-size: 12px; cursor: pointer;
   background: var(--sunk); color: var(--ink-2);
   border: 1px solid var(--line); border-radius: 6px; padding: 3px 11px;
 }
-.ctl button:hover, .stage-bar button:hover { border-color: var(--accent); color: var(--ink); }
+.ctl button:hover, .stage-bar button:hover, .pa button:not(:disabled):hover, .pa a:hover { border-color: var(--accent); color: var(--ink); }
 .ctl button.pri, .stage-bar button.pri { background: var(--accent); border-color: var(--accent); color: var(--accent-w); font-weight: 600; }
 .ctl button.pri:hover { filter: brightness(1.08); color: var(--accent-w); }
 .ctl select, .ctl input[type="text"], .ctl input[type="number"] {
@@ -324,20 +324,18 @@ kbd {
 .pgrid {
   --cols: 2;
   --ph: clamp(380px, calc(50vh - 40px), 820px);
+  --prev: "◀"; --next: "▶";
   display: grid; gap: 14px; position: relative;
   grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
 }
-.pgrid[data-cols="1"] { --cols: 1; --ph: clamp(420px, calc(100vh - 150px), 920px); }
+.pgrid[data-cols="1"] { --cols: 1; --ph: clamp(420px, calc(100vh - 150px), 920px); --prev: "▲"; --next: "▼"; }
 .pgrid[data-cols="3"] { --cols: 3; }
-@media (max-width: 1279px) { .pgrid[data-cols="auto"] { --cols: 1; --ph: clamp(400px, calc(100vh - 160px), 780px); } }
+@media (max-width: 1279px) {
+  .pgrid[data-cols="auto"] { --cols: 1; --ph: clamp(400px, calc(100vh - 160px), 780px); --prev: "▲"; --next: "▼"; }
+}
 @media (min-width: 2160px) { .pgrid[data-cols="auto"] { --cols: 3; } }
 
-.panel {
-  height: var(--ph); min-width: 0;
-  display: flex; flex-direction: column;
-  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
-  overflow: hidden; box-shadow: var(--shadow);
-}
+.panel { height: var(--ph); min-width: 0; display: flex; flex-direction: column; }
 .panel.big { grid-column: 1 / -1; height: clamp(480px, calc(100vh - 90px), 1100px); }
 .panel.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), var(--shadow); }
 .panel.flash { animation: flash 1.3s ease-out; }
@@ -345,7 +343,7 @@ kbd {
   0%, 35% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 65%, transparent), var(--shadow); }
   100% { box-shadow: var(--shadow); }
 }
-.panel.dragging { z-index: 25; opacity: .96; box-shadow: 0 22px 60px -14px rgba(0,0,0,.6); }
+.panel.dragging { z-index: 25; opacity: .96; box-shadow: 0 22px 60px -14px rgba(0,0,0,.6); will-change: transform; }
 body.dragging-panel { user-select: none; cursor: grabbing; }
 body.dragging-panel iframe { pointer-events: none; }
 
@@ -367,28 +365,23 @@ body.dragging-panel iframe { pointer-events: none; }
 .pw { margin: 1px 0 0; font-size: 12px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pa { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; padding-top: 1px; }
 .pa button, .pa a {
-  font: inherit; font-size: 11px; line-height: 1; cursor: pointer;
-  background: var(--sunk); color: var(--ink-2); border: 1px solid var(--line); border-radius: 6px;
-  min-width: 26px; height: 24px; padding: 0 7px; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; line-height: 1; min-width: 26px; height: 24px; padding: 0 7px;
+  display: inline-flex; align-items: center; justify-content: center;
 }
-.pa button:hover:not(:disabled), .pa a:hover { border-color: var(--accent); color: var(--ink); text-decoration: none; }
+.pa a:hover { text-decoration: none; }
 .pa button:disabled { opacity: .35; cursor: default; }
-.pa .mv .v { display: none; }
-.pgrid[data-cols="1"] .mv .h { display: none; }
-.pgrid[data-cols="1"] .mv .v { display: inline; }
-@media (max-width: 1279px) {
-  .pgrid[data-cols="auto"] .mv .h { display: none; }
-  .pgrid[data-cols="auto"] .mv .v { display: inline; }
-}
+/* The move arrows point the way panels flow: ◀ ▶ in a row, ▲ ▼ in one column. */
+.pa .mv[data-mv="-1"]::before { content: var(--prev); }
+.pa .mv[data-mv="1"]::before { content: var(--next); }
 
 .pbody { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; position: relative; }
 .panel .stage-bar { padding: 5px 10px; min-height: 37px; gap: 8px; }
-.panel .stage, .panel .stage.tall { flex: 1 1 0; height: auto; min-height: 0; }
+.panel .stage { flex: 1 1 0; height: auto; min-height: 0; }
 
 /* A panel not clicked into lets the wheel scroll the page (see wireGrid).
    On a touch screen a finger would pan it instead, and an iframe takes
    everything, so those stages are covered until clicked into. */
-.panel.frame:not(.on) .stage::after { content: ""; position: absolute; inset: 0; z-index: 7; cursor: pointer; }
+.panel:not(.on) .stage:has(iframe)::after { content: ""; position: absolute; inset: 0; z-index: 7; cursor: pointer; }
 @media (pointer: coarse) {
   .panel:not(.on) .stage::after { content: ""; position: absolute; inset: 0; z-index: 7; }
 }
@@ -559,9 +552,7 @@ table.m.cmp td.ver .p { display: block; font-size: 9.5px; color: var(--muted); }
   .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 55; }
   .scrim.on { display: block; }
   .stage { height: clamp(300px, 52vh, 460px); }
-  .pgrid[data-cols] { --cols: 1; --ph: clamp(360px, 76vh, 620px); }
-  .pgrid[data-cols] .mv .h { display: none; }
-  .pgrid[data-cols] .mv .v { display: inline; }
+  .pgrid[data-cols] { --cols: 1; --ph: clamp(360px, 76vh, 620px); --prev: "▲"; --next: "▼"; }
   .pgrid[data-cols] .panel.big { height: clamp(420px, 86vh, 760px); }
   .seg { display: none; }
   .hero h2 { font-size: 26px; }

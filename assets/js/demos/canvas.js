@@ -114,7 +114,7 @@ B.fb = async function (ctx) {
       function () { return new F.Triangle({ width: 80, height: 80 }); }
     ];
     var o = kinds[Math.floor(Math.random() * 3)]();
-    o.set({ left: 40 + Math.random() * Math.max(100, cv.width - 180),
+    o.set({ left: 40 + Math.random() * Math.max(100, canvas.width - 180),
             top: Math.min(320, Math.max(40, canvas.height - 130)) + Math.random() * 60,
             fill: ctx.series(Math.floor(Math.random() * 8)), angle: Math.random() * 40 - 20 });
     canvas.add(o); canvas.setActiveObject(o); canvas.renderAll();
@@ -203,6 +203,8 @@ B.px = async function (ctx) {
   ctx.range("speed", { min: 0, max: 40, value: 10, fmt: function (v) { return (v / 10).toFixed(1) + "×"; } },
             function (v) { speed = v / 10; });
 
+  /* Pixi's ticker is its own loop: stop it while the panel is out of view. */
+  ctx.onVisible(function (on) { if (on) app.ticker.start(); else app.ticker.stop(); });
   ctx.onDestroy(function () { app.destroy(true, { children: true, texture: true }); });
 };
 
@@ -298,44 +300,6 @@ B.sv = async function (ctx) {
   ctx.readout("<b>" + draw.node.querySelectorAll("*").length + "</b> SVG nodes, all created through the chained API");
 
   ctx.onDestroy(function () { draw.remove(); });
-};
-
-/* ----------------------------------------------------------------- Two.js */
-B.tw = async function (ctx) {
-  var T = ctx.T;
-  var two = null, shapes = [], spin = 0;
-
-  function build(type) {
-    if (two) { two.pause(); two.clear(); ctx.el.innerHTML = ""; }
-    two = new Two({ type: Two.Types[type], width: ctx.el.clientWidth, height: ctx.el.clientHeight,
-                    autostart: true }).appendTo(ctx.el);
-    shapes = [];
-    var cx = two.width / 2, cy = two.height / 2;
-    for (var i = 0; i < 9; i++) {
-      var r = 34 + i * 15;
-      var poly = two.makePolygon(cx, cy, r, 3 + i);
-      poly.noFill();
-      poly.stroke = ctx.series(i % 8);
-      poly.linewidth = 2.2;
-      shapes.push(poly);
-    }
-    var dot = two.makeCircle(cx, cy, 8);
-    dot.fill = T.ink; dot.noStroke();
-    two.bind("update", function () {
-      spin += .006;
-      for (var i = 0; i < shapes.length; i++) shapes[i].rotation = spin * (i % 2 ? 1 : -1) * (1 + i * .16);
-    });
-    out("renderer: <b>" + type + "</b> — same scene code, different backend");
-  }
-  var out = ctx.readout("");
-  build("Svg");
-
-  ctx.select("renderer", [
-    { v: "Svg", t: "SVG" }, { v: "Canvas", t: "Canvas 2D" }, { v: "WebGL", t: "WebGL" }
-  ], build, "Svg");
-
-  ctx.onResize(function () { if (two) two.fit(); });
-  ctx.onDestroy(function () { if (two) { two.pause(); two.clear(); } });
 };
 
 /* ---------------------------------------------------------------- ZRender */
@@ -474,9 +438,10 @@ B.zr = async function (ctx) {
 /* ----------------------------------------------------------------- Two.js */
 B.tw = async function (ctx) {
   var T = ctx.T;
-  var two = null, rings = [], orbiters = [], spin = 0, rate = 1;
+  var two = null, rings = [], orbiters = [], spin = 0, rate = 1, kind = "Svg";
 
   function build(type) {
+    kind = type;
     if (two) { two.pause(); two.clear(); ctx.el.innerHTML = ""; }
     two = new Two({ type: Two.Types[type], width: ctx.el.clientWidth,
                     height: ctx.el.clientHeight, autostart: true }).appendTo(ctx.el);
@@ -541,7 +506,8 @@ B.tw = async function (ctx) {
                        fmt: function (v) { return (v / 10).toFixed(1) + "×"; } },
             function (v) { rate = v / 10; });
 
-  ctx.onResize(function () { if (two) two.fit(); });
+  /* Two.js 0.8 has no fit(): rebuild the scene at the new size, as on a renderer switch. */
+  ctx.onResize(function () { if (two) build(kind); });
   ctx.onDestroy(function () { if (two) { two.pause(); two.clear(); } });
 };
 

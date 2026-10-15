@@ -24,6 +24,8 @@ var B = window.B = {};                       /* key -> builder            */
 /* No prototype, so a route like #/l/constructor finds nothing. */
 var byKey = Object.create(null);   LIBS.forEach(function (l) { byKey[l.k] = l; });
 var catById = Object.create(null); CATS.forEach(function (c) { catById[c.id] = c; });
+/* Where a library's panel is: its category page, scrolled to it. */
+var panelHref = function (l) { return "#/c/" + l.cat + "/" + l.k; };
 
 var $ = function (s, r) { return (r || document).querySelector(s); };
 var el = function (tag, cls, html) {
@@ -69,9 +71,19 @@ function readTheme() {
   return T;
 }
 
+/* Remembered settings. Storage can be blocked (a private window, cleared
+   site data), so a read falls back to its default and a write gives up
+   quietly; setPref with null forgets the setting. */
+function pref(k, d) {
+  try { return localStorage.getItem(k) || d; } catch (e) { return d; }
+}
+function setPref(k, v) {
+  try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {}
+}
+
 function setTheme(name) {
   document.documentElement.setAttribute("data-theme", name);
-  try { localStorage.setItem("fd-theme", name); } catch (e) {}
+  setPref("fd-theme", name);
   readTheme();
   var b = $("#themeBtn");
   if (b) b.textContent = name === "light" ? "◐ Light" : "◑ Dark";
@@ -125,8 +137,7 @@ function useCSS(id) {
 }
 
 function dropCSS(id) {
-  cssUse[id] = Math.max(0, (cssUse[id] || 0) - 1);
-  if (!cssUse[id] && cssLinks[id]) cssLinks[id].disabled = true;
+  if (!--cssUse[id] && cssLinks[id]) cssLinks[id].disabled = true;
 }
 
 function need() {
@@ -146,13 +157,11 @@ var lives = [];
 function destroyRec(rec) {
   if (rec.dead) return;
   rec.dead = true;
-  var i = lives.indexOf(rec);
-  if (i >= 0) lives.splice(i, 1);
+  lives.splice(lives.indexOf(rec), 1);
   rec.destroyers.forEach(function (fn) { try { fn(); } catch (e) {} });
   rec.rafs.forEach(function (id) { cancelAnimationFrame(id); });
   rec.timers.forEach(function (id) { clearInterval(id); clearTimeout(id); });
   rec.listeners.forEach(function (l) { l[0].removeEventListener(l[1], l[2], l[3]); });
-  if (rec.ro) rec.ro.disconnect();
   rec.css.forEach(dropCSS);
   /* Browsers cap live WebGL contexts at around 16 and drop the oldest
      silently. Anything a demo left behind gets released here, otherwise
@@ -170,32 +179,36 @@ function destroyRec(rec) {
 
 function destroyAll() { lives.slice().forEach(destroyRec); }
 
+/* A demo's panel scrolled into or out of view: raf loops parked while it
+   was hidden resume, and onVisible hooks hear about it. */
+function setVisible(rec, v) {
+  if (rec.visible === v) return;
+  rec.visible = v;
+  if (v) rec.parked.splice(0).forEach(function (go) { go(); });
+  rec.onVis.forEach(function (fn) { try { fn(v); } catch (e) {} });
+}
+
 /* parts: the stage's toolbar, stage, mount node and message overlay.
-   visible: whether it is on screen, which raf loops wait for. */
+   visible: whether it is on screen (see setVisible). */
 function makeCtx(lib, parts, visible) {
   var mount = parts.mount, bar = parts.bar, stage = parts.stage;
-  var rec = { dead: false, destroyers: [], rafs: [], timers: [], listeners: [], css: [], resizers: [],
-              ro: null, stage: stage, msg: parts.msg, visible: visible !== false, ownTheme: false };
+  var rec = { dead: false, destroyers: [], rafs: [], timers: [], listeners: [], css: [],
+              stage: stage, visible: visible !== false, parked: [], onVis: [], ownTheme: false };
   lives.push(rec);
 
   /* One ResizeObserver per stage feeds every onResize hook. It reports
      the size it starts with too, which is not a change, so that is skipped. */
+  var resizers = [], ro = null;
   function watchSize() {
-    if (rec.ro) return;
-    var fire = function () { rec.resizers.forEach(function (f) { f(); }); };
-    if (!window.ResizeObserver) {
-      window.addEventListener("resize", fire);
-      rec.listeners.push([window, "resize", fire]);
-      rec.ro = { disconnect: function () {} };
-      return;
-    }
+    if (ro) return;
     var w = stage.clientWidth, h = stage.clientHeight;
-    rec.ro = new ResizeObserver(function () {
+    ro = new ResizeObserver(function () {
       if (stage.clientWidth === w && stage.clientHeight === h) return;
       w = stage.clientWidth; h = stage.clientHeight;
-      fire();
+      resizers.forEach(function (f) { f(); });
     });
-    rec.ro.observe(stage);
+    ro.observe(stage);
+    rec.destroyers.push(function () { ro.disconnect(); });
   }
 
   function ctl(label) {
@@ -219,6 +232,17 @@ function makeCtx(lib, parts, visible) {
       return mount;
     },
     tall: function () { stage.classList.add("tall"); return ctx; },
+
+    /** A white sheet in either theme, for a library that draws its own light
+        page: dark ink, light scrollbars and form controls, a tall stage, and
+        left running on a theme switch (ownTheme). */
+    paper: function () {
+      ctx.tall().ownTheme();
+      mount.style.background = "#fff";
+      mount.style.color = "#000";
+      mount.style.colorScheme = "light";
+      return ctx;
+    },
 
     /** Two side-by-side panes — the input/output shape half the demos want. */
     panes: function (leftWidth) {
@@ -350,26 +374,35 @@ function makeCtx(lib, parts, visible) {
     /** Shows a failure that happens after the builder returned, where a
         thrown error would show it; returns a function that hides it again. */
     fail: function (text) {
-      var m = rec.msg;
+      var m = parts.msg;
       if (rec.dead) return function () {};
       m.className = "stage-msg on err";
       m.innerHTML = "<p>" + esc(text) + "</p>";
       return function () { if (!rec.dead) m.classList.remove("on"); };
     },
 
-    /** requestAnimationFrame loop that stops itself when the demo unmounts
-        and idles while its panel is scrolled out of view. */
+    /** requestAnimationFrame loop that stops itself when the demo unmounts,
+        and is parked, asking for no frames, while its panel is out of view. */
     raf: function (fn) {
       if (rec.dead) return;
       var last = performance.now(), slot = rec.rafs.length;   /* one id per loop */
+      function go() { last = performance.now(); rec.rafs[slot] = requestAnimationFrame(step); }
       function step(now) {
         if (rec.dead) return;
-        if (!rec.visible) { last = now; rec.rafs[slot] = requestAnimationFrame(step); return; }
+        if (!rec.visible) { rec.parked.push(go); return; }
         var dt = Math.min(now - last, 100); last = now;
         if (fn(dt, now) === false) return;
         rec.rafs[slot] = requestAnimationFrame(step);
       }
       rec.rafs[slot] = requestAnimationFrame(step);
+    },
+    /** For a library with a render loop of its own: fn(false) when the
+        panel scrolls out of view (at once, if it starts out of view) and
+        fn(true) when it is back, to pause and resume that loop. */
+    onVisible: function (fn) {
+      if (rec.dead) return;
+      rec.onVis.push(fn);
+      if (!rec.visible) fn(false);
     },
     every: function (ms, fn) {
       if (rec.dead) return 0;
@@ -392,7 +425,7 @@ function makeCtx(lib, parts, visible) {
       var t = null;
       var h = function () { clearTimeout(t); t = setTimeout(function () { if (!rec.dead) fn(); }, 140); };
       if (rec.dead) return h;
-      rec.resizers.push(h);
+      resizers.push(h);
       watchSize();
       return h;
     },
@@ -450,7 +483,7 @@ function buildNav() {
       libs.forEach(function (l) {
         var a = el("a", "item",
           '<span class="dot"></span><span class="nm">' + esc(l.n) + '</span><span class="st">' + "★".repeat(l.st) + "</span>");
-        a.href = "#/c/" + cat.id + "/" + l.k;
+        a.href = panelHref(l);
         a.dataset.k = l.k;
         a.title = l.n + " — " + l.pkg;
         box.appendChild(a);
@@ -518,7 +551,7 @@ function applySearch() {
 /* ------------------------------------------------------------------
    Pages
    ------------------------------------------------------------------ */
-var view = $("#view"), crumb = $("#crumb");
+var view = $("#view"), crumb = $("#crumb"), main = $("#main");
 
 function stars(n) {
   return "★".repeat(n) + "<i>" + "★".repeat(5 - n) + "</i>";
@@ -576,7 +609,7 @@ function renderHome() {
        "</tr></thead><tbody>";
   editors.forEach(function (l) {
     h += "<tr>" +
-         '<td class="nm"><a href="#/c/' + l.cat + "/" + l.k + '">' + esc(l.n) + '</a><span class="p">' + esc(l.pkg) + "</span></td>" +
+         '<td class="nm"><a href="' + panelHref(l) + '">' + esc(l.n) + '</a><span class="p">' + esc(l.pkg) + "</span></td>" +
          "<td>" + esc(l.render) + "</td><td>" + esc(l.ui) + "</td><td>" + esc(l.box) + "</td>" +
          "<td>" + esc(l.lic) + "</td>" +
          '<td class="ver" title="' + esc(lastUpdateTitle(l)) + '"><b>' + esc(lastUpdate(l)) + "</b>" +
@@ -677,7 +710,7 @@ function renderMatrix() {
       rows.forEach(function (l) {
         n++;
         body += "<tr>" +
-          '<td class="nm"><a href="#/c/' + l.cat + "/" + l.k + '">' + esc(l.n) + '</a><span class="p">' + esc(l.pkg) + "</span></td>" +
+          '<td class="nm"><a href="' + panelHref(l) + '">' + esc(l.n) + '</a><span class="p">' + esc(l.pkg) + "</span></td>" +
           '<td class="sz">' + size(l.kb) + "</td>" +
           '<td class="up" title="' + esc(lastUpdateTitle(l)) + '">' + esc(lastUpdate(l)) + "</td>" +
           l.c.split(/\s+/).map(function (m) {
@@ -708,7 +741,7 @@ function renderLib(k) {
   var marks = l.c.split(/\s+/);
   var rn = marks[6];
   crumb.innerHTML = '<a href="#/">Overview</a><span class="sep">/</span>' +
-                    '<a class="cat" href="#/c/' + cat.id + "/" + l.k + '">' + esc(cat.name) + "</a>" +
+                    '<a class="cat" href="' + panelHref(l) + '">' + esc(cat.name) + "</a>" +
                     '<span class="sep">/</span><b>' + esc(l.n) + "</b>";
   document.title = l.n + " — FrontDemo";
 
@@ -765,7 +798,7 @@ function renderLib(k) {
                  '" target="_blank" rel="noopener">' + (repoUrl ? "Source" : "GitHub") + "</a>" : "") +
        (l.npm === false ? "" :
          '<a href="https://www.npmjs.com/package/' + esc(l.pkg) + '" target="_blank" rel="noopener">npm</a>') +
-       '<a href="#/c/' + cat.id + "/" + l.k + '">Beside the other ' + esc(cat.name) + "</a>" +
+       '<a href="' + panelHref(l) + '">Beside the other ' + esc(cat.name) + "</a>" +
        '<a href="#/matrix">Compare</a></div></div>';
   h += "</div>";
 
@@ -834,8 +867,7 @@ function stageParts(host) {
            mount: host.querySelector(".mount"), msg: host.querySelector(".stage-msg") };
 }
 
-/* Runs a library's builder on a stage. Returns its teardown record, whose
-   done promise settles once the demo is up or has failed. */
+/* Runs a library's builder on a stage. Returns its teardown record. */
 function runDemo(l, parts, visible) {
   var msg = parts.msg, fn = B[l.k];
   if (!fn) {
@@ -844,7 +876,7 @@ function runDemo(l, parts, visible) {
     return null;
   }
   var made = makeCtx(l, parts, visible), ctx = made.ctx, rec = made.rec;
-  rec.done = (async function () {
+  (async function () {
     try {
       if (l.css && l.css.length) await ctx.css.apply(null, l.css);
       if (l.js && l.js.length) await need.apply(null, l.js);
@@ -876,22 +908,24 @@ function runDemo(l, parts, visible) {
    ------------------------------------------------------------------ */
 var grid = null;   /* the category page on screen */
 var COLS = ["auto", "1", "2", "3"];
+var calm = matchMedia("(prefers-reduced-motion: reduce)");
 
 function readCols() {
-  var v = "auto";
-  try { v = localStorage.getItem("fd-cols") || "auto"; } catch (e) {}
+  var v = pref("fd-cols", "auto");
   return COLS.indexOf(v) >= 0 ? v : "auto";
 }
 
 /* The saved order, minus libraries that have gone, plus new ones at the end. */
 function loadOrder(cat, keys) {
   var saved = [];
-  try { saved = JSON.parse(localStorage.getItem("fd-order-" + cat) || "[]"); } catch (e) {}
+  try { saved = JSON.parse(pref("fd-order-" + cat, "[]")); } catch (e) {}
   if (!Array.isArray(saved)) saved = [];
   var order = saved.filter(function (k, i) { return keys.indexOf(k) >= 0 && saved.indexOf(k) === i; });
   keys.forEach(function (k) { if (order.indexOf(k) < 0) order.push(k); });
   return order;
 }
+
+function saveOrder(g) { setPref("fd-order-" + g.cat, JSON.stringify(g.order)); }
 
 function panelHTML(l) {
   var n = esc(l.n);
@@ -909,10 +943,9 @@ function panelHTML(l) {
     esc(lastUpdate(l)) + "</span></div>" +
     '<p class="pw" title="' + esc(l.what) + '">' + esc(l.what) + "</p></div>" +
     '<div class="pa">' +
-    '<button class="mv" type="button" data-mv="-1" title="Move earlier" aria-label="Move ' + n + ' earlier">' +
-    '<span class="h">◀</span><span class="v">▲</span></button>' +
-    '<button class="mv" type="button" data-mv="1" title="Move later" aria-label="Move ' + n + ' later">' +
-    '<span class="h">▶</span><span class="v">▼</span></button>' +
+    /* The arrows themselves come from the stylesheet: ◀ ▶ side by side, ▲ ▼ in one column. */
+    '<button class="mv" type="button" data-mv="-1" title="Move earlier" aria-label="Move ' + n + ' earlier"></button>' +
+    '<button class="mv" type="button" data-mv="1" title="Move later" aria-label="Move ' + n + ' later"></button>' +
     '<button class="ex" type="button" title="Widen to the full row" aria-pressed="false">⤢</button>' +
     '<a class="dt" href="#/l/' + l.k + '" title="Install command, trade-off, React Native notes and the source of this demo">Details</a>' +
     "</div></header>" +
@@ -949,14 +982,17 @@ function renderCat(id, focus) {
 
   var g = grid = { cat: id, el: $("#pgrid"), order: loadOrder(id, keys), panels: {}, active: null, hinted: false };
   g.el.querySelectorAll(".panel").forEach(function (p) {
-    g.panels[p.dataset.k] = { l: byKey[p.dataset.k], el: p, rec: null, started: false, near: false, vis: false, timer: 0 };
+    var k = p.dataset.k;
+    g.panels[k] = { l: byKey[k], el: p, rec: null, started: false, near: false, vis: false, timer: 0,
+                    prev: p.querySelector('[data-mv="-1"]'), next: p.querySelector('[data-mv="1"]'),
+                    nav: navEl.querySelector('.item[data-k="' + k + '"]') };
   });
   applyOrder(g);
 
   view.querySelectorAll(".seg [data-cols]").forEach(function (b) {
     b.addEventListener("click", function () {
       var v = b.dataset.cols;
-      try { localStorage.setItem("fd-cols", v); } catch (e) {}
+      setPref("fd-cols", v);
       g.el.dataset.cols = v;
       view.querySelectorAll(".seg [data-cols]").forEach(function (x) {
         x.classList.toggle("on", x === b);
@@ -966,7 +1002,7 @@ function renderCat(id, focus) {
   });
   $("#resetOrder").addEventListener("click", function () {
     reorder(g, function () { g.order = keys.slice(); });
-    try { localStorage.removeItem("fd-order-" + id); } catch (e) {}
+    setPref("fd-order-" + id, null);
   });
 
   wireGrid(g);
@@ -976,31 +1012,33 @@ function renderCat(id, focus) {
 
 function applyOrder(g) {
   g.order.forEach(function (k, i) {
-    var p = g.panels[k].el;
-    p.style.order = i;
-    p.querySelector('[data-mv="-1"]').disabled = i === 0;
-    p.querySelector('[data-mv="1"]').disabled = i === g.order.length - 1;
+    var P = g.panels[k];
+    P.el.style.order = i;
+    P.prev.disabled = i === 0;
+    P.next.disabled = i === g.order.length - 1;
   });
+}
+
+/* Slides a panel from a transform back to its place, unless the user
+   asked for reduced motion. */
+function slide(p, from, ms, easing) {
+  if (!calm.matches) p.animate([{ transform: from }, { transform: "none" }], { duration: ms, easing: easing });
 }
 
 /* Applies a change to g.order, then slides each panel from where it was
    to where it is now, so a reorder is easy to follow. Positions are
    read from offsetLeft/Top, which ignore the transforms of a slide
    still in flight. skip: the panel being dragged, which follows the
-   pointer instead. */
+   pointer instead, and whose drag saves the order once it ends. */
 function reorder(g, change, skip) {
   var before = {};
   g.order.forEach(function (k) { var p = g.panels[k].el; before[k] = [p.offsetLeft, p.offsetTop]; });
   change();
   applyOrder(g);
-  try { localStorage.setItem("fd-order-" + g.cat, JSON.stringify(g.order)); } catch (e) {}
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (!skip) saveOrder(g);
   g.order.forEach(function (k) {
     var p = g.panels[k].el, dx = before[k][0] - p.offsetLeft, dy = before[k][1] - p.offsetTop;
-    if (p !== skip && (dx || dy) && p.animate) {
-      p.animate([{ transform: "translate(" + dx + "px," + dy + "px)" }, { transform: "none" }],
-                { duration: 220, easing: "cubic-bezier(.2,.7,.3,1)" });
-    }
+    if (p !== skip && (dx || dy)) slide(p, "translate(" + dx + "px," + dy + "px)", 220, "cubic-bezier(.2,.7,.3,1)");
   });
 }
 
@@ -1015,29 +1053,36 @@ function movePanel(g, p, d) {
    position rather than its box, which a slide may still be moving. */
 function panelTop(p) { return grid.el.getBoundingClientRect().top + p.offsetTop; }
 
-/* Every scroll the app makes on purpose goes through here; it ends a
-   scroll hold in progress (see guardFrameFocus). */
-function scrollMain(y, instant) {
-  var main = $("#main");
-  if (stopHold) stopHold();
-  if (instant) main.style.scrollBehavior = "auto";
+/* The top of the visible page, below the sticky top bar. */
+function viewTop() { return main.getBoundingClientRect().top + $(".topbar").offsetHeight; }
+
+/* Scrolls the page at once, whatever .main's smooth scroll-behavior says. */
+function jumpMain(y) {
+  main.style.scrollBehavior = "auto";
   main.scrollTop = Math.max(0, y);
-  if (instant) main.style.scrollBehavior = "";
+  main.style.scrollBehavior = "";
+}
+
+/* Every scroll the app makes on purpose goes through here; it ends a
+   scroll hold in progress (see holdFocus). */
+function scrollMain(y, instant) {
+  if (stopHold) stopHold();
+  if (instant) jumpMain(y); else main.scrollTop = Math.max(0, y);
 }
 
 /* Scrolls just enough to keep a moved panel in view. */
 function revealPanel(p) {
-  var main = $("#main"), mr = main.getBoundingClientRect();
-  var top = mr.top + $(".topbar").offsetHeight + 10, t = panelTop(p), b = t + p.offsetHeight;
+  var top = viewTop() + 10, bottom = main.getBoundingClientRect().bottom - 10;
+  var t = panelTop(p), b = t + p.offsetHeight;
   if (t < top) scrollMain(main.scrollTop - (top - t));
-  else if (b > mr.bottom - 10) scrollMain(main.scrollTop + Math.min(b - mr.bottom + 10, t - top));
+  else if (b > bottom) scrollMain(main.scrollTop + Math.min(b - bottom, t - top));
 }
 
 /* Brings a panel to the top of the view in one jump (a smooth scroll
    would start every panel it passes) and flashes its outline. */
 function focusPanel(k) {
-  var p = grid.panels[k].el, main = $("#main");
-  scrollMain(main.scrollTop + panelTop(p) - main.getBoundingClientRect().top - $(".topbar").offsetHeight - 12, true);
+  var p = grid.panels[k].el;
+  scrollMain(main.scrollTop + panelTop(p) - viewTop() - 12, true);
   p.classList.remove("flash");
   void p.offsetWidth;
   p.classList.add("flash");
@@ -1050,40 +1095,43 @@ function activate(g, p) {
   if (p) p.classList.add("on");
 }
 
-/* draw.io focuses itself once it has loaded: that takes the keyboard
-   focus from wherever it was and scrolls the page to its panel. Unless
-   that panel was clicked into, both are put back — the scroll held for
-   up to two seconds, or until the user scrolls, clicks or types, or the
-   app scrolls itself (scrollMain). Chrome lets a cross-origin frame do
-   this even when it is inert. */
-var lastFocus = null, stopHold = null;
-function guardFrameFocus() {
-  var f = document.activeElement, p = grid && f && f.tagName === "IFRAME" && f.closest(".panel");
+/* The panel whose stage an element is in, if any. */
+function stagePanel(t) { return t.closest(".stage") && t.closest(".panel"); }
+
+/* Focus that Tab moves into a panel activates it, draw.io's frame
+   included. Focus that goes there by itself does not: draw.io focuses
+   its frame once loaded, which takes the keyboard focus from wherever it
+   was and scrolls the page to the panel, so both are put back (see
+   holdFocus). A click or tap activates its panel before any focus moves. */
+var lastTab = 0, lastFocus = null, stopHold = null;
+
+function focusMoved(t) {
+  var p = grid && stagePanel(t);
   if (!p || p === grid.active) return;
+  if (performance.now() - lastTab < 800) activate(grid, p);
+  else if (t.tagName === "IFRAME") holdFocus(t, p);
+}
+
+/* Takes the focus back from frame f and holds the page where it was:
+   for up to two seconds, or until the user scrolls, clicks or types, or
+   the app scrolls itself (scrollMain). Chrome lets a cross-origin frame
+   take the focus even when it is inert. */
+function holdFocus(f, p) {
   if (stopHold) stopHold();
-  var main = $("#main"), keep = main.scrollTop, stop = 0, USER = ["wheel", "pointerdown", "keydown", "touchstart"];
-  var hold = function () {
-    if (main.scrollTop === keep) return;
-    main.style.scrollBehavior = "auto";
-    main.scrollTop = keep;
-    main.style.scrollBehavior = "";
-  };
-  var done = function () {
-    stopHold = null;
-    clearTimeout(stop);
-    main.removeEventListener("scroll", hold);
-    USER.forEach(function (t) { window.removeEventListener(t, done, true); });
-  };
+  var keep = main.scrollTop, ac = new AbortController(), stop = setTimeout(done, 2000);
+  function done() { stopHold = null; clearTimeout(stop); ac.abort(); }
   stopHold = done;
-  main.addEventListener("scroll", hold, { passive: true });
-  USER.forEach(function (t) { window.addEventListener(t, done, true); });
-  stop = setTimeout(done, 2000);
+  main.addEventListener("scroll", function () { if (main.scrollTop !== keep) jumpMain(keep); },
+                        { passive: true, signal: ac.signal });
+  ["wheel", "pointerdown", "keydown", "touchstart"].forEach(function (t) {
+    window.addEventListener(t, done, { capture: true, signal: ac.signal });
+  });
   /* Out of the frame (blur() on the iframe element does not do that), and
      only once the move into it is over: during this blur it does nothing. */
   setTimeout(function () {
     if (document.activeElement !== f || grid && grid.active === p) return;
     window.focus();
-    if (lastFocus && lastFocus.isConnected && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+    if (lastFocus && lastFocus.isConnected) lastFocus.focus({ preventScroll: true });
   }, 0);
 }
 
@@ -1092,9 +1140,12 @@ function wireGrid(g) {
 
   ge.addEventListener("click", function (e) {
     var t = e.target.closest(".mv, .ex, .nm, .dt");
-    /* A tap on a stage activates its panel (a swipe that scrolls the page gives no click). */
-    if (!t && e.target.closest(".stage")) activate(g, e.target.closest(".panel"));
-    if (!t) return;
+    if (!t) {
+      /* A tap on a stage activates its panel (a swipe that scrolls the page gives no click). */
+      var sp = stagePanel(e.target);
+      if (sp) activate(g, sp);
+      return;
+    }
     var p = t.closest(".panel");
     if (t.classList.contains("mv")) { movePanel(g, p, +t.dataset.mv); return; }
     if (t.classList.contains("ex")) {
@@ -1107,7 +1158,7 @@ function wireGrid(g) {
     }
     /* Leaving for a library's page: make this history entry point at its
        panel, so Back returns to it rather than to the top of the grid. */
-    try { history.replaceState(null, "", "#/c/" + g.cat + "/" + p.dataset.k); } catch (x) {}
+    try { history.replaceState(null, "", panelHref(g.panels[p.dataset.k].l)); } catch (x) {}
   });
 
   ge.addEventListener("keydown", function (e) {
@@ -1124,8 +1175,8 @@ function wireGrid(g) {
     if (grip && e.button === 0) { e.preventDefault(); dragPanel(g, grip, e); return; }
     /* A mouse press activates at once, so the wheel works mid-drag; a
        finger only by tapping (above), since touching down may be a swipe. */
-    var p = e.target.closest(".panel");
-    if (p && e.target.closest(".stage") && e.pointerType !== "touch") activate(g, p);
+    var p = stagePanel(e.target);
+    if (p && e.pointerType !== "touch") activate(g, p);
   });
 
   /* Maps, editors, 3D scenes and graphs all take the wheel to zoom, so a
@@ -1134,8 +1185,8 @@ function wireGrid(g) {
      library sees them, and the page scrolls instead. Ctrl or Cmd with
      the wheel (and a trackpad pinch) still reaches the library. */
   ge.addEventListener("wheel", function (e) {
-    var p = e.target.closest(".panel");
-    if (!p || p === g.active || e.ctrlKey || e.metaKey || !e.target.closest(".stage")) return;
+    var p = stagePanel(e.target);
+    if (!p || p === g.active || e.ctrlKey || e.metaKey) return;
     e.stopPropagation();
     wheelHint(g, p, e);
   }, { capture: true, passive: true });
@@ -1144,7 +1195,6 @@ function wireGrid(g) {
 /* Says how to use the wheel inside a panel: the first time it is turned
    over one, and whenever the page has nowhere further to scroll. */
 function wheelHint(g, p, e) {
-  var main = $("#main");
   var stuck = e.deltaY > 0 ? main.scrollTop + main.clientHeight >= main.scrollHeight - 2 : main.scrollTop <= 0;
   if (g.hinted && !stuck) return;
   g.hinted = true;
@@ -1159,15 +1209,16 @@ function wheelHint(g, p, e) {
 }
 
 /* Dragging ⠿: the panel follows the pointer, and whichever panel it is
-   over makes room. Near the top or bottom edge the page scrolls. */
+   over makes room. Near the top or bottom edge the page scrolls. Pointer
+   moves and scrolls are folded into one pass per frame. */
 function dragPanel(g, grip, e) {
-  var p = grip.closest(".panel"), k = p.dataset.k, id = e.pointerId, main = $("#main");
+  var p = grip.closest(".panel"), k = p.dataset.k, id = e.pointerId, ac = new AbortController();
   var gr = g.el.getBoundingClientRect();
   var offX = e.clientX - gr.left - p.offsetLeft, offY = e.clientY - gr.top - p.offsetTop;
+  var top = viewTop() + 60, bottom = main.getBoundingClientRect().bottom - 60;
   var x = e.clientX, y = e.clientY, tick = 0, lastOver = null;
   p.classList.add("dragging");
   document.body.classList.add("dragging-panel");
-  main.style.scrollBehavior = "auto";
   try { grip.setPointerCapture(id); } catch (err) {}
 
   function over(px, py) {
@@ -1178,7 +1229,10 @@ function dragPanel(g, grip, e) {
     }
     return null;
   }
-  function update() {
+  function frame() {
+    tick = 0;
+    var v = y < top ? -Math.ceil((top - y) / 3) : y > bottom ? Math.ceil((y - bottom) / 3) : 0;
+    if (v) jumpMain(main.scrollTop + v);
     var r = g.el.getBoundingClientRect(), px = x - r.left, py = y - r.top, q = over(px, py);
     /* Panels of different sizes (one widened) can put the pointer back
        over the panel it just swapped with; wait for it to leave first. */
@@ -1188,60 +1242,41 @@ function dragPanel(g, grip, e) {
     }
     lastOver = q;
     p.style.transform = "translate(" + (px - offX - p.offsetLeft) + "px," + (py - offY - p.offsetTop) + "px)";
+    if (v) schedule();   /* keep scrolling while the pointer rests near the edge */
   }
-  function edge() {
-    tick = 0;
-    var r = main.getBoundingClientRect(), top = r.top + $(".topbar").offsetHeight + 60, v = 0;
-    if (y < top) v = -Math.ceil((top - y) / 3);
-    else if (y > r.bottom - 60) v = Math.ceil((y - r.bottom + 60) / 3);
-    if (!v) return;
-    main.scrollTop += v;
-    update();
-    tick = requestAnimationFrame(edge);
-  }
+  function schedule() { if (!tick) tick = requestAnimationFrame(frame); }
   function move(ev) {
     if (ev.pointerId !== id) return;
     x = ev.clientX; y = ev.clientY;
-    update();
-    if (!tick) tick = requestAnimationFrame(edge);
+    schedule();
   }
-  function scrolled() { update(); }
   function end(ev) {
     if (ev.pointerId !== id) return;
-    window.removeEventListener("pointermove", move);
-    window.removeEventListener("pointerup", end);
-    window.removeEventListener("pointercancel", end);
-    main.removeEventListener("scroll", scrolled);
+    ac.abort();
     cancelAnimationFrame(tick);
-    main.style.scrollBehavior = "";
     p.classList.remove("dragging");
     document.body.classList.remove("dragging-panel");
+    saveOrder(g);
     var from = p.style.transform;
     p.style.transform = "";
-    if (from && p.animate && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      p.animate([{ transform: from }, { transform: "none" }], { duration: 180, easing: "ease-out" });
-    }
+    if (from) slide(p, from, 180, "ease-out");
   }
-  window.addEventListener("pointermove", move);
-  window.addEventListener("pointerup", end);
-  window.addEventListener("pointercancel", end);
-  main.addEventListener("scroll", scrolled, { passive: true });
+  window.addEventListener("pointermove", move, { signal: ac.signal });
+  window.addEventListener("pointerup", end, { signal: ac.signal });
+  window.addEventListener("pointercancel", end, { signal: ac.signal });
+  main.addEventListener("scroll", schedule, { passive: true, signal: ac.signal });
 }
 
 /* A panel starts its demo once it has been near the view for a moment,
    so scrolling past a dozen editors does not start them all, and then
-   keeps running. Off screen, its raf loops idle. */
+   keeps running. Off screen it is paused (see setVisible). */
 function watchPanels(g) {
-  var main = $("#main");
   g.near = new IntersectionObserver(function (entries) {
     entries.forEach(function (en) {
       var P = g.panels[en.target.dataset.k];
       P.near = en.isIntersecting;
       if (P.near && !P.started && !P.timer) {
-        P.timer = setTimeout(function () {
-          P.timer = 0;
-          if (P.near && !P.started && grid === g) startPanel(P);
-        }, 150);
+        P.timer = setTimeout(function () { P.timer = 0; if (P.near) startPanel(P); }, 150);
       }
     });
   }, { root: main, rootMargin: "200px 0px" });
@@ -1249,11 +1284,10 @@ function watchPanels(g) {
     entries.forEach(function (en) {
       var P = g.panels[en.target.dataset.k];
       P.vis = en.isIntersecting;
-      if (P.rec) P.rec.visible = P.vis;
+      if (P.rec) setVisible(P.rec, P.vis);
       if (!P.vis && g.active === P.el) activate(g, null);
       /* The sidebar marks the libraries whose panels are in view. */
-      var a = navEl.querySelector('.item[data-k="' + P.l.k + '"]');
-      if (a) a.classList.toggle("vis", P.vis);
+      if (P.nav) P.nav.classList.toggle("vis", P.vis);
     });
   }, { root: main });
   g.order.forEach(function (k) { g.near.observe(g.panels[k].el); g.seen.observe(g.panels[k].el); });
@@ -1263,23 +1297,21 @@ function watchPanels(g) {
    stage carries nothing over from a previous run. */
 function startPanel(P) {
   var body = P.el.querySelector(".pbody");
+  if (lastFocus && body.contains(lastFocus)) lastFocus = null;
   body.innerHTML = stageHTML(P.l);
-  var parts = stageParts(body);
   P.started = true;
-  P.rec = runDemo(P.l, parts, P.vis);
-  /* An iframe swallows the wheel and clicks where the page cannot see
-     them, so such a panel is covered until it is clicked into. */
-  if (P.rec) P.rec.done.then(function () {
-    if (parts.stage.querySelector("iframe")) P.el.classList.add("frame");
-  });
+  P.rec = runDemo(P.l, stageParts(body), P.vis);
 }
 
 function leaveGrid() {
   if (!grid) return;
   grid.near.disconnect();
   grid.seen.disconnect();
-  grid.order.forEach(function (k) { clearTimeout(grid.panels[k].timer); });
-  navEl.querySelectorAll(".item.vis").forEach(function (a) { a.classList.remove("vis"); });
+  grid.order.forEach(function (k) {
+    var P = grid.panels[k];
+    clearTimeout(P.timer);
+    if (P.nav) P.nav.classList.remove("vis");
+  });
   grid = null;
 }
 
@@ -1294,29 +1326,30 @@ function route() {
   /* Within the category already on screen, only bring a panel into view;
      its demos keep running. */
   if (c && grid && grid.cat === c[1]) {
-    markNav(null, c[1], c[2] || null);
+    markNav(null, c[1], c[2]);
     if (c[2] && grid.panels[c[2]]) focusPanel(c[2]);
     else if (!c[2]) scrollMain(0, true);
     return;
   }
 
+  if (lastFocus && view.contains(lastFocus)) lastFocus = null;   /* would keep the old page alive */
   leaveGrid();
   destroyAll();
   document.title = "FrontDemo — a playground for front-end libraries";
   scrollMain(0, true);
 
   if (c && catById[c[1]]) {
-    markNav(null, c[1], c[2] || null);
+    markNav(null, c[1], c[2]);
     renderCat(c[1], c[2]);
   } else if (h.indexOf("/l/") === 0) {
     var k = h.slice(3);
     markNav(null, byKey[k] ? byKey[k].cat : null, k);
     renderLib(k);
   } else if (h === "/matrix") {
-    markNav("/matrix", null, null);
+    markNav("/matrix");
     renderMatrix();
   } else {
-    markNav("/", null, null);
+    markNav("/");
     renderHome();
   }
 }
@@ -1331,22 +1364,25 @@ function closeDrawer() { $("#side").classList.remove("open"); $("#scrim").classL
    Boot
    ------------------------------------------------------------------ */
 window.__boot = function () {
-  var saved = "dark";
-  try { saved = localStorage.getItem("fd-theme") || "dark"; } catch (e) {}
-  setTheme(saved);
+  setTheme(pref("fd-theme", "dark"));
 
   buildNav();
 
   $("#themeBtn").addEventListener("click", function () {
     var next = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
     setTheme(next);
-    /* Demos bake colours in at build time, so re-run the ones on screen,
-       except those that keep their own look in either theme (ctx.ownTheme):
-       the diagram editors on their white page would only lose what was drawn. */
+    /* Demos bake colours in at build time, so re-run them, except those
+       that keep their own look in either theme (ctx.ownTheme): the diagram
+       editors on their white page would only lose what was drawn. Panels
+       near the view re-run now, the rest when they come near again. */
     if (grid) {
       grid.order.forEach(function (k) {
         var P = grid.panels[k];
-        if (P.rec && !P.rec.ownTheme) { destroyRec(P.rec); startPanel(P); }
+        if (!P.rec || P.rec.ownTheme) return;
+        destroyRec(P.rec);
+        P.rec = null;
+        if (P.near) startPanel(P);
+        else { P.started = false; P.el.querySelector(".pbody").innerHTML = stageHTML(P.l); }
       });
       return;
     }
@@ -1361,27 +1397,31 @@ window.__boot = function () {
     var it = e.target.closest(".item");
     if (it && it.getAttribute("href") === location.hash && grid && grid.panels[it.dataset.k]) focusPanel(it.dataset.k);
     var s = e.target.closest("summary");
-    if (s && e.target.closest(".arw")) delete s.parentNode.dataset.auto;   /* folded or unfolded by hand */
-    if (!s || e.target.closest(".arw") || e.ctrlKey || e.metaKey || e.shiftKey) return;
-    e.preventDefault();
+    if (!s) return;
     var d = s.parentNode, to = "#/c/" + d.dataset.cat;
+    if (e.target.closest(".arw")) { delete d.dataset.auto; return; }   /* folded or unfolded by hand */
+    if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+    e.preventDefault();
     if (location.hash === to) { d.open = !d.open; delete d.dataset.auto; }
-    else {
-      if (!d.open) { d.open = true; d.dataset.auto = "1"; }
-      location.hash = to;
-    }
+    else location.hash = to;   /* route() unfolds it, through markNav */
   });
 
   /* The panel clicked into keeps the wheel until something else is clicked. */
   document.addEventListener("pointerdown", function (e) {
     if (grid && grid.active && !grid.active.contains(e.target)) activate(grid, null);
   }, true);
+  /* Focus moving into a panel (see focusMoved): onto page content it is
+     seen here; into a frame, the page only sees its own window blur. */
+  window.addEventListener("keydown", function (e) { if (e.key === "Tab") lastTab = performance.now(); }, true);
   document.addEventListener("focusin", function (e) {
-    if (e.target.tagName !== "IFRAME") lastFocus = e.target;
-    var p = grid && e.target.closest && e.target.closest(".panel");
-    if (p && e.target.closest(".stage") && e.target.tagName !== "IFRAME") activate(grid, p);
+    if (e.target.tagName === "IFRAME") return;
+    lastFocus = e.target;
+    focusMoved(e.target);
   });
-  window.addEventListener("blur", guardFrameFocus);
+  window.addEventListener("blur", function () {
+    var f = document.activeElement;
+    if (f && f.tagName === "IFRAME") focusMoved(f);
+  });
 
   var q = $("#q");
   q.addEventListener("input", function () { searchTerm = q.value; applySearch(); });

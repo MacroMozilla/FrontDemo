@@ -49,10 +49,10 @@ new Function('window', fs.readFileSync(path.join(ROOT, 'assets/js/data.js'), 'ut
 
 const args = process.argv.slice(2);
 const shots = args.includes('--shots');
-const doLibs = !args.includes('--cats'), doCats = !args.includes('--libs');
 const only = args.filter(a => !a.startsWith('--'));
-const libs = doLibs ? win.LIBS.filter(l => !only.length || only.includes(l.k)) : [];
-const cats = doCats ? win.CATS.filter(c => win.LIBS.some(l => l.cat === c.id && (!only.length || only.includes(l.k)))) : [];
+const picked = win.LIBS.filter(l => !only.length || only.includes(l.k));
+const libs = args.includes('--cats') ? [] : picked;
+const cats = args.includes('--libs') ? [] : win.CATS.filter(c => picked.some(l => l.cat === c.id));
 const unknown = only.filter(k => !win.LIBS.some(l => l.k === k));
 if (unknown.length) {
   console.error('no such library: ' + unknown.join(' ') + '\nkeys: ' + win.LIBS.map(l => l.k).join(' '));
@@ -91,86 +91,81 @@ page.on('console', m => {
    failure, so a page whose only complaint is a network reset gets one retry. */
 const NET_ONLY = e => /ERR_CONNECTION_RESET|ERR_EMPTY_RESPONSE|net::ERR_FAILED/.test(e);
 
-async function attempt(l) {
+/* Opens a route on a fresh load. */
+async function open(hash) {
   errors = [];
-  await page.goto(`http://localhost:${PORT}/#/l/${l.k}`, { waitUntil: 'load' });
-  await page.evaluate(k => { location.hash = '#/l/' + k; }, l.k);
-  await page.waitForTimeout(140);
-
-  let state = 'timeout';
-  const t0 = Date.now();
-  while (Date.now() - t0 < 22000) {
-    state = await page.evaluate(() => {
-      const m = document.getElementById('msg');
-      if (!m) return 'nomsg';
-      if (m.classList.contains('err')) return 'ERR:' + m.textContent.trim().replace(/\s+/g, ' ').slice(0, 170);
-      return m.classList.contains('on') ? 'loading' : 'ok';
-    });
-    if (state !== 'loading') break;
-    await page.waitForTimeout(220);
-  }
-  await page.waitForTimeout(600);
-
-  /* An empty stage is a silent failure, so check something actually rendered. */
-  const painted = await page.evaluate(() => {
-    const m = document.getElementById('mount');
-    if (!m) return 0;
-    if (m.children.length === 0) return 0;
-    const r = m.getBoundingClientRect();
-    return Math.round(r.width) > 40 && Math.round(r.height) > 40 ? m.querySelectorAll('*').length + 1 : 0;
-  });
-
-  const errs = errors.slice(0, 3);
-  return { ok: state === 'ok' && painted > 0 && errs.length === 0, state, painted, errors: errs };
+  await page.goto(`http://localhost:${PORT}/${hash}`, { waitUntil: 'load' });
+  await page.evaluate(h => { location.hash = h; }, hash);
+  await page.waitForTimeout(200);
 }
 
-/* The stage message of one panel: loading, ok, or the error it shows. */
-function panelState(k) {
-  return page.evaluate(k => {
-    const m = document.querySelector('.panel[data-k="' + k + '"] .stage-msg');
+/* The message over the stage under root: loading, ok, or the error it shows. */
+function stageState(root) {
+  return page.evaluate(root => {
+    const m = document.querySelector(root + ' .stage-msg');
     if (!m) return 'nomsg';
     if (m.classList.contains('err')) return 'ERR:' + m.textContent.trim().replace(/\s+/g, ' ').slice(0, 170);
     return m.classList.contains('on') ? 'loading' : 'ok';
-  }, k);
+  }, root);
+}
+
+/* Waits up to 22 seconds for the stage under root to come up or fail. */
+async function waitUp(root) {
+  const t0 = Date.now();
+  for (;;) {
+    const state = await stageState(root);
+    if (state !== 'loading') return state;
+    if (Date.now() - t0 > 22000) return 'timeout';
+    await page.waitForTimeout(220);
+  }
+}
+
+/* An empty stage is a silent failure, so check something actually rendered:
+   the number of nodes in the mount under root, or 0. */
+function painted(root) {
+  return page.evaluate(root => {
+    const m = document.querySelector(root + ' .mount'), r = m && m.getBoundingClientRect();
+    return m && m.children.length && r.width > 40 && r.height > 40 ? m.querySelectorAll('*').length + 1 : 0;
+  }, root);
+}
+
+async function attempt(l) {
+  await open('#/l/' + l.k);
+  const state = await waitUp('#stageCard');
+  await page.waitForTimeout(600);
+  const n = await painted('#stageCard');
+  const errs = errors.slice(0, 3);
+  return { ok: state === 'ok' && n > 0 && errs.length === 0, state, painted: n, errors: errs };
 }
 
 /* Opens a category page and brings each panel into view in turn (panels
    start when they are seen), then checks every one of them is up and
    painted, with no element id shared between two panels. */
 async function attemptCat(c) {
-  errors = [];
-  await page.goto(`http://localhost:${PORT}/#/c/${c.id}`, { waitUntil: 'load' });
-  await page.evaluate(id => { location.hash = '#/c/' + id; }, c.id);
-  await page.waitForTimeout(200);
+  await open('#/c/' + c.id);
   const keys = await page.evaluate(() => [...document.querySelectorAll('.panel')]
     .sort((a, b) => a.style.order - b.style.order).map(p => p.dataset.k));
   const state = {};
   for (const k of keys) {
-    await page.evaluate(([id, k]) => { location.hash = '#/c/' + id + '/' + k; }, [c.id, k]);
-    const t0 = Date.now();
-    do {
-      await page.waitForTimeout(220);
-      state[k] = await panelState(k);
-    } while (state[k] === 'loading' && Date.now() - t0 < 22000);
-    if (state[k] === 'loading') state[k] = 'timeout';
+    await page.evaluate(h => { location.hash = h; }, '#/c/' + c.id + '/' + k);
+    state[k] = await waitUp(`.panel[data-k="${k}"]`);
   }
   await page.waitForTimeout(800);
-  const info = await page.evaluate(() => {
+  const failing = [];
+  for (const k of keys) {
+    const n = await painted(`.panel[data-k="${k}"]`);
+    if (state[k] !== 'ok' || !n) failing.push(k + ': ' + (state[k] === 'ok' ? 'nothing painted' : state[k]));
+  }
+  const shared = await page.evaluate(() => {
     const ids = {};
     document.querySelectorAll('[id]').forEach(e => {
       const p = e.closest('.panel');
       (ids[e.id] = ids[e.id] || new Set()).add(p ? p.dataset.k : 'page');
     });
-    const painted = {};
-    document.querySelectorAll('.panel').forEach(p => {
-      const m = p.querySelector('.mount'), r = m.getBoundingClientRect();
-      painted[p.dataset.k] = m.children.length && r.width > 40 && r.height > 40 ? m.querySelectorAll('*').length + 1 : 0;
-    });
-    return { shared: Object.keys(ids).filter(i => ids[i].size > 1).map(i => i + ' (' + [...ids[i]].join(', ') + ')'), painted };
+    return Object.keys(ids).filter(i => ids[i].size > 1).map(i => i + ' (' + [...ids[i]].join(', ') + ')');
   });
-  const failing = keys.filter(k => state[k] !== 'ok' || !info.painted[k]).map(k => k + ': ' + (state[k] === 'ok' ? 'nothing painted' : state[k]));
   const errs = errors.slice(0, 3);
-  return { ok: !failing.length && !info.shared.length && !errs.length, n: keys.length, failing, shared: info.shared, errors: errs };
+  return { ok: !failing.length && !shared.length && !errs.length, n: keys.length, failing, shared, errors: errs };
 }
 
 const bad = [];
@@ -201,7 +196,7 @@ for (const c of cats) {
     (r.errors.length ? '  ⟨' + r.errors.slice(0, 2).join(' | ') + '⟩' : '')
   );
   if (shots) {
-    await page.evaluate(() => { const m = document.getElementById('main'); m.style.scrollBehavior = 'auto'; m.scrollTop = 0; });
+    await page.evaluate(h => { location.hash = h; }, '#/c/' + c.id);   /* back to the top */
     await page.waitForTimeout(700);
     await page.screenshot({ path: `/tmp/fd-shots/c-${c.id}.png` });
   }
