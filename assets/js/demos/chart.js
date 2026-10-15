@@ -473,52 +473,6 @@ B.cst = async function (ctx) {
   ctx.onDestroy(function () { chart.detach(); });
 };
 
-/* ------------------------------------------------------------ chart.xkcd */
-B.xk = async function (ctx) {
-  var T = ctx.T;
-  var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("class", "fit");
-  ctx.el.className = "mount center";
-  ctx.el.style.padding = "14px";
-  ctx.el.appendChild(svg);
-
-  var kind = "line";
-  function draw() {
-    svg.innerHTML = "";
-    var common = { title: "Time spent choosing a chart library",
-                   xLabel: "week", yLabel: "hours",
-                   options: { fontFamily: T.sans, dataColors: [ctx.series(0), ctx.series(1), ctx.series(3)],
-                              backgroundColor: "transparent", strokeColor: T.ink2 } };
-    if (kind === "line") {
-      new chartXkcd.XY(svg, Object.assign({}, common, {
-        data: { datasets: [
-          { label: "reading docs", data: series(10, 4, 2.4, 3).map(function (v, i) { return { x: i + 1, y: v }; }) },
-          { label: "actually building", data: series(10, 2, 1.6, 19).map(function (v, i) { return { x: i + 1, y: v }; }) }
-        ] },
-        options: Object.assign({ showLine: true, timeFormat: undefined, dotSize: 1,
-                                 xTickCount: 5, yTickCount: 5,
-                                 legendPosition: chartXkcd.config.positionType.upLeft },
-                               common.options)
-      }));
-    } else if (kind === "bar") {
-      new chartXkcd.Bar(svg, Object.assign({}, common, {
-        data: { labels: ["docs", "stackoverflow", "source", "giving up"], datasets: [{ data: [7, 5, 9, 2] }] }
-      }));
-    } else {
-      new chartXkcd.Pie(svg, Object.assign({}, common, {
-        title: "Where the week went",
-        data: { labels: ["docs", "bundler", "CSS", "the chart"], datasets: [{ data: [30, 25, 35, 10] }] },
-        options: Object.assign({ innerRadius: .45, legendPosition: chartXkcd.config.positionType.upRight }, common.options)
-      }));
-    }
-  }
-  draw();
-
-  ctx.select("chart", ["line", "bar", "pie"], function (v) { kind = v; draw(); }, "line");
-  ctx.btn("Redraw", draw, true);
-  ctx.readout("press Redraw — the hand-drawn wobble is generated fresh every time");
-};
-
 /* --------------------------------------------------- Lightweight Charts */
 B.lw = async function (ctx) {
   var T = ctx.T;

@@ -385,15 +385,6 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["chartist"], site:"https://chartist.dev/", repo:"chartist-js/chartist" },
 
-{ k:"xk", n:"chart.xkcd", pkg:"chart.xkcd", ver:"2.0.12", pub:"2026-06-16", commit:"2026-07-21", lic:"MIT", kb:152, cat:"chart", st:3,
-  c:"n y n n n p p n",
-  what:"Charts drawn in the xkcd hand-sketched style — for when a chart should read as a sketch, not a result.",
-  pro:"Instantly signals 'this is illustrative, not measured'",
-  con:"Exactly one aesthetic, and no TypeScript types",
-  try:"The wobble is computed live — reload and every line is drawn slightly differently.",
-  rnNote:"Web only; WebView on native.",
-  js:["xkcd"], site:"https://timqian.com/chart.xkcd/", repo:"timqian/chart.xkcd" },
-
 /* ---------------- High-performance charts ---------------- */
 { k:"lw", n:"Lightweight Charts", pkg:"lightweight-charts", ver:"5.2.1", vend:"5.2.0", pub:"2026-08-12", commit:"2026-10-13", lic:"Apache-2.0", kb:192, cat:"perf", st:5,
   c:"p y y y p y y y",
@@ -550,15 +541,6 @@ window.LIBS = [
   try:"Grab any shape and throw it. Collisions, stacking and friction are all being simulated.",
   rnNote:"Yes — the engine is pure math with no DOM. Run the simulation and draw the bodies with react-native-svg or Skia.",
   js:["matter"], site:"https://brm.io/matter-js/", repo:"liabru/matter-js" },
-
-{ k:"zdog", n:"Zdog", pkg:"zdog", ver:"1.1.3", pub:"2022-01-22", commit:"2022-01-22", lic:"MIT", kb:29, cat:"creative", st:3,
-  c:"y n n y n y p n",
-  what:"A 29 KB pseudo-3D engine: real 3D maths, flat-shaded round shapes, canvas or SVG output.",
-  pro:"Charming results from almost no code or bytes",
-  con:"No lighting, no textures, and effectively feature-frozen",
-  try:"Drag to spin the model. It is real 3D geometry, just deliberately drawn flat.",
-  rnNote:"Web only; WebView on native.",
-  js:["zdog"], site:"https://zzz.dog/", repo:"metafizzy/zdog" },
 
 { k:"rough", n:"Rough.js", pkg:"roughjs", ver:"4.6.6", pub:"2023-11-20", commit:"2023-11-19", lic:"MIT", kb:27, cat:"creative", st:4,
   c:"n n n y n y y y",
@@ -736,15 +718,6 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["wavedrom-skin","wavedrom"], site:"https://wavedrom.com/", repo:"wavedrom/wavedrom" },
 
-{ k:"pin", n:"Pintora", pkg:"@pintora/standalone", ver:"0.8.1", pub:"2025-12-03", commit:"2026-06-12", lic:"MIT", kb:582, cat:"text", st:3,
-  c:"n y n y n p p y",
-  what:"A Mermaid-style text-to-diagram renderer at a sixth of the size, with good CJK text handling.",
-  pro:"Much smaller than Mermaid and renders Chinese text properly",
-  con:"Far fewer diagram types, and a small community",
-  try:"Same idea as Mermaid — edit the text, get a diagram. Compare the bundle sizes in the header.",
-  rnNote:"Web only; WebView on native.",
-  js:["pintora"], site:"https://pintorajs.vercel.app/", repo:"hikerpig/pintora" },
-
 /* ---------------- Gantt & timelines ---------------- */
 { k:"fgt", n:"Frappe Gantt", pkg:"frappe-gantt", ver:"1.2.2", pub:"2026-02-25", commit:"2026-03-05", lic:"MIT", kb:47, cat:"time", st:4,
   c:"y y n n n y p y",
@@ -782,15 +755,6 @@ window.LIBS = [
   try:"Double-click a node to rename it, press Tab for a child and Enter for a sibling, drag a node onto another to re-parent it.",
   rnNote:"Web only; WebView on native.",
   js:["mindelixir"], css:["mindelixir"], site:"https://mind-elixir.com/", repo:"SSShooter/mind-elixir-core" },
-
-{ k:"jm", n:"jsMind", pkg:"jsmind", ver:"0.9.1", pub:"2025-12-15", commit:"2026-05-18", lic:"BSD-3-Clause", kb:50, cat:"mind", st:3,
-  c:"y y n n n p p y",
-  what:"A long-lived 50 KB mind map renderer and editor with no dependencies.",
-  pro:"Small, stable and thoroughly documented in both Chinese and English",
-  con:"Plain visuals and a somewhat old-fashioned API",
-  try:"Click a node to select it, use the buttons to add or remove nodes, and switch the theme.",
-  rnNote:"Web only; WebView on native.",
-  js:["jsmind"], site:"https://github.com/hizzgdev/jsmind", repo:"hizzgdev/jsmind" },
 
 /* ---------------- Data grids & pivots ---------------- */
 { k:"ag", n:"AG Grid", pkg:"ag-grid-community", ver:"36.2.0", vend:"36.0.2", pub:"2026-09-16", commit:"2026-10-14", lic:"MIT", kb:1896, cat:"table", st:5,
@@ -856,15 +820,6 @@ window.LIBS = [
   try:"Press Generate to build a PDF in the browser and preview it. Nothing is uploaded anywhere.",
   rnNote:"Mostly portable, but images and fonts assume browser APIs; react-native-html-to-pdf is the usual native route.",
   js:["jspdf","pdfjs"], site:"https://github.com/parallax/jsPDF", repo:"parallax/jsPDF" },
-
-{ k:"h2c", n:"html2canvas", pkg:"html2canvas", ver:"1.4.1", pub:"2022-01-22", commit:"2022-01-23", lic:"MIT", kb:196, cat:"doc", st:3,
-  c:"n n n y n y n y",
-  what:"Screenshots a DOM subtree by re-implementing a chunk of CSS layout onto a canvas.",
-  pro:"The only pure-JS way to turn live DOM into an image",
-  con:"It re-implements the browser, so exotic CSS renders wrong — and it has not shipped since 2022",
-  try:"Press Capture. The panel above is re-drawn onto a canvas — that image is a rasterisation, not a copy of the DOM.",
-  rnNote:"No path — the native equivalent is react-native-view-shot.",
-  js:["html2canvas"], site:"https://html2canvas.hertzen.com/", repo:"niklasvh/html2canvas" },
 
 { k:"katex", n:"KaTeX", pkg:"katex", ver:"0.19.0", vend:"0.16.22", pub:"2026-10-01", commit:"2026-10-14", lic:"MIT", kb:270, cat:"doc", st:5,
   c:"n y n n y y p y",
@@ -1227,14 +1182,6 @@ window.LIBS = [
   js:["tanvirtual"], site:"https://tanstack.com/virtual", repo:"TanStack/virtual" },
 
 /* ---------------- Forms & input controls ---------------- */
-{ k:"flatpickr", n:"flatpickr", pkg:"flatpickr", ver:"4.6.13", pub:"2022-04-14", commit:"2022-09-26", lic:"MIT", kb:49, cat:"forms", st:4,
-  c:"y n a n p y n y",
-  what:"The date picker that is small, dependency-free and does ranges, times and multiple dates.",
-  pro:"Looks right out of the box and weighs a fraction of the alternatives",
-  con:"No release since 2022, and theming means overriding its CSS",
-  try:"Switch between single, range and multiple date modes, and turn the time picker on.",
-  rnNote:"Web only; on native use the platform date picker.",
-  js:["flatpickr"], css:["flatpickr"], site:"https://flatpickr.js.org/", repo:"chmln/flatpickr" },
 
 { k:"tomselect", n:"Tom Select", pkg:"tom-select", ver:"2.6.2", vend:"2.4.3", pub:"2026-07-07", commit:"2026-10-02", lic:"Apache-2.0", kb:49, cat:"forms", st:5,
   c:"y y p n n y n y",
@@ -1282,24 +1229,6 @@ window.LIBS = [
   rnNote:"Web only; on native use Alert or a modal component.",
   js:["sweetalert2"], site:"https://sweetalert2.github.io/", repo:"sweetalert2/sweetalert2" },
 
-{ k:"toastify", n:"Toastify", pkg:"toastify-js", ver:"1.12.0", pub:"2022-07-21", commit:"2024-08-19", lic:"MIT", kb:15, cat:"overlay", st:4,
-  c:"n n a n n y n n",
-  what:"Toast notifications in 15 KB with no dependencies and no framework.",
-  pro:"Does one job, weighs almost nothing, works anywhere",
-  con:"Quiet since 2022, and no TypeScript types",
-  try:"Fire toasts from each corner, with and without a close button. They stack and dismiss on their own timers.",
-  rnNote:"Web only.",
-  js:["toastify"], css:["toastify"], site:"https://apvarun.github.io/toastify-js/", repo:"apvarun/toastify-js" },
-
-{ k:"tippy", n:"Tippy.js", pkg:"tippy.js", ver:"6.3.7", pub:"2021-11-10", commit:"2022-02-05", lic:"MIT", kb:25, cat:"overlay", st:4,
-  c:"n n a n p y n y",
-  what:"Tooltips and popovers built on Popper: interactive content, delays, singleton groups, follow-cursor.",
-  pro:"Everything a tooltip needs is already in it, including the fiddly parts",
-  con:"No release since 2021, and it carries Popper with it",
-  try:"Hover each trigger. One follows the cursor, one holds interactive content you can click into, one is part of a singleton group that shares a transition.",
-  rnNote:"Web only.",
-  js:["popperjs","tippy"], css:["tippy"], site:"https://atomiks.github.io/tippyjs/", repo:"atomiks/tippyjs" },
-
 { k:"photoswipe", n:"PhotoSwipe", pkg:"photoswipe", ver:"5.4.4", pub:"2024-05-24", commit:"2025-12-04", lic:"MIT", kb:53, cat:"overlay", st:4,
   c:"y n p y n y n y",
   what:"The image lightbox: pinch zoom, momentum panning, keyboard control, and a proper open/close animation from the thumbnail.",
@@ -1328,24 +1257,6 @@ window.LIBS = [
   rnNote:"Web only.",
   js:["lenis"], site:"https://lenis.darkroom.engineering/", repo:"darkroomengineering/lenis" },
 
-{ k:"aos", n:"AOS", pkg:"aos", ver:"2.3.4", pub:"2018-10-03", commit:"2018-10-03", lic:"MIT", kb:14, cat:"scroll", st:3,
-  c:"n n a n n y n n",
-  what:"Animate-on-scroll declared in data attributes. The library that put fade-up on half the marketing sites on the internet.",
-  pro:"One attribute per element and you are done",
-  con:"Unmaintained since 2018 and uses scroll listeners rather than IntersectionObserver",
-  try:"Scroll the panel. Each card declares its own animation, delay and offset in a data attribute — there is no JavaScript per element.",
-  rnNote:"Web only.",
-  js:["aos"], css:["aos"], site:"https://michalsnik.github.io/aos/", repo:"michalsnik/aos" },
-
-{ k:"split", n:"Split.js", pkg:"split.js", ver:"1.6.5", pub:"2022-01-07", commit:"2023-07-04", lic:"MIT", kb:7, cat:"scroll", st:4,
-  c:"y n a n p y n y",
-  what:"Resizable split panes in 2 KB gzipped, with no dependencies and no wrapper elements.",
-  pro:"Does exactly one thing, works with any layout, and remembers sizes",
-  con:"Quiet development, and nested splits need care",
-  try:"Drag the gutters. Try the nested vertical split inside the right pane, and watch the size percentages update.",
-  rnNote:"Web only.",
-  js:["split"], site:"https://split.js.org/", repo:"nathancahill/split" },
-
 { k:"simplebar", n:"SimpleBar", pkg:"simplebar", ver:"6.3.3", vend:"6.3.2", pub:"2025-11-09", commit:"2025-11-09", lic:"MIT", kb:27, cat:"scroll", st:4,
   c:"n n a n p y n y",
   what:"Custom scrollbars that keep native scrolling. It styles the bar and leaves the scrolling to the browser.",
@@ -1354,15 +1265,6 @@ window.LIBS = [
   try:"Scroll the panel — the bar is styled, but the scrolling itself is entirely native.",
   rnNote:"Web only.",
   js:["simplebar"], css:["simplebar"], site:"https://grsmto.github.io/simplebar/", repo:"grsmto/simplebar" },
-
-{ k:"muuri", n:"Muuri", pkg:"muuri", ver:"0.9.5", pub:"2021-07-09", commit:"2022-09-15", lic:"MIT", kb:82, cat:"scroll", st:3,
-  c:"y y p n n y n n",
-  what:"Responsive, sortable, filterable, draggable grid layouts — masonry that you can also rearrange by hand.",
-  pro:"Nothing else combines masonry layout with drag-sorting this well",
-  con:"Unmaintained since 2021, and it is heavy for a layout library",
-  try:"Drag the tiles to rearrange them, then filter by colour — the remaining tiles animate into their new positions.",
-  rnNote:"Web only.",
-  js:["muuri"], site:"https://muuri.dev/", repo:"haltu/muuri" },
 
 /* ---------------- Templating & text ---------------- */
 { k:"handlebars", n:"Handlebars", pkg:"handlebars", ver:"4.7.10", vend:"4.7.9", pub:"2026-10-05", commit:"2026-06-25", lic:"MIT", kb:86, cat:"textproc", st:4,
@@ -1410,15 +1312,6 @@ window.LIBS = [
   try:"Add rows, then query by index and by range. Everything is written to a real IndexedDB database — reload the page and it is still there.",
   rnNote:"IndexedDB does not exist on device; use expo-sqlite or WatermelonDB.",
   js:["dexie"], site:"https://dexie.org/", repo:"dexie/Dexie.js" },
-
-{ k:"localforage", n:"localForage", pkg:"localforage", ver:"1.10.0", pub:"2021-08-18", commit:"2024-07-30", lic:"Apache-2.0", kb:29, cat:"storage", st:4,
-  c:"n y p n n a p y",
-  what:"localStorage's API, backed by IndexedDB. Same three methods, but asynchronous and able to store blobs.",
-  pro:"A drop-in mental model that stores real objects instead of strings",
-  con:"Quiet since 2021, and the simple API hides IndexedDB's power",
-  try:"Store a string, an object, a typed array and a Blob. localStorage could only have taken the first.",
-  rnNote:"There is an AsyncStorage driver, but AsyncStorage directly is the norm.",
-  js:["localforage"], site:"https://localforage.github.io/localForage/", repo:"localForage/localForage" },
 
 { k:"comlink", n:"Comlink", pkg:"comlink", ver:"4.4.2", pub:"2024-11-07", commit:"2025-06-17", lic:"Apache-2.0", kb:5, cat:"storage", st:5,
   c:"n n y n n a y y",
@@ -1485,24 +1378,7 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript.",
   js:["flexsearch"], site:"https://github.com/nextapps-de/flexsearch", repo:"nextapps-de/flexsearch" },
 
-{ k:"lunr", n:"Lunr.js", pkg:"lunr", ver:"2.3.9", pub:"2020-08-19", commit:"2020-08-19", lic:"MIT", kb:29, cat:"search", st:3,
-  c:"n y p n n a y y",
-  what:"A small Solr-like search index, and the engine behind a great many static documentation sites.",
-  pro:"Stemming and stop words built in; index once, ship the JSON",
-  con:"No release since 2020, and the index is immutable once built",
-  try:"Search with a stemmed word — 'running' finds 'run'. The pipeline that does that is shown below the results.",
-  rnNote:"Yes — pure JavaScript.",
-  js:["lunr"], site:"https://lunrjs.com/", repo:"olivernn/lunr.js" },
-
 /* ---------------- Crypto & identifiers ---------------- */
-{ k:"cryptojs", n:"CryptoJS", pkg:"crypto-js", ver:"4.2.0", pub:"2023-10-24", commit:"2023-10-25", lic:"MIT", kb:62, cat:"crypto", st:3,
-  c:"n y y n n a y y",
-  what:"Hashing and symmetric encryption in pure JavaScript: SHA family, MD5, HMAC, AES, PBKDF2.",
-  pro:"Works everywhere, including places without Web Crypto",
-  con:"Web Crypto is native, audited and faster — prefer it when you can",
-  try:"Hash and encrypt the same input. The note compares each line with the Web Crypto equivalent you would use instead.",
-  rnNote:"Yes — pure JavaScript, and commonly used on device where Web Crypto is absent.",
-  js:["cryptojs"], site:"https://github.com/brix/crypto-js", repo:"brix/crypto-js" },
 
 { k:"nanoid", n:"Nano ID", pkg:"nanoid", ver:"6.0.2", vend:"5.1.16", pub:"2026-10-05", commit:"2026-10-10", lic:"MIT", kb:1, cat:"crypto", st:5,
   c:"n n y n n a y y",
@@ -1550,15 +1426,6 @@ window.LIBS = [
   try:"Fire each preset. The fireworks one schedules dozens of bursts; the cannon fires from the pointer.",
   rnNote:"Web only; on native use react-native-confetti-cannon.",
   js:["confetti"], site:"https://github.com/catdad/canvas-confetti", repo:"catdad/canvas-confetti" },
-
-{ k:"typed", n:"Typed.js", pkg:"typed.js", ver:"3.0.0", vend:"2.1.0", pub:"2026-01-24", commit:"2026-01-25", lic:"GPL-3.0", kb:10, cat:"delight", st:3,
-  c:"n n a n n y p y",
-  what:"The typewriter effect: types a string out, backspaces, moves to the next. On more hero sections than you would guess.",
-  pro:"10 KB and it does exactly what it says",
-  con:"GPL-3.0 — a copyleft licence, which matters for proprietary products",
-  try:"Watch the loop, then change the speed and the backspace delay.",
-  rnNote:"Web only, though the effect is trivial to reimplement.",
-  js:["typed"], site:"https://mattboldt.com/demos/typed-js/", repo:"mattboldt/typed.js" },
 
 { k:"countup", n:"CountUp.js", pkg:"countup.js", ver:"2.10.1", vend:"2.8.0", pub:"2026-07-02", commit:"2026-07-02", lic:"MIT", kb:6, cat:"delight", st:4,
   c:"n y a n n y y y",
@@ -1670,12 +1537,4 @@ window.LIBS = [
   rnNote:"No. It is a DOM library.",
   js:["jquery"], site:"https://jquery.com/", repo:"jquery/jquery" },
 
-{ k:"plyr", n:"Plyr", pkg:"plyr", ver:"3.8.5", vend:"3.7.8", pub:"2026-10-06", commit:"2026-10-08", lic:"MIT", kb:111, cat:"media", st:4,
-  c:"y n a n p y n y",
-  what:"An accessible, themeable media player for audio, video, YouTube and Vimeo, built on the native element.",
-  pro:"Keyboard and screen-reader support done properly, and it stays a real <audio>/<video> underneath",
-  con:"Large for a skin, and captions styling is fiddly",
-  try:"The audio is synthesised in this tab. Everything on the control bar is Plyr; the element underneath is a plain <audio>.",
-  rnNote:"Web only; on native use expo-av.",
-  js:["plyr"], css:["plyr"], site:"https://plyr.io/", repo:"sampotts/plyr" },
 ];

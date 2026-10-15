@@ -31,64 +31,6 @@ function input(ctx, parent, placeholder) {
   return i;
 }
 
-/* -------------------------------------------------------------- flatpickr */
-B.flatpickr = async function (ctx) {
-  var T = ctx.T;
-  ctx.mount("scroll pad");
-  ctx.tall();
-
-  var host = ctx.mk("div");
-  host.innerHTML = '<p class="demo-h">One library, four modes</p>' +
-    '<p class="demo-p">The same 49 KB covers a single date, a range, several dates at once and a ' +
-    "date-time. Click any field.</p>";
-  ctx.el.appendChild(host);
-
-  var style = ctx.mk("style");
-  style.textContent =
-    ".flatpickr-calendar{background:" + T.panel + ";border:1px solid " + T.line2 +
-      ";box-shadow:0 12px 34px rgba(0,0,0,.4)}" +
-    ".flatpickr-months,.flatpickr-weekdays,.flatpickr-weekdaycontainer{background:" + T.panel + "}" +
-    ".flatpickr-month,.flatpickr-current-month,.flatpickr-weekday{color:" + T.ink2 + " !important;fill:" + T.ink2 + "}" +
-    ".flatpickr-day{color:" + T.ink2 + "}" +
-    ".flatpickr-day:hover{background:" + T.sunk + ";border-color:" + T.line + "}" +
-    ".flatpickr-day.selected,.flatpickr-day.startRange,.flatpickr-day.endRange{" +
-      "background:" + T.accent + ";border-color:" + T.accent + ";color:" + (T.dark ? "#0b0e14" : "#fff") + "}" +
-    ".flatpickr-day.inRange{background:" + T.sunk + ";border-color:" + T.sunk + ";box-shadow:none}" +
-    ".flatpickr-day.flatpickr-disabled,.flatpickr-day.prevMonthDay,.flatpickr-day.nextMonthDay{color:" + T.muted + "}" +
-    ".flatpickr-time input,.flatpickr-time .flatpickr-am-pm{color:" + T.ink + "}" +
-    ".flatpickr-time input:hover,.numInputWrapper:hover{background:" + T.sunk + "}" +
-    ".flatpickr-monthDropdown-months{background:" + T.panel + ";color:" + T.ink2 + "}";
-  ctx.el.appendChild(style);
-
-  var out = ctx.readout("click a field to open its calendar");
-  var pickers = [];
-
-  function make(label, hint, opts) {
-    var slot = field(ctx, host, label, hint);
-    var el = input(ctx, slot, "select…");
-    var fp = flatpickr(el, Object.assign({
-      onChange: function (dates) {
-        out("<b>" + label + "</b> → " + dates.map(function (d) { return d.toISOString().slice(0, 16).replace("T", " "); }).join(", "));
-      }
-    }, opts));
-    pickers.push(fp);
-    return fp;
-  }
-
-  make("Single date", "the default mode", { defaultDate: "today" });
-  make("Date range", "mode: 'range' — one instance, two dates", { mode: "range" });
-  make("Multiple dates", "mode: 'multiple' — pick as many as you like", { mode: "multiple" });
-  make("Date and time", "enableTime with 15-minute steps", {
-    enableTime: true, minuteIncrement: 15, dateFormat: "Y-m-d H:i", defaultDate: "today"
-  });
-  make("With disabled days", "weekends are rejected by a predicate", {
-    disable: [function (d) { return d.getDay() === 0 || d.getDay() === 6; }]
-  });
-
-  ctx.onDestroy(function () { pickers.forEach(function (p) { p.destroy(); }); });
-  ctx.btn("Open the range picker", function () { pickers[1].open(); }, true);
-};
-
 /* ------------------------------------------------------------- Tom Select */
 B.tomselect = async function (ctx) {
   var T = ctx.T;

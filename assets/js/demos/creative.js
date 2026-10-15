@@ -212,62 +212,6 @@ B.matter = async function (ctx) {
   });
 };
 
-/* ------------------------------------------------------------------- Zdog */
-B.zdog = async function (ctx) {
-  var T = ctx.T;
-  var cv = ctx.mk("canvas");
-  cv.style.cssText = "width:100%;height:100%;display:block";
-  ctx.el.appendChild(cv);
-
-  var dpr = Math.min(devicePixelRatio || 1, 2);
-  function size() {
-    cv.width = ctx.el.clientWidth * dpr;
-    cv.height = ctx.el.clientHeight * dpr;
-  }
-  size();
-
-  var illo = new Zdog.Illustration({
-    element: cv, dragRotate: true, resize: false,
-    zoom: dpr * Math.min(ctx.el.clientWidth, ctx.el.clientHeight) / 300
-  });
-
-  /* Real 3D maths, deliberately flat-shaded output. */
-  var box = new Zdog.Box({
-    addTo: illo, width: 80, height: 80, depth: 80, stroke: false,
-    color: ctx.series(0),
-    leftFace: ctx.series(1), rightFace: ctx.series(2),
-    topFace: ctx.series(4), bottomFace: ctx.series(3)
-  });
-  new Zdog.Ellipse({ addTo: illo, diameter: 150, translate: { z: -10 },
-                     stroke: 8, color: ctx.series(5) });
-  var ring = new Zdog.Ellipse({ addTo: illo, diameter: 190, rotate: { x: Zdog.TAU / 4 },
-                                stroke: 6, color: ctx.series(7) });
-  for (var i = 0; i < 6; i++) {
-    new Zdog.Shape({
-      addTo: illo, stroke: 14, color: ctx.series(i % 8),
-      translate: { x: Math.cos(i / 6 * Zdog.TAU) * 120, y: Math.sin(i / 6 * Zdog.TAU) * 120 }
-    });
-  }
-
-  var spin = true, rate = 1;
-  ctx.raf(function () {
-    if (spin) illo.rotate.y += .014 * rate;
-    ring.rotate.z += .01 * rate;
-    illo.updateRenderGraph();
-  });
-
-  ctx.check("auto-spin", true, function (v) { spin = v; });
-  ctx.range("speed", { min: 0, max: 30, value: 10, fmt: function (v) { return (v / 10).toFixed(1) + "×"; } },
-            function (v) { rate = v / 10; });
-  ctx.readout("29 KB · drag to rotate — this is real 3D, just drawn without lighting");
-
-  ctx.onResize(function () {
-    size();
-    illo.zoom = dpr * Math.min(ctx.el.clientWidth, ctx.el.clientHeight) / 300;
-    illo.updateRenderGraph();
-  });
-};
-
 /* ---------------------------------------------------------------- Rough.js */
 B.rough = async function (ctx) {
   var T = ctx.T;

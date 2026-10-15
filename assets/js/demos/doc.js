@@ -280,64 +280,6 @@ B.jspdf = async function (ctx) {
   ctx.onResize(build);
 };
 
-/* ------------------------------------------------------------ html2canvas */
-B.h2c = async function (ctx) {
-  var T = ctx.T;
-  ctx.tall();
-  var p = ctx.panes("50%");
-
-  var source = ctx.mk("div");
-  source.style.cssText = "padding:22px";
-  source.innerHTML =
-    '<div id="h2c-target" style="background:linear-gradient(140deg,' + ctx.series(0) + ',' + ctx.series(4) +
-    ');border-radius:16px;padding:22px;color:#0b0e14;font-family:' + T.sans + '">' +
-      '<div style="font:700 21px ' + T.sans + '">Quarterly summary</div>' +
-      '<div style="font:12px ' + T.mono + ';opacity:.8;margin-bottom:14px">generated ' +
-        new Date().toISOString().slice(0, 10) + "</div>" +
-      '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
-        ["Revenue $1.2m", "Churn 3.1%", "NPS 47", "Uptime 99.98%"].map(function (s) {
-          return '<span style="background:rgba(255,255,255,.75);border-radius:8px;padding:6px 11px;' +
-                 'font:600 12px ' + T.sans + '">' + s + "</span>";
-        }).join("") +
-      "</div>" +
-      '<div style="margin-top:16px;display:flex;gap:5px;align-items:flex-end;height:80px">' +
-        [34, 58, 41, 72, 66, 88, 79].map(function (v) {
-          return '<div style="flex:1;height:' + v + '%;background:rgba(11,14,20,.55);border-radius:4px 4px 0 0"></div>';
-        }).join("") +
-      "</div>" +
-    "</div>" +
-    '<p class="demo-note">This panel is live DOM: gradients, flexbox, rounded corners, the lot.</p>';
-  p.a.appendChild(source);
-
-  var right = ctx.mk("div");
-  right.style.cssText = "padding:22px;min-height:100%";
-  right.innerHTML = '<p class="demo-h">Rasterised copy</p>' +
-    '<p class="demo-p">Press Capture. html2canvas re-implements enough CSS layout to repaint that ' +
-    "subtree onto a canvas — it is a re-render, not a copy of the pixels the browser already drew.</p>" +
-    '<div id="h2c-out" style="min-height:120px"></div>';
-  p.b.appendChild(right);
-
-  var out = ctx.readout("press Capture");
-  var scale = 2;
-
-  ctx.btn("Capture", function () {
-    var target = document.getElementById("h2c-target");
-    var t0 = performance.now();
-    html2canvas(target, { backgroundColor: null, scale: scale, logging: false }).then(function (canvas) {
-      var box = document.getElementById("h2c-out");
-      box.innerHTML = "";
-      canvas.style.cssText = "max-width:100%;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.35)";
-      box.appendChild(canvas);
-      out("captured <b>" + canvas.width + "×" + canvas.height + "</b> px in <b>" +
-          Math.round(performance.now() - t0) + " ms</b>");
-    }).catch(function (e) {
-      out('<span style="color:' + T.bad + '">' + String(e.message || e).slice(0, 80) + "</span>");
-    });
-  }, true);
-  ctx.select("scale", [{ v: "1", t: "1×" }, { v: "2", t: "2× (retina)" }, { v: "3", t: "3×" }],
-             function (v) { scale = +v; }, "2");
-};
-
 /* ------------------------------------------------------------------ KaTeX */
 B.katex = async function (ctx) {
   var T = ctx.T;

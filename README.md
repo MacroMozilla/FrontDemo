@@ -1,6 +1,6 @@
 # FrontDemo
 
-**A playground for front-end libraries. 167 of them, across 36 categories, each one actually running
+**A playground for front-end libraries. 151 of them, across 36 categories, each one actually running
 in the page — nine diagram editors among them, drawing the same flowchart side by side.**
 
 Pick a library from the sidebar and you get it mounted on a real stage, with controls that drive its
@@ -24,7 +24,7 @@ Each library page gives you:
 | **The trade-off** | One line for what it is genuinely good at, one line for where it hurts. Both are opinions, and both are stated as such. |
 | **Last update** | The page leads with the library's last update: the newer of its latest release and the newest commit to its repository, with both dates beside it. |
 | **React Native & mobile** | Whether the library can be used from a React codebase that also targets phones — see below. |
-| **Capabilities** | Eight columns, comparable across all 167 libraries, also available as one big [matrix](https://macromozilla.github.io/FrontDemo/#/matrix) with the last update of each. |
+| **Capabilities** | Eight columns, comparable across all 151 libraries, also available as one big [matrix](https://macromozilla.github.io/FrontDemo/#/matrix) with the last update of each. |
 | **The source** | The exact builder function that drew the stage, verbatim, at the bottom of every page. |
 
 ## What is covered
@@ -44,8 +44,27 @@ feedback · scroll and layout · templating and text · storage, files and worke
 internationalization · client-side search · crypto and identifiers · games and audio · delight and
 micro-interactions · icons
 
-Nothing here is a stub. Every one of the 167 pages runs its library for real, and
+Nothing here is a stub. Every one of the 151 pages runs its library for real, and
 `scripts/verify.mjs` drives them all in headless Chromium.
+
+## Fit for production
+
+Every library on the site is one that can be recommended for production use today. In October 2026
+the list was checked against npm deprecation notices, the security advisories on each latest
+release, release and commit activity, the projects' own statements, licences and usage, and these
+were removed:
+
+| Removed | Why |
+|---|---|
+| crypto-js, Plyr | Discontinued or deprecated by their own authors (crypto-js points to the Web Crypto API, Plyr to Video.js). |
+| html2canvas | Its author calls it experimental and not for production; no release since January 2022. |
+| AOS, lunr, Muuri, localForage, Tippy.js, Split.js, Zdog, flatpickr, Toastify | Unmaintained: no release in more than three years and no commit in the last two. |
+| Typed.js | GPL-3.0, which rules it out for most closed-source products. |
+| Pintora, jsMind | Not production-proven: pre-1.0, with a few hundred to a few thousand downloads a week. |
+| chart.xkcd | A novelty style with a few hundred downloads a week. |
+
+SheetJS stays, but from its own distribution: the npm package `xlsx` stopped at 0.18.5, which has
+known high-severity vulnerabilities, and SheetJS now publishes on cdn.sheetjs.com.
 
 ## Diagram editors, side by side
 
@@ -127,7 +146,7 @@ these can I actually use?*
 |:--:|---|
 | ✓ | Runs in a React Native / Expo app **on device** — either through an official native port (MapLibre, Lottie, Babylon, three.js via `expo-gl`) or because the library is pure JavaScript with no DOM access, so you can drive `react-native-svg` or Skia with it (D3's scale/shape modules, Matter.js, Turf, perfect-freehand, Rough.js, `qrcode`, Zod, Day.js, Fuse.js). |
 | ◐ | Works on **Expo web only**, through `react-native-web`. On device you would need `react-native-webview`. This is where most DOM and canvas libraries land. |
-| ✗ | No path into a React Native app at all — Lit's custom elements, Alpine's HTML directives, htmx's hypermedia model, html2canvas's DOM rasteriser. |
+| ✗ | No path into a React Native app at all — Lit's custom elements, Alpine's HTML directives, htmx's hypermedia model. |
 
 Every library page also carries a one-line note naming the specific package or technique you would
 reach for, so a ◐ is never just a shrug.
@@ -306,8 +325,6 @@ written against that API.
 Licences are as declared on npm (draw.io: its GitHub repository) and worth reading before you ship:
 
 - **GSAP** uses its own no-charge licence, not an OSI one.
-- **Typed.js** is **GPL-3.0** — fine for a demo page, worth a second thought in a closed-source
-  product. Its whole effect is about thirty lines if you would rather write it yourself.
 - **ApexCharts** publishes as `SEE LICENSE IN LICENSE`.
 - **p5.js** is LGPL-2.1.
 - **JointJS** core is **MPL-2.0**; the polished editor tier (JointJS+) is commercial.
@@ -366,7 +383,7 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **Sigma.js** | `sigma` | ★★★★ | MIT | 437 KB | 2026-10-14 | ◐ | A WebGL renderer for graphology graphs. Rendering only — the data model lives in graphology. |
 | **3d-force-graph** | `3d-force-graph` | ★★★ | MIT | 1.3 MB | 2026-09-29 | ◐ | The same force-graph idea, but the simulation runs in three dimensions and renders through three.js. |
 
-#### Charts (9)
+#### Charts (8)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
@@ -378,7 +395,6 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **Plotly.js** | `plotly.js-basic-dist-min` | ★★★★ | MIT | 1.1 MB | 2026-10-14 | ◐ | Scientific charting with a built-in toolbar — the JS half of the Python/R Plotly family. |
 | **Recharts** | `recharts` | ★★★★ | MIT | 766 KB | 2026-10-14 | ◐ | Charts as JSX. Every axis, bar and tooltip is a React component in your tree. |
 | **Chartist** | `chartist` | ★★★ | MIT OR WTFPL | 37 KB | 2026-10-14 | ◐ | 37 KB of pure SVG charts where the styling is entirely CSS's job. |
-| **chart.xkcd** | `chart.xkcd` | ★★★ | MIT | 152 KB | 2026-07-21 | ◐ | Charts drawn in the xkcd hand-sketched style — for when a chart should read as a sketch, not a result. |
 
 #### High-performance charts (4)
 
@@ -410,13 +426,12 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **Two.js** | `two.js` | ★★★ | MIT | 199 KB | 2026-10-11 | ◐ | One drawing API that can output SVG, Canvas or WebGL — you pick the renderer at construction time. |
 | **ZRender** | `zrender` | ★★★ | BSD-3-Clause | 216 KB | 2026-05-26 | ◐ | The rendering kernel ECharts is built on, usable on its own. |
 
-#### Creative coding & physics (4)
+#### Creative coding & physics (3)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
 | **p5.js** | `p5` | ★★★★ | LGPL-2.1 | 1.0 MB | 2026-10-14 | ◐ | Processing for the web. The library that teaches most people creative coding: setup(), draw(), and go. |
 | **Matter.js** | `matter-js` | ★★★★ | MIT | 82 KB | 2026-09-30 | ✓ | A rigid-body 2D physics engine: gravity, collisions, constraints, friction. |
-| **Zdog** | `zdog` | ★★★ | MIT | 29 KB | 2022-01-22 | ◐ | A 29 KB pseudo-3D engine: real 3D maths, flat-shaded round shapes, canvas or SVG output. |
 | **Rough.js** | `roughjs` | ★★★★ | MIT | 27 KB | 2023-11-20 | ✓ | Draws in a hand-sketched style. It is what makes Excalidraw look like Excalidraw. |
 
 #### Whiteboards & freehand (2)
@@ -454,14 +469,13 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **Lottie** | `lottie-web` | ★★★★★ | MIT | 298 KB | 2025-05-21 | ✓ | Plays animations exported from After Effects as JSON. Designers animate; you ship the file. |
 | **Motion** | `motion` | ★★★★★ | MIT | 64 KB | 2026-10-15 | ◐ | Framer Motion's engine, now framework-agnostic. Springs, layout animation and gestures on the Web Animations API. |
 
-#### Text to diagram (4)
+#### Text to diagram (3)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
 | **Mermaid** | `mermaid` | ★★★★★ | MIT | 3.3 MB | 2026-10-14 | ◐ | Markdown-ish text in, laid-out diagram out. Flowcharts, sequence, class, gantt, ER, state. |
 | **Viz.js (Graphviz)** | `@viz-js/viz` | ★★★★ | MIT | 1.3 MB | 2026-09-28 | ◐ | Real Graphviz compiled to WebAssembly. The same dot layout engine everyone has used since 1991. |
 | **WaveDrom** | `wavedrom` | ★★★★ | MIT | 39 KB | 2026-08-31 | ◐ | Digital timing diagrams from JSON. Standard equipment in hardware documentation. |
-| **Pintora** | `@pintora/standalone` | ★★★ | MIT | 582 KB | 2026-06-12 | ◐ | A Mermaid-style text-to-diagram renderer at a sixth of the size, with good CJK text handling. |
 
 #### Gantt & timelines (3)
 
@@ -471,12 +485,11 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **vis-timeline** | `vis-timeline` | ★★★★ | Apache-2.0 OR MIT | 543 KB | 2026-10-14 | ◐ | A zoomable, editable timeline that scales from milliseconds to centuries. |
 | **jsGantt Improved** | `jsgantt-improved` | ★★★ | ISC | 243 KB | 2026-04-13 | ◐ | A project-management Gantt: durations, percent complete, owners, cost, collapsible groups. |
 
-#### Mind maps (2)
+#### Mind maps (1)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
 | **Mind Elixir** | `mind-elixir` | ★★★★ | MIT | 88 KB | 2026-08-11 | ◐ | A drop-in mind map editor: editable nodes, drag to re-parent, keyboard shortcuts, undo. |
-| **jsMind** | `jsmind` | ★★★ | BSD-3-Clause | 50 KB | 2026-05-18 | ◐ | A long-lived 50 KB mind map renderer and editor with no dependencies. |
 
 #### Data grids & pivots (3)
 
@@ -486,7 +499,7 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **Tabulator** | `tabulator-tables` | ★★★★ | MIT | 436 KB | 2026-10-01 | ◐ | A fully MIT data grid with editing, grouping, downloads and formatters included, no paid tier. |
 | **AntV S2** | `@antv/s2` | ★★★★ | MIT | 1.1 MB | 2026-06-11 | ◐ | A canvas-rendered pivot table — multi-level rows and columns, the way a BI tool does it. |
 
-#### Documents, codes & export (6)
+#### Documents, codes & export (5)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
@@ -494,7 +507,6 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **QRCode** | `qrcode` | ★★★★★ | MIT | 25 KB | 2024-08-05 | ✓ | The reference QR generator for JavaScript: canvas, SVG, data URL, or a raw bit matrix. |
 | **PDF.js** | `pdfjs-dist` | ★★★★★ | Apache-2.0 | 313 KB | 2026-10-14 | ◐ | Mozilla's PDF renderer — the one built into Firefox. Parses and rasterises PDF entirely in JavaScript. |
 | **jsPDF** | `jspdf` | ★★★★ | MIT | 357 KB | 2026-09-13 | ◐ | Generates PDF files client-side: text, vectors, images, tables, and metadata. |
-| **html2canvas** | `html2canvas` | ★★★ | MIT | 196 KB | 2022-01-23 | ✗ | Screenshots a DOM subtree by re-implementing a chunk of CSS layout onto a canvas. |
 | **KaTeX** | `katex` | ★★★★★ | MIT | 270 KB | 2026-10-14 | ◐ | Khan Academy's maths typesetter. Renders LaTeX to HTML synchronously and far faster than MathJax. |
 
 ### Web app building blocks
@@ -554,7 +566,7 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **React** | `react` | ★★★★★ | MIT | 139 KB | 2026-10-14 | ✓ | The one the rest of this category is measured against. A component model, a reconciler, and an ecosystem larger than most languages have. |
 | **jQuery** | `jquery` | ★★★ | MIT | 85 KB | 2026-10-05 | ✗ | Still on a large share of the web. It exists here because knowing what it solved explains why the modern APIs look the way they do. |
 
-#### Media, audio & devices (6)
+#### Media, audio & devices (5)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
@@ -563,7 +575,6 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **Cropper.js** | `cropperjs` | ★★★★ | MIT | 36 KB | 2026-10-08 | ✗ | The image cropper: aspect ratios, rotation, zoom, and a canvas of exactly the region selected. |
 | **Signature Pad** | `signature_pad` | ★★★★ | MIT | 12 KB | 2026-09-29 | ◐ | Smooth signature capture: variable-width Bézier strokes from pointer input, exported as PNG or SVG. |
 | **xterm.js** | `@xterm/xterm` | ★★★★★ | MIT | 283 KB | 2026-10-13 | ✗ | The terminal emulator inside VS Code. Full xterm escape sequence support, GPU-accelerated rendering. |
-| **Plyr** | `plyr` | ★★★★ | MIT | 111 KB | 2026-10-08 | ✗ | An accessible, themeable media player for audio, video, YouTube and Vimeo, built on the native element. |
 
 #### State & reactivity (6)
 
@@ -591,35 +602,29 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **TanStack Table** | `@tanstack/table-core` | ★★★★★ | MIT | 56 KB | 2026-10-12 | ✓ | A table engine with no markup at all. Sorting, filtering, grouping and pagination as state; you render every cell yourself. |
 | **TanStack Virtual** | `@tanstack/virtual-core` | ★★★★★ | MIT | 23 KB | 2026-10-15 | ✓ | Renders only the rows in view. 100,000 items, a couple of dozen DOM nodes. |
 
-#### Forms & input controls (5)
+#### Forms & input controls (4)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
-| **flatpickr** | `flatpickr` | ★★★★ | MIT | 49 KB | 2022-09-26 | ✗ | The date picker that is small, dependency-free and does ranges, times and multiple dates. |
 | **Tom Select** | `tom-select` | ★★★★★ | Apache-2.0 | 49 KB | 2026-10-02 | ✗ | The maintained successor to Selectize: autocomplete, tagging, remote loading and option creation on a plain select element. |
 | **IMask** | `imask` | ★★★★ | MIT | 58 KB | 2024-10-11 | ◐ | Input masking that holds up: phone numbers, card numbers, currency, dates — including paste, deletion and cursor position. |
 | **noUiSlider** | `nouislider` | ★★★★ | MIT | 27 KB | 2024-11-26 | ✗ | A range slider with no dependencies: multiple handles, non-linear scales, keyboard support and proper touch behaviour. |
 | **Pickr** | `@simonwep/pickr` | ★★★★ | MIT | 23 KB | 2026-09-08 | ✗ | A colour picker with no dependencies, alpha support and every output format you would want. |
 
-#### Overlays & feedback (5)
+#### Overlays & feedback (3)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
 | **SweetAlert2** | `sweetalert2` | ★★★★ | MIT | 73 KB | 2026-10-14 | ✗ | A replacement for alert(), confirm() and prompt() that is promise-based, themeable and accessible. |
-| **Toastify** | `toastify-js` | ★★★★ | MIT | 15 KB | 2024-08-19 | ✗ | Toast notifications in 15 KB with no dependencies and no framework. |
-| **Tippy.js** | `tippy.js` | ★★★★ | MIT | 25 KB | 2022-02-05 | ✗ | Tooltips and popovers built on Popper: interactive content, delays, singleton groups, follow-cursor. |
 | **PhotoSwipe** | `photoswipe` | ★★★★ | MIT | 53 KB | 2025-12-04 | ✗ | The image lightbox: pinch zoom, momentum panning, keyboard control, and a proper open/close animation from the thumbnail. |
 | **Micromodal** | `micromodal` | ★★★★ | ISC | 7 KB | 2026-06-03 | ✗ | 7 KB of accessible modal: focus trapping, aria wiring, escape and overlay dismissal. You bring the markup. |
 
-#### Scroll & layout (5)
+#### Scroll & layout (2)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
 | **Lenis** | `lenis` | ★★★★ | MIT | 14 KB | 2026-10-01 | ✗ | Smooth scrolling that keeps the real scrollbar and native anchor behaviour, rather than faking the whole viewport. |
-| **AOS** | `aos` | ★★★ | MIT | 14 KB | 2018-10-03 | ✗ | Animate-on-scroll declared in data attributes. The library that put fade-up on half the marketing sites on the internet. |
-| **Split.js** | `split.js` | ★★★★ | MIT | 7 KB | 2023-07-04 | ✗ | Resizable split panes in 2 KB gzipped, with no dependencies and no wrapper elements. |
 | **SimpleBar** | `simplebar` | ★★★★ | MIT | 27 KB | 2025-11-09 | ✗ | Custom scrollbars that keep native scrolling. It styles the bar and leaves the scrolling to the browser. |
-| **Muuri** | `muuri` | ★★★ | MIT | 82 KB | 2022-09-15 | ✗ | Responsive, sortable, filterable, draggable grid layouts — masonry that you can also rearrange by hand. |
 
 #### Templating & text (4)
 
@@ -630,12 +635,11 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **jsdiff** | `diff` | ★★★★ | BSD-3-Clause | 77 KB | 2026-10-14 | ✓ | Text diffing: characters, words, lines, sentences, JSON and CSS — plus unified patch output. |
 | **Linkify** | `linkifyjs` | ★★★★ | MIT | 19 KB | 2026-06-22 | ✓ | Finds URLs, emails, mentions and hashtags in plain text and turns them into links — with a real scanner, not a regex. |
 
-#### Storage, files & workers (4)
+#### Storage, files & workers (3)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
 | **Dexie.js** | `dexie` | ★★★★★ | Apache-2.0 | 92 KB | 2026-10-14 | ◐ | IndexedDB with an API you can actually use: promises, compound indexes, live queries and versioned migrations. |
-| **localForage** | `localforage` | ★★★★ | Apache-2.0 | 29 KB | 2024-07-30 | ◐ | localStorage's API, backed by IndexedDB. Same three methods, but asynchronous and able to store blobs. |
 | **Comlink** | `comlink` | ★★★★★ | Apache-2.0 | 5 KB | 2025-06-17 | ✓ | Makes a Web Worker look like an object you can await. It hides postMessage behind a proxy. |
 | **FilePond** | `filepond` | ★★★★ | MIT | 115 KB | 2026-07-13 | ✗ | A file upload control with drag and drop, previews, reordering, validation and chunked uploads. |
 
@@ -647,19 +651,17 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **Luxon** | `luxon` | ★★★★★ | MIT | 79 KB | 2026-08-09 | ✓ | Moment's successor from the same author, built on the Intl API. Immutable, time-zone aware, and honest about durations. |
 | **date-fns** | `date-fns` | ★★★★★ | MIT | 72 KB | 2026-09-22 | ✓ | 200-odd small functions over the native Date. No wrapper object, no prototype patching — import only what you call. |
 
-#### Client-side search (3)
+#### Client-side search (2)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
 | **MiniSearch** | `minisearch` | ★★★★★ | MIT | 84 KB | 2025-09-16 | ✓ | A real inverted index in the browser: prefix search, fuzzy matching, field boosting, and an index you can serialise. |
 | **FlexSearch** | `flexsearch` | ★★★★ | Apache-2.0 | 16 KB | 2026-05-29 | ✓ | The fastest full-text search library in the browser, by a wide margin, with contextual indexing and worker support. |
-| **Lunr.js** | `lunr` | ★★★ | MIT | 29 KB | 2020-08-19 | ✓ | A small Solr-like search index, and the engine behind a great many static documentation sites. |
 
-#### Crypto & identifiers (3)
+#### Crypto & identifiers (2)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
-| **CryptoJS** | `crypto-js` | ★★★ | MIT | 62 KB | 2023-10-25 | ✓ | Hashing and symmetric encryption in pure JavaScript: SHA family, MD5, HMAC, AES, PBKDF2. |
 | **Nano ID** | `nanoid` | ★★★★★ | MIT | 1 KB | 2026-10-10 | ✓ | URL-safe unique ids in 130 bytes, using the platform's cryptographic random source. |
 | **uuid** | `uuid` | ★★★★★ | MIT | 11 KB | 2026-10-13 | ✓ | RFC-compliant UUIDs: v4 random, v7 time-ordered, plus the namespace-based v3 and v5. |
 
@@ -670,12 +672,11 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **Phaser** | `phaser` | ★★★★★ | MIT | 1.1 MB | 2026-08-21 | ◐ | The 2D game framework for the web: scenes, sprites, physics, tweens, input and asset loading in one package. |
 | **Howler.js** | `howler` | ★★★★ | MIT | 35 KB | 2025-11-23 | ◐ | Audio for applications and games: sprites, fades, spatial panning, and one API over Web Audio and HTML5 audio. |
 
-#### Delight & micro-interactions (4)
+#### Delight & micro-interactions (3)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
 | **canvas-confetti** | `canvas-confetti` | ★★★★ | ISC | 24 KB | 2025-10-25 | ◐ | Confetti. It performs well, it can run off the main thread, and it is on rather more production sites than anyone admits. |
-| **Typed.js** | `typed.js` | ★★★ | GPL-3.0 | 10 KB | 2026-01-25 | ◐ | The typewriter effect: types a string out, backspaces, moves to the next. On more hero sections than you would guess. |
 | **CountUp.js** | `countup.js` | ★★★★ | MIT | 6 KB | 2026-07-02 | ✓ | Animates a number from one value to another, with easing, grouping and locale-aware formatting. |
 | **AutoAnimate** | `@formkit/auto-animate` | ★★★★★ | MIT | 8 KB | 2026-07-10 | ✗ | One function call on a parent element, and every add, remove and reorder inside it animates. That is the whole API. |
 
