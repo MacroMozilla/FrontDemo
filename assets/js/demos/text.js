@@ -33,7 +33,7 @@ function split(ctx, source, render, hint) {
 /* ---------------------------------------------------------------- Mermaid */
 B.mer = async function (ctx) {
   var T = ctx.T;
-  var M = window.MermaidLib.default || window.MermaidLib;
+  var M = window.mermaid;
 
   var samples = {
     flowchart: [
@@ -213,77 +213,6 @@ B.wd = async function (ctx) {
     s.editor.value = t;
     s.run(t);
   }, "SPI transfer");
-};
-
-/* ---------------------------------------------------------------- Pintora */
-B.pin = async function (ctx) {
-  var T = ctx.T;
-
-  var samples = {
-    "activity": [
-      "activityDiagram",
-      "  start",
-      "  :read config;",
-      "  if (cache warm?) then (yes)",
-      "    :serve from cache;",
-      "  else (no)",
-      "    :query database;",
-      "    :fill cache;",
-      "  endif",
-      "  :write access log;",
-      "  end"
-    ].join("\n"),
-    "sequence": [
-      "sequenceDiagram",
-      "  Client->>Gateway: POST /orders",
-      "  Gateway->>Auth: verify token",
-      "  Auth-->>Gateway: ok",
-      "  Gateway->>Orders: create()",
-      "  Orders-->>Gateway: 201",
-      "  Gateway-->>Client: 201 Created"
-    ].join("\n"),
-    "component": [
-      "componentDiagram",
-      "  [Browser] as web",
-      "  [API gateway] as gw",
-      "  [Order service] as orders",
-      "  database \"Postgres\" as db",
-      "  web --> gw",
-      "  gw --> orders",
-      "  orders --> db"
-    ].join("\n"),
-    "mind map": [
-      "mindmap",
-      "  + front-end",
-      "  ++ rendering",
-      "  +++ canvas",
-      "  +++ svg",
-      "  ++ state",
-      "  ++ build",
-      "  +++ bundlers"
-    ].join("\n")
-  };
-
-  pintora.default.setConfig({
-    themeConfig: { theme: ctx.dark ? "dark" : "default" },
-    core: { defaultRenderer: "svg" }
-  });
-
-  var s = split(ctx, samples.activity, function (text, out) {
-    return new Promise(function (res, rej) {
-      out.innerHTML = "";
-      pintora.default.renderTo(text, {
-        container: out,
-        onRender: function () { res(); },
-        onError: function (e) { rej(e); }
-      });
-    });
-  }, "a sixth of Mermaid's size, and it lays out CJK text properly");
-
-  ctx.select("sample", Object.keys(samples), function (v) {
-    s.editor.value = samples[v];
-    s.run(samples[v]);
-  }, "activity");
 };
 
 })();

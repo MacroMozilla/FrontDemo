@@ -140,34 +140,37 @@ B.anime = async function (ctx) {
   svg.appendChild(dot);
   wrap.appendChild(svg);
 
-  var gridAnim = null, lineAnim = null;
+  /* anime.js 4 is a set of named functions on the global: animate(), stagger()… */
+  var gridAnim = null, lineAnim = null, from = "center", speed = 1;
   function runGrid() {
     if (gridAnim) gridAnim.pause();
-    gridAnim = anime({
-      targets: cells,
-      scale: [{ value: .25, easing: "easeOutSine", duration: 420 },
-              { value: 1, easing: "easeInOutQuad", duration: 620 }],
-      opacity: [{ value: 1, duration: 420 }, { value: .35, duration: 620 }],
-      backgroundColor: [{ value: ctx.series(4), duration: 420 },
-                        { value: ctx.series(0), duration: 620 }],
-      borderRadius: [{ value: "50%", duration: 420 }, { value: "5px", duration: 620 }],
-      delay: anime.stagger(60, { grid: [COLS, ROWS], from: "center" }),
-      loop: true
+    gridAnim = anime.animate(cells, {
+      scale: [{ to: .25, ease: "outSine", duration: 420 },
+              { to: 1, ease: "inOutQuad", duration: 620 }],
+      opacity: [{ to: 1, duration: 420 }, { to: .35, duration: 620 }],
+      backgroundColor: [{ to: ctx.series(4), duration: 420 },
+                        { to: ctx.series(0), duration: 620 }],
+      borderRadius: [{ to: "50%", duration: 420 }, { to: "5px", duration: 620 }],
+      delay: anime.stagger(60, { grid: [COLS, ROWS], from: from }),
+      loop: true,
+      playbackRate: speed
     });
   }
   function runLine() {
     if (lineAnim) lineAnim.pause();
     var len = p.getTotalLength();
     p.setAttribute("stroke-dasharray", len);
-    lineAnim = anime({
-      targets: p,
+    lineAnim = anime.animate(p, {
       strokeDashoffset: [len, 0],
-      easing: "easeInOutSine",
+      ease: "inOutSine",
       duration: 2600,
-      direction: "alternate",
+      alternate: true,
       loop: true,
-      update: function (a) {
-        var pt = p.getPointAtLength((a.progress / 100) * len);
+      playbackRate: speed,
+      /* The dot rides the tip of the stroke: wherever the dash ends now. */
+      onUpdate: function () {
+        var off = parseFloat(p.style.strokeDashoffset || p.getAttribute("stroke-dashoffset")) || 0;
+        var pt = p.getPointAtLength(Math.max(0, Math.min(len, len - off)));
         dot.setAttribute("cx", pt.x);
         dot.setAttribute("cy", pt.y);
       }
@@ -178,21 +181,12 @@ B.anime = async function (ctx) {
   ctx.btn("Replay", function () { runGrid(); runLine(); }, true);
   ctx.range("speed", { min: 2, max: 30, value: 10, fmt: function (v) { return (v / 10).toFixed(1) + "×"; } },
             function (v) {
-              if (gridAnim) gridAnim.speed = v / 10;
-              if (lineAnim) lineAnim.speed = v / 10;
+              speed = v / 10;
+              if (gridAnim) gridAnim.speed = speed;
+              if (lineAnim) lineAnim.speed = speed;
             });
-  ctx.select("stagger from", ["center", "first", "last"], function (v) {
-    if (gridAnim) gridAnim.pause();
-    gridAnim = anime({
-      targets: cells,
-      scale: [{ value: .25, duration: 420 }, { value: 1, duration: 620 }],
-      opacity: [{ value: 1, duration: 420 }, { value: .35, duration: 620 }],
-      backgroundColor: [{ value: ctx.series(4), duration: 420 }, { value: ctx.series(0), duration: 620 }],
-      delay: anime.stagger(60, { grid: [COLS, ROWS], from: v }),
-      loop: true
-    });
-  }, "center");
-  ctx.readout("left: <b>anime.stagger</b> across a grid · right: <b>stroke-dashoffset</b> on an SVG path");
+  ctx.select("stagger from", ["center", "first", "last"], function (v) { from = v; runGrid(); }, "center");
+  ctx.readout("left: <b>stagger()</b> across a grid · right: <b>animate()</b> on an SVG path's stroke-dashoffset");
 
   ctx.onDestroy(function () {
     if (gridAnim) gridAnim.pause();

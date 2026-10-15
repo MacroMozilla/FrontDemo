@@ -203,14 +203,17 @@ B.me = async function (ctx) {
     }
   };
 
-  var me = new MindElixir({
+  /* The browser build is the module itself: the class is its default export,
+     next to the layout and theme constants. */
+  var ME = window.MindElixir;
+  var me = new ME.default({
     el: host,
-    direction: MindElixir.SIDE,
+    direction: ME.SIDE,
     draggable: true,
     contextMenu: true,
     toolBar: true,
     keypress: true,
-    theme: ctx.dark ? MindElixir.DARK_THEME : MindElixir.THEME
+    theme: ctx.dark ? ME.DARK_THEME : ME.THEME
   });
   me.init(data);
 
@@ -218,8 +221,8 @@ B.me = async function (ctx) {
   me.bus.addListener("operation", function (op) {
     out("operation <b>" + op.name + "</b> — undo and redo are built in");
   });
-  me.bus.addListener("selectNode", function (node) {
-    out("selected <b>" + node.topic + "</b>");
+  me.bus.addListener("selectNodes", function (nodes) {
+    if (nodes && nodes.length) out("selected <b>" + nodes.map(function (n) { return n.topic; }).join(", ") + "</b>");
   });
 
   ctx.btn("Expand all", function () {
@@ -231,81 +234,15 @@ B.me = async function (ctx) {
     out("<b>" + JSON.stringify(d).length + " bytes</b> of JSON describe the whole map");
   });
   ctx.select("layout", [
-    { v: String(MindElixir.SIDE), t: "both sides" },
-    { v: String(MindElixir.LEFT), t: "left" },
-    { v: String(MindElixir.RIGHT), t: "right" }
-  ], function (v) { me.initSide ? me.initSide() : null; me.direction = Number(v); me.refresh(); },
-     String(MindElixir.SIDE));
+    { v: String(ME.SIDE), t: "both sides" },
+    { v: String(ME.LEFT), t: "left" },
+    { v: String(ME.RIGHT), t: "right" }
+  ], function (v) {
+    v = Number(v);
+    if (v === ME.LEFT) me.initLeft(); else if (v === ME.RIGHT) me.initRight(); else me.initSide();
+  }, String(ME.SIDE));
 
-  ctx.onDestroy(function () { host.innerHTML = ""; });
-};
-
-/* ----------------------------------------------------------------- jsMind */
-B.jm = async function (ctx) {
-  var T = ctx.T;
-  ctx.tall();
-
-  var host = ctx.mk("div");
-  host.id = "jsmind-host";
-  host.style.cssText = "position:absolute;inset:0";
-  ctx.el.appendChild(host);
-
-  var mind = {
-    meta: { name: "front-end", author: "frontdemo", version: "1.0" },
-    format: "node_tree",
-    data: {
-      id: "root", topic: "Rendering paths", expanded: true,
-      children: [
-        { id: "dom", topic: "DOM", direction: "left", expanded: true, children: [
-          { id: "dom1", topic: "cheap to style" },
-          { id: "dom2", topic: "expensive past ~5k nodes" }
-        ] },
-        { id: "svg", topic: "SVG", direction: "left", expanded: true, children: [
-          { id: "svg1", topic: "vector, printable" },
-          { id: "svg2", topic: "still one node each" }
-        ] },
-        { id: "cv", topic: "Canvas", direction: "right", expanded: true, children: [
-          { id: "cv1", topic: "one node total" },
-          { id: "cv2", topic: "hit testing is yours" }
-        ] },
-        { id: "gl", topic: "WebGL", direction: "right", expanded: true, children: [
-          { id: "gl1", topic: "100k+ elements" },
-          { id: "gl2", topic: "shaders to write" }
-        ] }
-      ]
-    }
-  };
-
-  var jm = new jsMind({
-    container: "jsmind-host",
-    editable: true,
-    theme: ctx.dark ? "primary" : "greensea",
-    view: { engine: "svg", line_width: 1.6, line_color: ctx.series(0) }
-  });
-  jm.show(mind);
-
-  var out = ctx.readout("click a node to select it, then add or remove nodes");
-  var n = 0;
-  ctx.btn("Add child", function () {
-    var sel = jm.get_selected_node();
-    if (!sel) { out("select a node first"); return; }
-    n++;
-    jm.add_node(sel, "new" + n, "idea " + n);
-    out("added a child under <b>" + sel.topic + "</b>");
-  }, true);
-  ctx.btn("Remove node", function () {
-    var sel = jm.get_selected_node();
-    if (!sel || sel.isroot) { out("select a non-root node"); return; }
-    jm.remove_node(sel);
-    out("removed");
-  });
-  ctx.select("theme", ["primary", "greensea", "danger", "warning", "success", "info"],
-             function (v) { jm.set_theme(v); }, ctx.dark ? "primary" : "greensea");
-  ctx.btn("Export", function () {
-    out("<b>" + JSON.stringify(jm.get_data("node_tree")).length + " bytes</b> of JSON");
-  });
-
-  ctx.onDestroy(function () { host.innerHTML = ""; });
+  ctx.onDestroy(function () { me.destroy(); host.innerHTML = ""; });
 };
 
 })();

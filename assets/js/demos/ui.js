@@ -554,8 +554,8 @@ B.hotkeys = async function (ctx) {
 
   BINDINGS.forEach(function (b, i) {
     hotkeys(b.keys, b.scope === "all" ? { scope: "all" } : { scope: b.scope }, function (e, handler) {
-      /* hotkeys.trigger() runs a handler with neither the event nor the handler info. */
-      if (e) e.preventDefault();
+      /* hotkeys.trigger() hands the handler an empty object, not a keyboard event. */
+      if (e && e.preventDefault) e.preventDefault();
       var key = handler ? handler.key : b.keys, sc = handler ? handler.scope : b.scope;
       flash(i);
       say("<b>" + ctx.esc(key) + "</b> in scope <b>" + sc + "</b> → " + ctx.esc(b.what), T.yes);

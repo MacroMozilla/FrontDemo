@@ -174,59 +174,6 @@ B.cjs = async function (ctx) {
   ctx.onDestroy(function () { if (chart) chart.destroy(); });
 };
 
-/* ------------------------------------------------------------ ApexCharts */
-B.apex = async function (ctx) {
-  var T = ctx.T;
-  var n = 180;
-  var t = days(n);
-  var v1 = series(n, 400, 22, 4), v2 = series(n, 260, 16, 21);
-
-  function opts(type) {
-    return {
-      chart: {
-        type: type, height: "100%", background: "transparent",
-        foreColor: T.muted, fontFamily: T.sans,
-        toolbar: { show: true, tools: { download: true, selection: true, zoom: true, pan: true, reset: true } },
-        zoom: { enabled: true, type: "x", autoScaleYaxis: true },
-        animations: { enabled: true, speed: 420 }
-      },
-      theme: { mode: ctx.dark ? "dark" : "light" },
-      colors: [ctx.series(0), ctx.series(1)],
-      series: [
-        { name: "Requests", data: t.map(function (d, i) { return [d, v1[i]]; }) },
-        { name: "Cache hits", data: t.map(function (d, i) { return [d, v2[i]]; }) }
-      ],
-      stroke: { width: type === "bar" ? 0 : 2, curve: "smooth" },
-      fill: type === "area"
-        ? { type: "gradient", gradient: { opacityFrom: .45, opacityTo: .03 } }
-        : { opacity: .9 },
-      dataLabels: { enabled: false },
-      grid: { borderColor: T.grid, strokeDashArray: 3 },
-      xaxis: { type: "datetime", labels: { style: { colors: T.muted, fontFamily: T.mono, fontSize: "10px" } } },
-      yaxis: { labels: { style: { colors: T.muted, fontFamily: T.mono, fontSize: "10px" } } },
-      tooltip: { theme: ctx.dark ? "dark" : "light", x: { format: "dd MMM yyyy" } },
-      legend: { labels: { colors: T.ink2 } },
-      annotations: {
-        xaxis: [{
-          x: t[Math.floor(n * .62)],
-          borderColor: ctx.series(3), strokeDashArray: 4,
-          label: { text: "cache rollout", style: { background: ctx.series(3), color: "#fff", fontSize: "10px" } }
-        }]
-      }
-    };
-  }
-
-  var chart = new ApexCharts(ctx.el, opts("area"));
-  await chart.render();
-
-  ctx.select("type", ["area", "line", "bar"], function (v) {
-    chart.updateOptions(opts(v), true, true);
-  }, "area");
-  ctx.readout("drag across the plot to zoom · the toolbar top-right is stock ApexCharts");
-
-  ctx.onDestroy(function () { chart.destroy(); });
-};
-
 /* --------------------------------------------------------------- AntV G2 */
 B.g2 = async function (ctx) {
   var T = ctx.T;
@@ -471,52 +418,6 @@ B.cst = async function (ctx) {
   ctx.readout("37 KB · the stroke width, dashes and fill above are all plain CSS rules");
 
   ctx.onDestroy(function () { chart.detach(); });
-};
-
-/* ------------------------------------------------------------ chart.xkcd */
-B.xk = async function (ctx) {
-  var T = ctx.T;
-  var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("class", "fit");
-  ctx.el.className = "mount center";
-  ctx.el.style.padding = "14px";
-  ctx.el.appendChild(svg);
-
-  var kind = "line";
-  function draw() {
-    svg.innerHTML = "";
-    var common = { title: "Time spent choosing a chart library",
-                   xLabel: "week", yLabel: "hours",
-                   options: { fontFamily: T.sans, dataColors: [ctx.series(0), ctx.series(1), ctx.series(3)],
-                              backgroundColor: "transparent", strokeColor: T.ink2 } };
-    if (kind === "line") {
-      new chartXkcd.XY(svg, Object.assign({}, common, {
-        data: { datasets: [
-          { label: "reading docs", data: series(10, 4, 2.4, 3).map(function (v, i) { return { x: i + 1, y: v }; }) },
-          { label: "actually building", data: series(10, 2, 1.6, 19).map(function (v, i) { return { x: i + 1, y: v }; }) }
-        ] },
-        options: Object.assign({ showLine: true, timeFormat: undefined, dotSize: 1,
-                                 xTickCount: 5, yTickCount: 5,
-                                 legendPosition: chartXkcd.config.positionType.upLeft },
-                               common.options)
-      }));
-    } else if (kind === "bar") {
-      new chartXkcd.Bar(svg, Object.assign({}, common, {
-        data: { labels: ["docs", "stackoverflow", "source", "giving up"], datasets: [{ data: [7, 5, 9, 2] }] }
-      }));
-    } else {
-      new chartXkcd.Pie(svg, Object.assign({}, common, {
-        title: "Where the week went",
-        data: { labels: ["docs", "bundler", "CSS", "the chart"], datasets: [{ data: [30, 25, 35, 10] }] },
-        options: Object.assign({ innerRadius: .45, legendPosition: chartXkcd.config.positionType.upRight }, common.options)
-      }));
-    }
-  }
-  draw();
-
-  ctx.select("chart", ["line", "bar", "pie"], function (v) { kind = v; draw(); }, "line");
-  ctx.btn("Redraw", draw, true);
-  ctx.readout("press Redraw — the hand-drawn wobble is generated fresh every time");
 };
 
 /* --------------------------------------------------- Lightweight Charts */

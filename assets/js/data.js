@@ -119,7 +119,7 @@ window.LIBS = [
    the same approval flowchart with its own default shapes, theme and
    stock UI, so their pages compare like for like. Vue Flow, diagram-js
    and Baklava.js follow with demos of their own. */
-{ k:"xyf", n:"React Flow", pkg:"@xyflow/react", ver:"12.12.0", pub:"2026-09-24", commit:"2026-09-24", lic:"MIT", kb:395, cat:"flow", st:5,
+{ k:"xyf", n:"React Flow", pkg:"@xyflow/react", ver:"12.12.0", pub:"2026-09-24", commit:"2026-09-24", lic:"MIT", kb:424, cat:"flow", st:5,
   c:"y y p n y y p y",
   render:"HTML nodes, SVG edges", ui:"React (Svelte Flow for Svelte)",
   box:"Controls, MiniMap, Background, connect, multi-select, keyboard delete",
@@ -130,7 +130,7 @@ window.LIBS = [
   rnNote:"No React Native renderer. Expo web works through react-native-web; on a device you would host it in a WebView.",
   js:["xyflow"], css:["xyflow"], site:"https://reactflow.dev/", repo:"xyflow/xyflow" },
 
-{ k:"m2d", n:"meta2d.js", pkg:"@meta2d/core", ver:"2.0.0", vend:"1.1.32", pub:"2026-09-18", commit:"2026-10-14", lic:"MIT", kb:766, cat:"flow", st:3,
+{ k:"m2d", n:"meta2d.js", pkg:"@meta2d/core", ver:"2.0.0", vend:"1.1.32", pub:"2026-09-18", commit:"2026-10-15", lic:"MIT", kb:766, cat:"flow", st:3,
   c:"y y y y n y p y",
   render:"Canvas", ui:"any (plain JS)",
   box:"anchors and line drawing, resize and rotate handles, undo/redo, minimap, line styles, flowchart pens",
@@ -187,7 +187,7 @@ window.LIBS = [
   rnNote:"No native component. On a device it is a web page in a WebView, like anything else.",
   js:[], site:"https://www.drawio.com/doc/faq/embed-mode", repo:"jgraph/drawio" },
 
-{ k:"dnx", n:"Plait / Drawnix", pkg:"@plait/core", ver:"0.94.1", pub:"2026-09-23", commit:"2026-09-07", lic:"MIT", kb:681, cat:"flow", st:3,
+{ k:"dnx", n:"Plait / Drawnix", pkg:"@plait/core", ver:"0.94.1", pub:"2026-09-23", commit:"2026-09-07", lic:"MIT", kb:710, cat:"flow", st:3,
   c:"y y p n y y p y",
   render:"SVG", ui:"React (Plait core is framework-agnostic)",
   box:"whiteboard toolbar, flowchart shapes, arrows, mind maps, pen, text, themes, export, Mermaid import",
@@ -199,7 +199,7 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:[], esm:"drawnix/drawnix.js", css:["drawnix"], site:"https://drawnix.com/", repo:"plait-board/drawnix" },
 
-{ k:"fgm", n:"FlowGram", pkg:"@flowgram.ai/free-layout-editor", ver:"1.0.16", pub:"2026-10-13", commit:"2026-10-12", lic:"MIT", kb:1000, cat:"flow", st:4,
+{ k:"fgm", n:"FlowGram", pkg:"@flowgram.ai/free-layout-editor", ver:"1.0.16", pub:"2026-10-13", commit:"2026-10-12", lic:"MIT", kb:1030, cat:"flow", st:4,
   c:"y y p n y p p y",
   render:"HTML nodes, SVG lines", ui:"React",
   box:"free-layout canvas, ports, node forms, minimap, snapping, auto-layout, undo/redo, line styles",
@@ -221,25 +221,25 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["x6"], site:"https://x6.antv.antgroup.com/", repo:"antvis/X6" },
 
-{ k:"vf", n:"Vue Flow", pkg:"@vue-flow/core", ver:"1.48.2", pub:"2026-01-28", commit:"2026-06-23", lic:"MIT", kb:164, cat:"flow", st:4,
+{ k:"vf", n:"Vue Flow", pkg:"@vue-flow/core", ver:"1.48.2", pub:"2026-01-28", commit:"2026-06-23", lic:"MIT", kb:338, cat:"flow", st:4,
   c:"y y p n n y n y",
   what:"React Flow's model, ported to Vue. Same concepts, Vue components instead.",
   pro:"If you already write Vue, you get the React Flow feature set without React",
   con:"Smaller ecosystem than the React original",
   try:"Drag a node. Drag from a handle to wire up a new edge.",
   rnNote:"Vue, so nothing to do with React Native.",
-  js:["vue","vueflow"], site:"https://vueflow.dev/", repo:"bcakmakoglu/vue-flow" },
+  js:["vue","vueflow"], css:["vueflow"], site:"https://vueflow.dev/", repo:"bcakmakoglu/vue-flow" },
 
-{ k:"djs", n:"diagram-js", pkg:"diagram-js", ver:"15.28.1", vend:"15.23.2", pub:"2026-10-07", commit:"2026-10-07", lic:"MIT", kb:121, cat:"flow", st:3,
+{ k:"djs", n:"diagram-js", pkg:"diagram-js", ver:"15.28.1", pub:"2026-10-07", commit:"2026-10-07", lic:"MIT", kb:149, cat:"flow", st:3,
   c:"y n n n n p p y",
   what:"The kernel underneath bpmn.io. Canvas, selection, dragging and an undoable command stack — and nothing else. The core is 35 KB; the build here adds the modeling, move, connect and bendpoint features.",
   pro:"Tiny, and the undo/redo command stack is genuinely good",
   con:"Ships no shapes at all; every visual is code you write",
   try:"Drag the shapes. Everything you see was registered by hand — that is the point of the library.",
   rnNote:"Web only; WebView on native.",
-  js:["diagramjs"], site:"https://github.com/bpmn-io/diagram-js", repo:"bpmn-io/diagram-js" },
+  js:["diagramjs"], css:["diagramjs"], site:"https://github.com/bpmn-io/diagram-js", repo:"bpmn-io/diagram-js" },
 
-{ k:"bak", n:"Baklava.js", pkg:"baklavajs", ver:"2.8.1", pub:"2025-11-02", commit:"2026-09-17", lic:"MIT", kb:172, cat:"flow", st:3,
+{ k:"bak", n:"Baklava.js", pkg:"baklavajs", ver:"2.8.1", pub:"2025-11-02", commit:"2026-09-17", lic:"MIT", kb:359, cat:"flow", st:3,
   c:"y y n n n p n y",
   what:"A node editor where the graph is also a program — connect nodes and values flow through them.",
   pro:"Comes with a working dataflow engine, not just the visuals",
@@ -285,7 +285,7 @@ window.LIBS = [
   rnNote:"Web only, but the d3-force layout underneath is pure JS and does run in React Native.",
   js:["forcegraph"], site:"https://github.com/vasturiano/force-graph", repo:"vasturiano/force-graph" },
 
-{ k:"rg", n:"Reagraph", pkg:"reagraph", ver:"4.32.0", pub:"2026-06-25", commit:"2026-06-25", lic:"Apache-2.0", kb:1931, cat:"graph", st:4,
+{ k:"rg", n:"Reagraph", pkg:"reagraph", ver:"4.32.0", pub:"2026-06-25", commit:"2026-06-25", lic:"Apache-2.0", kb:1957, cat:"graph", st:4,
   c:"y y y y y y p y",
   what:"WebGL graph rendering as React components, built on three.js.",
   pro:"Tens of thousands of nodes that you can still click and select",
@@ -331,15 +331,6 @@ window.LIBS = [
   rnNote:"No official port; react-native-chart-kit / victory-native are the usual substitutes.",
   js:["chartjs"], site:"https://www.chartjs.org/", repo:"chartjs/Chart.js" },
 
-{ k:"apex", n:"ApexCharts", pkg:"apexcharts", ver:"8.3.0", vend:"4.4.0", pub:"2026-10-15", commit:"2026-10-15", lic:"See LICENSE file", kb:561, cat:"chart", st:4,
-  c:"p y p n y y p y",
-  what:"Dashboard charts that look finished out of the box — annotations, brush zoom, sparklines included.",
-  pro:"Defaults look good; the interaction toolbar is free",
-  con:"Publishes as 'SEE LICENSE IN LICENSE', not a plain OSI identifier — read it before shipping commercially",
-  try:"Drag across the chart to zoom into a range, then use the toolbar at the top right to reset or export.",
-  rnNote:"Web only. react-native-apexcharts wraps it in a WebView.",
-  js:["apexcharts"], css:["apexcharts"], site:"https://apexcharts.com/", repo:"apexcharts/apexcharts.js" },
-
 { k:"g2", n:"AntV G2", pkg:"@antv/g2", ver:"5.4.8", pub:"2026-01-06", commit:"2026-10-15", lic:"MIT", kb:1059, cat:"chart", st:4,
   c:"p y y y p y p y",
   what:"A grammar of graphics implementation: you compose marks and scales instead of picking a chart type.",
@@ -349,16 +340,16 @@ window.LIBS = [
   rnNote:"Web only. AntV F2 is the mobile-oriented sibling.",
   js:["g2"], site:"https://g2.antv.antgroup.com/", repo:"antvis/g2" },
 
-{ k:"bb", n:"billboard.js", pkg:"billboard.js", ver:"4.1.1", vend:"4.0.3", pub:"2026-09-30", commit:"2026-09-30", lic:"MIT", kb:774, cat:"chart", st:4,
+{ k:"bb", n:"billboard.js", pkg:"billboard.js", ver:"4.1.2", pub:"2026-10-15", commit:"2026-10-15", lic:"MIT", kb:815, cat:"chart", st:4,
   c:"p y p n n y p y",
   what:"A maintained, modernised take on C3.js, built on D3.",
   pro:"Region selection, sub-charts and zoom all built in",
   con:"D3 is a hard dependency and shows through the API",
   try:"Drag across the plot to select a region. Click a legend entry to toggle its series.",
   rnNote:"Web only; WebView on native.",
-  js:["billboard"], site:"https://naver.github.io/billboard.js/", repo:"naver/billboard.js" },
+  js:["billboard"], css:["billboard"], site:"https://naver.github.io/billboard.js/", repo:"naver/billboard.js" },
 
-{ k:"pl", n:"Plotly.js", pkg:"plotly.js-basic-dist-min", ver:"4.1.2", vend:"3.7.0", pub:"2026-10-05", commit:"2026-10-14", lic:"MIT", kb:1094, cat:"chart", st:4,
+{ k:"pl", n:"Plotly.js", pkg:"plotly.js-basic-dist-min", ver:"4.1.2", pub:"2026-10-05", commit:"2026-10-14", lic:"MIT", kb:1171, cat:"chart", st:4,
   c:"p y y y y y p y",
   what:"Scientific charting with a built-in toolbar — the JS half of the Python/R Plotly family.",
   pro:"Box plots, contours, 3D surfaces and a free interaction toolbar",
@@ -367,7 +358,7 @@ window.LIBS = [
   rnNote:"Web only. react-native-plotly runs it inside a WebView.",
   js:["plotly"], site:"https://plotly.com/javascript/", repo:"plotly/plotly.js" },
 
-{ k:"rc", n:"Recharts", pkg:"recharts", ver:"3.10.1", pub:"2026-07-25", commit:"2026-10-14", lic:"MIT", kb:766, cat:"chart", st:4,
+{ k:"rc", n:"Recharts", pkg:"recharts", ver:"3.10.1", pub:"2026-07-25", commit:"2026-10-15", lic:"MIT", kb:796, cat:"chart", st:4,
   c:"p y n n y y p y",
   what:"Charts as JSX. Every axis, bar and tooltip is a React component in your tree.",
   pro:"Composes and themes like the rest of your React app",
@@ -376,26 +367,17 @@ window.LIBS = [
   rnNote:"Web only. Victory / victory-native is the direct React Native equivalent.",
   js:["recharts"], site:"https://recharts.org/", repo:"recharts/recharts" },
 
-{ k:"cst", n:"Chartist", pkg:"chartist", ver:"1.5.0", pub:"2025-09-30", commit:"2026-10-14", lic:"MIT OR WTFPL", kb:37, cat:"chart", st:3,
+{ k:"cst", n:"Chartist", pkg:"chartist", ver:"1.5.0", pub:"2025-09-30", commit:"2026-10-15", lic:"MIT OR WTFPL", kb:46, cat:"chart", st:3,
   c:"n y n n n y p y",
   what:"37 KB of pure SVG charts where the styling is entirely CSS's job.",
   pro:"Tiny, and designers can restyle it without touching JS",
   con:"Interaction and tooltips are not included",
   try:"Line weight, colour and dash pattern here are all CSS rules — no JS options involved.",
   rnNote:"Web only; WebView on native.",
-  js:["chartist"], site:"https://chartist.dev/", repo:"chartist-js/chartist" },
-
-{ k:"xk", n:"chart.xkcd", pkg:"chart.xkcd", ver:"2.0.12", pub:"2026-06-16", commit:"2026-07-21", lic:"MIT", kb:152, cat:"chart", st:3,
-  c:"n y n n n p p n",
-  what:"Charts drawn in the xkcd hand-sketched style — for when a chart should read as a sketch, not a result.",
-  pro:"Instantly signals 'this is illustrative, not measured'",
-  con:"Exactly one aesthetic, and no TypeScript types",
-  try:"The wobble is computed live — reload and every line is drawn slightly differently.",
-  rnNote:"Web only; WebView on native.",
-  js:["xkcd"], site:"https://timqian.com/chart.xkcd/", repo:"timqian/chart.xkcd" },
+  js:["chartist"], css:["chartist"], site:"https://chartist.dev/", repo:"chartist-js/chartist" },
 
 /* ---------------- High-performance charts ---------------- */
-{ k:"lw", n:"Lightweight Charts", pkg:"lightweight-charts", ver:"5.2.1", vend:"5.2.0", pub:"2026-08-12", commit:"2026-10-13", lic:"Apache-2.0", kb:192, cat:"perf", st:5,
+{ k:"lw", n:"Lightweight Charts", pkg:"lightweight-charts", ver:"5.2.1", pub:"2026-08-12", commit:"2026-10-13", lic:"Apache-2.0", kb:193, cat:"perf", st:5,
   c:"p y y y p y y y",
   what:"TradingView's financial chart core: candles, volume, crosshair, at 45 KB gzipped.",
   pro:"Feels like a trading terminal and stays smooth on huge series",
@@ -404,16 +386,16 @@ window.LIBS = [
   rnNote:"Yes — react-native-lightweight-charts-v5 gives a native-side wrapper.",
   js:["lwcharts"], site:"https://tradingview.github.io/lightweight-charts/", repo:"tradingview/lightweight-charts" },
 
-{ k:"dy", n:"Dygraphs", pkg:"dygraphs", ver:"2.2.2", pub:"2026-07-27", commit:"2026-07-29", lic:"MIT", kb:127, cat:"perf", st:4,
+{ k:"dy", n:"Dygraphs", pkg:"dygraphs", ver:"2.2.2", pub:"2026-07-27", commit:"2026-07-29", lic:"MIT", kb:128, cat:"perf", st:4,
   c:"p y y y n p p n",
   what:"An old, extremely fast time-series charter designed for very dense data.",
   pro:"Handles enormous series without any special configuration",
   con:"Looks its age, and touch support is thin",
   try:"20,000 points are plotted here. Drag horizontally to zoom into a range; double-click to reset.",
   rnNote:"Web only; WebView on native.",
-  js:["dygraph"], site:"https://dygraphs.com/", repo:"danvk/dygraphs" },
+  js:["dygraph"], css:["dygraph"], site:"https://dygraphs.com/", repo:"danvk/dygraphs" },
 
-{ k:"uplot", n:"µPlot", pkg:"uplot", ver:"1.6.32", pub:"2025-03-14", commit:"2026-10-11", lic:"MIT", kb:50, cat:"perf", st:5,
+{ k:"uplot", n:"µPlot", pkg:"uplot", ver:"1.6.32", pub:"2025-03-14", commit:"2026-10-11", lic:"MIT", kb:52, cat:"perf", st:5,
   c:"p y y y n p p y",
   what:"50 KB that plots 150,000 points in around 100 ms. The benchmark other chart libraries get compared against.",
   pro:"Astonishing performance per kilobyte",
@@ -441,7 +423,7 @@ window.LIBS = [
   rnNote:"Yes, and this is the standard approach: d3-scale, d3-shape, d3-array and d3-hierarchy are pure math with no DOM. Compute paths with them, render with react-native-svg.",
   js:["d3"], site:"https://d3js.org/", repo:"d3/d3" },
 
-{ k:"vl", n:"Vega-Lite", pkg:"vega-lite", ver:"6.5.0", vend:"6.4.3", pub:"2026-10-08", commit:"2026-10-08", lic:"BSD-3-Clause", kb:245, cat:"gram", st:5,
+{ k:"vl", n:"Vega-Lite", pkg:"vega-lite", ver:"6.5.0", pub:"2026-10-08", commit:"2026-10-08", lic:"BSD-3-Clause", kb:820, cat:"gram", st:5,
   c:"p y p n p y y y",
   what:"A JSON grammar for statistical graphics. You describe the chart; the compiler decides how to draw it.",
   pro:"Serious charts in a dozen lines of declarative JSON",
@@ -450,7 +432,7 @@ window.LIBS = [
   rnNote:"The spec is just JSON, so you can build it anywhere; rendering still needs a browser canvas or SVG.",
   js:["vega","vegalite","vegaembed"], site:"https://vega.github.io/vega-lite/", repo:"vega/vega-lite" },
 
-{ k:"vg", n:"Vega", pkg:"vega", ver:"6.4.0", vend:"6.3.1", pub:"2026-08-14", commit:"2026-10-13", lic:"BSD-3-Clause", kb:504, cat:"gram", st:4,
+{ k:"vg", n:"Vega", pkg:"vega", ver:"6.4.0", pub:"2026-08-14", commit:"2026-10-13", lic:"BSD-3-Clause", kb:509, cat:"gram", st:4,
   c:"p y p y n y y y",
   what:"The lower layer Vega-Lite compiles down to: a full visualization runtime described by JSON.",
   pro:"One spec renders identically from Python, R, Julia or JS",
@@ -469,7 +451,7 @@ window.LIBS = [
   js:["d3","plot"], site:"https://observablehq.com/plot/", repo:"observablehq/plot" },
 
 /* ---------------- 2D canvas & SVG engines ---------------- */
-{ k:"kv", n:"Konva", pkg:"konva", ver:"10.9.0", vend:"10.3.0", pub:"2026-10-15", commit:"2026-10-14", lic:"MIT", kb:182, cat:"canvas", st:5,
+{ k:"kv", n:"Konva", pkg:"konva", ver:"10.9.0", pub:"2026-10-15", commit:"2026-10-14", lic:"MIT", kb:192, cat:"canvas", st:5,
   c:"y n y y y y p y",
   what:"A canvas scene graph with hit detection, layers, transforms and events — the shortest path to a custom editor.",
   pro:"react-konva makes it feel like ordinary React, and shape events just work",
@@ -487,7 +469,7 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["fabric"], site:"https://fabricjs.com/", repo:"fabricjs/fabric.js" },
 
-{ k:"px", n:"PixiJS", pkg:"pixi.js", ver:"8.22.0", vend:"8.19.0", pub:"2026-10-01", commit:"2026-10-10", lic:"MIT", kb:779, cat:"canvas", st:5,
+{ k:"px", n:"PixiJS", pkg:"pixi.js", ver:"8.22.0", pub:"2026-10-01", commit:"2026-10-10", lic:"MIT", kb:821, cat:"canvas", st:5,
   c:"y n y y y y p y",
   what:"The fastest 2D WebGL renderer on the web. Games, particle systems, and any UI that has to move.",
   pro:"Tens of thousands of sprites at 60fps, with a WebGPU path in v8",
@@ -505,7 +487,7 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["paper"], site:"http://paperjs.org/", repo:"paperjs/paper.js" },
 
-{ k:"sv", n:"SVG.js", pkg:"@svgdotjs/svg.js", ver:"3.2.8", vend:"3.2.7", pub:"2026-08-04", commit:"2026-08-04", lic:"MIT", kb:90, cat:"canvas", st:4,
+{ k:"sv", n:"SVG.js", pkg:"@svgdotjs/svg.js", ver:"3.2.8", pub:"2026-08-04", commit:"2026-08-04", lic:"MIT", kb:91, cat:"canvas", st:4,
   c:"y n n n n y p y",
   what:"A small chainable wrapper for building and animating SVG — jQuery's ergonomics for vector graphics.",
   pro:"Readable chained code, tiny, and the animation module is decent",
@@ -514,7 +496,7 @@ window.LIBS = [
   rnNote:"Web only, though the SVG you produce maps closely onto react-native-svg.",
   js:["svgjs"], site:"https://svgjs.dev/", repo:"svgdotjs/svg.js" },
 
-{ k:"tw", n:"Two.js", pkg:"two.js", ver:"0.8.24", vend:"0.8.23", pub:"2026-08-29", commit:"2026-10-11", lic:"MIT", kb:199, cat:"canvas", st:3,
+{ k:"tw", n:"Two.js", pkg:"two.js", ver:"0.8.24", pub:"2026-08-29", commit:"2026-10-11", lic:"MIT", kb:201, cat:"canvas", st:3,
   c:"y n p y n y p y",
   what:"One drawing API that can output SVG, Canvas or WebGL — you pick the renderer at construction time.",
   pro:"Swap renderer without rewriting the drawing code",
@@ -533,7 +515,7 @@ window.LIBS = [
   js:["zrender"], site:"https://github.com/ecomfe/zrender", repo:"ecomfe/zrender" },
 
 /* ---------------- Creative coding & physics ---------------- */
-{ k:"p5", n:"p5.js", pkg:"p5", ver:"2.3.4", vend:"1.11.3", pub:"2026-09-25", commit:"2026-10-14", lic:"LGPL-2.1", kb:1037, cat:"creative", st:4,
+{ k:"p5", n:"p5.js", pkg:"p5", ver:"2.3.4", pub:"2026-09-25", commit:"2026-10-14", lic:"LGPL-2.1", kb:971, cat:"creative", st:4,
   c:"y n p y n y p y",
   what:"Processing for the web. The library that teaches most people creative coding: setup(), draw(), and go.",
   pro:"The gentlest on-ramp to graphics programming anywhere",
@@ -551,15 +533,6 @@ window.LIBS = [
   rnNote:"Yes — the engine is pure math with no DOM. Run the simulation and draw the bodies with react-native-svg or Skia.",
   js:["matter"], site:"https://brm.io/matter-js/", repo:"liabru/matter-js" },
 
-{ k:"zdog", n:"Zdog", pkg:"zdog", ver:"1.1.3", pub:"2022-01-22", commit:"2022-01-22", lic:"MIT", kb:29, cat:"creative", st:3,
-  c:"y n n y n y p n",
-  what:"A 29 KB pseudo-3D engine: real 3D maths, flat-shaded round shapes, canvas or SVG output.",
-  pro:"Charming results from almost no code or bytes",
-  con:"No lighting, no textures, and effectively feature-frozen",
-  try:"Drag to spin the model. It is real 3D geometry, just deliberately drawn flat.",
-  rnNote:"Web only; WebView on native.",
-  js:["zdog"], site:"https://zzz.dog/", repo:"metafizzy/zdog" },
-
 { k:"rough", n:"Rough.js", pkg:"roughjs", ver:"4.6.6", pub:"2023-11-20", commit:"2023-11-19", lic:"MIT", kb:27, cat:"creative", st:4,
   c:"n n n y n y y y",
   what:"Draws in a hand-sketched style. It is what makes Excalidraw look like Excalidraw.",
@@ -570,14 +543,14 @@ window.LIBS = [
   js:["rough"], site:"https://roughjs.com/", repo:"pshihn/rough" },
 
 /* ---------------- Whiteboards & freehand ---------------- */
-{ k:"exc", n:"Excalidraw", pkg:"@excalidraw/excalidraw", ver:"0.18.1", pub:"2026-04-20", commit:"2026-10-14", lic:"MIT", kb:1162, cat:"board", st:5,
+{ k:"exc", n:"Excalidraw", pkg:"@excalidraw/excalidraw", ver:"0.18.1", pub:"2026-04-20", commit:"2026-10-14", lic:"MIT", kb:934, cat:"board", st:5,
   c:"y n p y y y p y",
   what:"An entire whiteboard app you embed as one React component — tools, undo, export, collaboration hooks.",
   pro:"A complete product, not a toolkit; drop it in and you are done",
   con:"Very large, and it wants to own its area of the page",
   try:"Pick a tool on the left and draw. The wobble comes from Rough.js running live.",
   rnNote:"Web only; WebView on native.",
-  js:["react","reactdom","excalidraw"], site:"https://excalidraw.com/", repo:"excalidraw/excalidraw" },
+  js:[], esm:"excalidraw/excalidraw.js", css:["excalidraw"], site:"https://excalidraw.com/", repo:"excalidraw/excalidraw" },
 
 { k:"pf", n:"perfect-freehand", pkg:"perfect-freehand", ver:"1.2.3", pub:"2026-02-01", commit:"2026-02-01", lic:"MIT", kb:5, cat:"board", st:5,
   c:"y n n n n y y y",
@@ -589,16 +562,16 @@ window.LIBS = [
   js:["freehand"], site:"https://github.com/steveruizok/perfect-freehand", repo:"steveruizok/perfect-freehand" },
 
 /* ---------------- Maps & geospatial ---------------- */
-{ k:"ml", n:"MapLibre GL", pkg:"maplibre-gl", ver:"6.14.0", vend:"6.1.0", pub:"2026-10-11", commit:"2026-10-14", lic:"BSD-3-Clause", kb:1032, cat:"geo", st:5,
+{ k:"ml", n:"MapLibre GL", pkg:"maplibre-gl", ver:"6.14.0", pub:"2026-10-11", commit:"2026-10-14", lic:"BSD-3-Clause", kb:1135, cat:"geo", st:5,
   c:"y y y y y y y y",
   what:"The community fork of Mapbox GL JS from before it went proprietary. Vector tiles, GPU rendering, 3D tilt.",
   pro:"Genuinely free, and the vector-tile style spec is excellent",
   con:"Large, and you still have to source map tiles",
   try:"Drag to pan, scroll to zoom, right-drag to tilt and rotate. The data is inline GeoJSON — no network involved.",
   rnNote:"Yes — @maplibre/maplibre-react-native is an official native binding.",
-  js:["maplibre"], site:"https://maplibre.org/", repo:"maplibre/maplibre-gl-js" },
+  js:[], esm:"maplibre/maplibre-gl.js", css:["maplibre"], site:"https://maplibre.org/", repo:"maplibre/maplibre-gl-js" },
 
-{ k:"leaflet", n:"Leaflet", pkg:"leaflet", ver:"1.9.4", pub:"2023-05-18", commit:"2026-09-19", lic:"BSD-2-Clause", kb:144, cat:"geo", st:5,
+{ k:"leaflet", n:"Leaflet", pkg:"leaflet", ver:"1.9.4", pub:"2023-05-18", commit:"2026-09-19", lic:"BSD-2-Clause", kb:158, cat:"geo", st:5,
   c:"y y p n y y p y",
   what:"The most widely deployed map library on the web. 144 KB, no dependencies, and a plugin for everything.",
   pro:"Small, stable, and every mapping question you have is already answered somewhere",
@@ -607,7 +580,7 @@ window.LIBS = [
   rnNote:"Web only. react-native-maps is the standard native alternative.",
   js:["leaflet"], css:["leaflet"], site:"https://leafletjs.com/", repo:"Leaflet/Leaflet" },
 
-{ k:"dk", n:"deck.gl", pkg:"deck.gl", ver:"9.4.0", vend:"9.3.7", pub:"2026-09-05", commit:"2026-10-13", lic:"MIT", kb:1608, cat:"geo", st:5,
+{ k:"dk", n:"deck.gl", pkg:"deck.gl", ver:"9.4.0", pub:"2026-09-05", commit:"2026-10-13", lic:"MIT", kb:2025, cat:"geo", st:5,
   c:"n y y y y y p y",
   what:"Uber's GPU layer system for very large geospatial datasets — millions of points, arcs, hexbins.",
   pro:"Nothing else renders this much geodata this smoothly",
@@ -616,14 +589,14 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["deck"], site:"https://deck.gl/", repo:"visgl/deck.gl" },
 
-{ k:"ol", n:"OpenLayers", pkg:"ol", ver:"10.11.0", vend:"10.10.0", pub:"2026-10-04", commit:"2026-10-13", lic:"BSD-2-Clause", kb:1019, cat:"geo", st:4,
+{ k:"ol", n:"OpenLayers", pkg:"ol", ver:"10.11.0", pub:"2026-10-04", commit:"2026-10-13", lic:"BSD-2-Clause", kb:1052, cat:"geo", st:4,
   c:"y y y y n y p y",
   what:"The GIS-grade option: projections, WMS/WFS, editing, measurement — the serious mapping stack.",
   pro:"Handles real GIS requirements no other JS library touches",
   con:"Large and formal; the learning curve is real",
   try:"Click any circle to select it, and use the draw tool to add a new feature to the vector layer.",
   rnNote:"Web only; WebView on native.",
-  js:["ol"], site:"https://openlayers.org/", repo:"openlayers/openlayers" },
+  js:["ol"], css:["ol"], site:"https://openlayers.org/", repo:"openlayers/openlayers" },
 
 { k:"l7", n:"AntV L7", pkg:"@antv/l7", ver:"2.29.1", pub:"2026-07-13", commit:"2026-07-30", lic:"MIT", kb:1444, cat:"geo", st:4,
   c:"n y y y p y p y",
@@ -634,7 +607,7 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["l7"], site:"https://l7.antv.antgroup.com/", repo:"antvis/L7" },
 
-{ k:"turf", n:"Turf.js", pkg:"@turf/turf", ver:"7.4.0", vend:"7.3.5", pub:"2026-08-03", commit:"2026-09-30", lic:"MIT", kb:550, cat:"geo", st:5,
+{ k:"turf", n:"Turf.js", pkg:"@turf/turf", ver:"7.4.0", pub:"2026-08-03", commit:"2026-09-30", lic:"MIT", kb:692, cat:"geo", st:5,
   c:"n y y n n a y y",
   what:"Geospatial analysis in plain JavaScript: buffers, unions, distance, point-in-polygon, clustering. No map required.",
   pro:"Turns GIS operations into one-line function calls, and it is modular so you import only what you use",
@@ -644,7 +617,7 @@ window.LIBS = [
   js:["turf","leaflet"], css:["leaflet"], site:"https://turfjs.org/", repo:"Turfjs/turf" },
 
 /* ---------------- 3D & WebGL ---------------- */
-{ k:"th", n:"Three.js", pkg:"three", ver:"0.186.1", vend:"0.185.1", pub:"2026-09-24", commit:"2026-10-14", lic:"MIT", kb:654, cat:"three", st:5,
+{ k:"th", n:"Three.js", pkg:"three", ver:"0.186.1", pub:"2026-09-24", commit:"2026-10-15", lic:"MIT", kb:726, cat:"three", st:5,
   c:"y n y y y y y y",
   what:"The default way to do 3D on the web. Scene, camera, lights, materials, loaders, post-processing.",
   pro:"Vast ecosystem, and react-three-fiber makes it declarative",
@@ -653,7 +626,7 @@ window.LIBS = [
   rnNote:"Yes — expo-gl plus @react-three/fiber/native runs three.js on device.",
   js:["three"], site:"https://threejs.org/", repo:"mrdoob/three.js" },
 
-{ k:"bab", n:"Babylon.js", pkg:"@babylonjs/core", ver:"9.30.0", vend:"9.19.0", pub:"2026-10-08", commit:"2026-10-15", lic:"Apache-2.0", kb:7598, cat:"three", st:4,
+{ k:"bab", n:"Babylon.js", pkg:"@babylonjs/core", ver:"9.31.0", pub:"2026-10-15", commit:"2026-10-15", lic:"Apache-2.0", kb:8006, cat:"three", st:4,
   c:"y n y y p y y y",
   what:"A full 3D engine rather than a renderer: physics, animation, audio, XR, and an in-browser editor.",
   pro:"Batteries genuinely included, with excellent documentation",
@@ -681,16 +654,16 @@ window.LIBS = [
   rnNote:"Yes for value tweening — GSAP can animate plain objects, so you drive Animated/Reanimated values with it. Reanimated is still the idiomatic choice.",
   js:["gsap"], site:"https://gsap.com/", repo:"greensock/GSAP" },
 
-{ k:"anime", n:"anime.js", pkg:"animejs", ver:"4.5.0", vend:"3.2.2", pub:"2026-06-22", commit:"2026-08-09", lic:"MIT", kb:17, cat:"anim", st:4,
+{ k:"anime", n:"anime.js", pkg:"animejs", ver:"4.5.0", pub:"2026-06-22", commit:"2026-08-09", lic:"MIT", kb:115, cat:"anim", st:4,
   c:"n n n n n y y y",
-  what:"17 KB of tidy animation: CSS properties, SVG attributes, DOM attributes and plain JS objects.",
-  pro:"Tiny, MIT, and the stagger helper is lovely",
-  con:"No scroll-trigger equivalent without extra work",
+  what:"Animates CSS properties, SVG, DOM attributes and plain JS objects, with timelines, springs, scroll observers and draggables.",
+  pro:"MIT, and modular: import only animate() and stagger() and the bundle stays small. The stagger helper is lovely",
+  con:"Version 4 rewrote the API (animate(targets, params) replaced anime({ targets })), so most examples online are for v3",
   try:"A grid staggered by distance from the centre, plus an SVG line being drawn by animating stroke-dashoffset.",
   rnNote:"Yes for object tweening — it happily animates plain JS values you feed into Animated.",
   js:["anime"], site:"https://animejs.com/", repo:"juliangarnier/anime" },
 
-{ k:"lottie", n:"Lottie", pkg:"lottie-web", ver:"5.13.0", pub:"2025-05-21", commit:"2024-11-19", lic:"MIT", kb:298, cat:"anim", st:5,
+{ k:"lottie", n:"Lottie", pkg:"lottie-web", ver:"5.13.0", pub:"2025-05-21", commit:"2024-11-19", lic:"MIT", kb:299, cat:"anim", st:5,
   c:"n n n y y y y y",
   what:"Plays animations exported from After Effects as JSON. Designers animate; you ship the file.",
   pro:"Complex designer-made motion at vector quality and small file size",
@@ -699,7 +672,7 @@ window.LIBS = [
   rnNote:"Yes — lottie-react-native is the flagship case, and the same JSON file works unchanged.",
   js:["lottie"], site:"https://airbnb.io/lottie/", repo:"airbnb/lottie-web" },
 
-{ k:"motion", n:"Motion", pkg:"motion", ver:"14.2.0", vend:"11.18.2", pub:"2026-10-13", commit:"2026-10-15", lic:"MIT", kb:64, cat:"anim", st:5,
+{ k:"motion", n:"Motion", pkg:"motion", ver:"14.2.0", pub:"2026-10-13", commit:"2026-10-15", lic:"MIT", kb:150, cat:"anim", st:5,
   c:"n n n n y y p y",
   what:"Framer Motion's engine, now framework-agnostic. Springs, layout animation and gestures on the Web Animations API.",
   pro:"Hardware-accelerated by default, and layout animations are near magic in React",
@@ -709,16 +682,16 @@ window.LIBS = [
   js:["motion"], site:"https://motion.dev/", repo:"motiondivision/motion" },
 
 /* ---------------- Text to diagram ---------------- */
-{ k:"mer", n:"Mermaid", pkg:"mermaid", ver:"12.2.0", vend:"11.16.0", pub:"2026-10-13", commit:"2026-10-14", lic:"MIT", kb:3415, cat:"text", st:5,
+{ k:"mer", n:"Mermaid", pkg:"mermaid", ver:"12.2.0", pub:"2026-10-13", commit:"2026-10-14", lic:"MIT", kb:5366, cat:"text", st:5,
   c:"n y n n p y p y",
   what:"Markdown-ish text in, laid-out diagram out. Flowcharts, sequence, class, gantt, ER, state.",
   pro:"Rendered natively by GitHub, GitLab and Notion — diagrams live in your docs as text",
-  con:"3.4 MB, and layout control is limited by design",
+  con:"Over 5 MB as one browser file, and layout control is limited by design",
   try:"Edit the text on the left and the diagram re-renders. Nine lines produce the whole thing.",
   rnNote:"Web only; WebView on native.",
   js:["mermaid"], site:"https://mermaid.js.org/", repo:"mermaid-js/mermaid" },
 
-{ k:"viz", n:"Viz.js (Graphviz)", pkg:"@viz-js/viz", ver:"3.31.0", vend:"3.28.0", pub:"2026-09-28", commit:"2026-09-28", lic:"MIT", kb:1372, cat:"text", st:4,
+{ k:"viz", n:"Viz.js (Graphviz)", pkg:"@viz-js/viz", ver:"3.31.0", pub:"2026-09-28", commit:"2026-09-28", lic:"MIT", kb:1641, cat:"text", st:4,
   c:"n y p n n p p y",
   what:"Real Graphviz compiled to WebAssembly. The same dot layout engine everyone has used since 1991.",
   pro:"Graph layout quality nothing in JS matches",
@@ -727,7 +700,7 @@ window.LIBS = [
   rnNote:"WASM in a WebView on native.",
   js:["viz"], site:"https://github.com/mdaines/viz-js", repo:"mdaines/viz-js" },
 
-{ k:"wd", n:"WaveDrom", pkg:"wavedrom", ver:"3.7.0", vend:"3.6.2", pub:"2026-08-31", commit:"2026-08-31", lic:"MIT", kb:39, cat:"text", st:4,
+{ k:"wd", n:"WaveDrom", pkg:"wavedrom", ver:"3.7.0", pub:"2026-08-31", commit:"2026-08-31", lic:"MIT", kb:96, cat:"text", st:4,
   c:"n y n n n p p n",
   what:"Digital timing diagrams from JSON. Standard equipment in hardware documentation.",
   pro:"The clear winner in its niche, and the notation is compact",
@@ -736,45 +709,36 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["wavedrom-skin","wavedrom"], site:"https://wavedrom.com/", repo:"wavedrom/wavedrom" },
 
-{ k:"pin", n:"Pintora", pkg:"@pintora/standalone", ver:"0.8.1", pub:"2025-12-03", commit:"2026-06-12", lic:"MIT", kb:582, cat:"text", st:3,
-  c:"n y n y n p p y",
-  what:"A Mermaid-style text-to-diagram renderer at a sixth of the size, with good CJK text handling.",
-  pro:"Much smaller than Mermaid and renders Chinese text properly",
-  con:"Far fewer diagram types, and a small community",
-  try:"Same idea as Mermaid — edit the text, get a diagram. Compare the bundle sizes in the header.",
-  rnNote:"Web only; WebView on native.",
-  js:["pintora"], site:"https://pintorajs.vercel.app/", repo:"hikerpig/pintora" },
-
 /* ---------------- Gantt & timelines ---------------- */
-{ k:"fgt", n:"Frappe Gantt", pkg:"frappe-gantt", ver:"1.2.2", pub:"2026-02-25", commit:"2026-03-05", lic:"MIT", kb:47, cat:"time", st:4,
+{ k:"fgt", n:"Frappe Gantt", pkg:"frappe-gantt", ver:"1.2.2", pub:"2026-02-25", commit:"2026-03-05", lic:"MIT", kb:54, cat:"time", st:4,
   c:"y y n n n y p y",
   what:"A small, good-looking Gantt chart where bars are draggable and dependencies redraw themselves.",
   pro:"47 KB for a genuinely usable interactive Gantt",
   con:"No resource view, no critical path",
   try:"Drag a bar to move a task, drag its edges to change duration. Dependency arrows follow.",
   rnNote:"Web only; WebView on native.",
-  js:["gantt"], site:"https://frappe.io/gantt", repo:"frappe/gantt" },
+  js:["gantt"], css:["gantt"], site:"https://frappe.io/gantt", repo:"frappe/gantt" },
 
-{ k:"vt", n:"vis-timeline", pkg:"vis-timeline", ver:"8.5.4", vend:"8.5.2", pub:"2026-08-12", commit:"2026-10-14", lic:"Apache-2.0 OR MIT", kb:543, cat:"time", st:4,
+{ k:"vt", n:"vis-timeline", pkg:"vis-timeline", ver:"8.5.4", pub:"2026-08-12", commit:"2026-10-14", lic:"Apache-2.0 OR MIT", kb:564, cat:"time", st:4,
   c:"y y p n n y p y",
   what:"A zoomable, editable timeline that scales from milliseconds to centuries.",
   pro:"The zoom range is remarkable and grouping works well",
   con:"Old codebase, and styling means fighting its CSS",
   try:"Scroll to zoom the axis — keep going and you get to milliseconds. Drag an item to reschedule it.",
   rnNote:"Web only; WebView on native.",
-  js:["vistimeline"], site:"https://visjs.github.io/vis-timeline/docs/timeline/", repo:"visjs/vis-timeline" },
+  js:["vistimeline"], css:["vistimeline"], site:"https://visjs.github.io/vis-timeline/docs/timeline/", repo:"visjs/vis-timeline" },
 
-{ k:"jg", n:"jsGantt Improved", pkg:"jsgantt-improved", ver:"3.0.0", pub:"2026-04-13", commit:"2026-04-13", lic:"ISC", kb:243, cat:"time", st:3,
+{ k:"jg", n:"jsGantt Improved", pkg:"jsgantt-improved", ver:"3.0.0", pub:"2026-04-13", commit:"2026-04-13", lic:"ISC", kb:261, cat:"time", st:3,
   c:"y y n n p p p y",
   what:"A project-management Gantt: durations, percent complete, owners, cost, collapsible groups.",
   pro:"Covers the project-manager vocabulary out of the box",
   con:"Dated visuals and a configuration-heavy API",
   try:"Switch the zoom between day, week and month, and collapse a task group.",
   rnNote:"Web only; WebView on native.",
-  js:["jsgantt"], site:"https://github.com/jsGanttImproved/jsgantt-improved", repo:"jsGanttImproved/jsgantt-improved" },
+  js:["jsgantt"], css:["jsgantt"], site:"https://github.com/jsGanttImproved/jsgantt-improved", repo:"jsGanttImproved/jsgantt-improved" },
 
 /* ---------------- Mind maps ---------------- */
-{ k:"me", n:"Mind Elixir", pkg:"mind-elixir", ver:"6.0.0-next.4", vend:"5.14.0", pub:"2026-08-11", commit:"2026-08-07", lic:"MIT", kb:88, cat:"mind", st:4,
+{ k:"me", n:"Mind Elixir", pkg:"mind-elixir", ver:"6.0.0-next.4", vend:"5.15.1", pub:"2026-08-11", commit:"2026-08-07", lic:"MIT", kb:103, cat:"mind", st:4,
   c:"y y n n p y p y",
   what:"A drop-in mind map editor: editable nodes, drag to re-parent, keyboard shortcuts, undo.",
   pro:"A working editor in one call, not a rendering toolkit",
@@ -783,17 +747,8 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["mindelixir"], css:["mindelixir"], site:"https://mind-elixir.com/", repo:"SSShooter/mind-elixir-core" },
 
-{ k:"jm", n:"jsMind", pkg:"jsmind", ver:"0.9.1", pub:"2025-12-15", commit:"2026-05-18", lic:"BSD-3-Clause", kb:50, cat:"mind", st:3,
-  c:"y y n n n p p y",
-  what:"A long-lived 50 KB mind map renderer and editor with no dependencies.",
-  pro:"Small, stable and thoroughly documented in both Chinese and English",
-  con:"Plain visuals and a somewhat old-fashioned API",
-  try:"Click a node to select it, use the buttons to add or remove nodes, and switch the theme.",
-  rnNote:"Web only; WebView on native.",
-  js:["jsmind"], site:"https://github.com/hizzgdev/jsmind", repo:"hizzgdev/jsmind" },
-
 /* ---------------- Data grids & pivots ---------------- */
-{ k:"ag", n:"AG Grid", pkg:"ag-grid-community", ver:"36.2.0", vend:"36.0.2", pub:"2026-09-16", commit:"2026-10-14", lic:"MIT", kb:1896, cat:"table", st:5,
+{ k:"ag", n:"AG Grid", pkg:"ag-grid-community", ver:"36.2.0", pub:"2026-09-16", commit:"2026-10-15", lic:"MIT", kb:2010, cat:"table", st:5,
   c:"y y y n y y p y",
   what:"The enterprise data grid. Virtual scrolling, grouping, pinning, editing, filtering — the community build alone is substantial.",
   pro:"Handles 100k rows without complaint and covers nearly every grid requirement",
@@ -802,14 +757,14 @@ window.LIBS = [
   rnNote:"Web only; on native use FlatList.",
   js:["aggrid"], site:"https://www.ag-grid.com/", repo:"ag-grid/ag-grid" },
 
-{ k:"tb", n:"Tabulator", pkg:"tabulator-tables", ver:"6.6.1", vend:"6.5.2", pub:"2026-09-30", commit:"2026-10-01", lic:"MIT", kb:436, cat:"table", st:4,
+{ k:"tb", n:"Tabulator", pkg:"tabulator-tables", ver:"6.6.1", pub:"2026-09-30", commit:"2026-10-01", lic:"MIT", kb:473, cat:"table", st:4,
   c:"y y p n p y p y",
   what:"A fully MIT data grid with editing, grouping, downloads and formatters included, no paid tier.",
   pro:"Everything is in the free build, including editing and CSV/XLSX export",
   con:"Configuration objects get big, and it is not as fast as AG Grid on huge datasets",
   try:"Double-click a cell to edit it in place, drag column headers to reorder, and click Download CSV.",
   rnNote:"Web only; on native use FlatList.",
-  js:["tabulator"], site:"https://tabulator.info/", repo:"tabulator-tables/tabulator" },
+  js:["tabulator"], css:["tabulator"], site:"https://tabulator.info/", repo:"tabulator-tables/tabulator" },
 
 { k:"s2", n:"AntV S2", pkg:"@antv/s2", ver:"2.7.2", pub:"2026-06-10", commit:"2026-06-11", lic:"MIT", kb:1115, cat:"table", st:4,
   c:"y y y y p y p y",
@@ -830,7 +785,7 @@ window.LIBS = [
   rnNote:"The encoding logic is portable; on device use react-native-barcode-svg, which follows the same rules.",
   js:["jsbarcode"], site:"https://lindell.me/JsBarcode/", repo:"lindell/JsBarcode" },
 
-{ k:"qr", n:"QRCode", pkg:"qrcode", ver:"1.5.4", pub:"2024-08-05", commit:"2024-08-05", lic:"MIT", kb:25, cat:"doc", st:5,
+{ k:"qr", n:"QRCode", pkg:"qrcode", ver:"1.5.4", pub:"2024-08-05", commit:"2024-08-05", lic:"MIT", kb:24, cat:"doc", st:5,
   c:"n y n y n a y y",
   what:"The reference QR generator for JavaScript: canvas, SVG, data URL, or a raw bit matrix.",
   pro:"Correct, small, works in Node as well as the browser, and exposes the matrix so you can draw it yourself",
@@ -839,7 +794,7 @@ window.LIBS = [
   rnNote:"Yes — QRCode.create() returns a pure bit matrix with no DOM. react-native-qrcode-svg is built on this exact package.",
   js:["qrcode"], site:"https://github.com/soldair/node-qrcode", repo:"soldair/node-qrcode" },
 
-{ k:"pdfjs", n:"PDF.js", pkg:"pdfjs-dist", ver:"6.4.299", vend:"3.11.174", pub:"2026-10-03", commit:"2026-10-14", lic:"Apache-2.0", kb:313, cat:"doc", st:5,
+{ k:"pdfjs", n:"PDF.js", pkg:"pdfjs-dist", ver:"6.4.299", pub:"2026-10-03", commit:"2026-10-14", lic:"Apache-2.0", kb:927, cat:"doc", st:5,
   c:"n y p y n y p y",
   what:"Mozilla's PDF renderer — the one built into Firefox. Parses and rasterises PDF entirely in JavaScript.",
   pro:"Renders essentially any PDF with no plugin and no server",
@@ -848,7 +803,7 @@ window.LIBS = [
   rnNote:"Web only; on native use react-native-pdf.",
   js:["jspdf","pdfjs"], site:"https://mozilla.github.io/pdf.js/", repo:"mozilla/pdf.js" },
 
-{ k:"jspdf", n:"jsPDF", pkg:"jspdf", ver:"4.2.1", vend:"2.5.2", pub:"2026-03-17", commit:"2026-09-13", lic:"MIT", kb:357, cat:"doc", st:4,
+{ k:"jspdf", n:"jsPDF", pkg:"jspdf", ver:"4.2.1", pub:"2026-03-17", commit:"2026-09-13", lic:"MIT", kb:927, cat:"doc", st:4,
   c:"n y n n n a p y",
   what:"Generates PDF files client-side: text, vectors, images, tables, and metadata.",
   pro:"No server round-trip to produce a document",
@@ -857,16 +812,7 @@ window.LIBS = [
   rnNote:"Mostly portable, but images and fonts assume browser APIs; react-native-html-to-pdf is the usual native route.",
   js:["jspdf","pdfjs"], site:"https://github.com/parallax/jsPDF", repo:"parallax/jsPDF" },
 
-{ k:"h2c", n:"html2canvas", pkg:"html2canvas", ver:"1.4.1", pub:"2022-01-22", commit:"2022-01-23", lic:"MIT", kb:196, cat:"doc", st:3,
-  c:"n n n y n y n y",
-  what:"Screenshots a DOM subtree by re-implementing a chunk of CSS layout onto a canvas.",
-  pro:"The only pure-JS way to turn live DOM into an image",
-  con:"It re-implements the browser, so exotic CSS renders wrong — and it has not shipped since 2022",
-  try:"Press Capture. The panel above is re-drawn onto a canvas — that image is a rasterisation, not a copy of the DOM.",
-  rnNote:"No path — the native equivalent is react-native-view-shot.",
-  js:["html2canvas"], site:"https://html2canvas.hertzen.com/", repo:"niklasvh/html2canvas" },
-
-{ k:"katex", n:"KaTeX", pkg:"katex", ver:"0.19.0", vend:"0.16.22", pub:"2026-10-01", commit:"2026-10-14", lic:"MIT", kb:270, cat:"doc", st:5,
+{ k:"katex", n:"KaTeX", pkg:"katex", ver:"0.19.0", pub:"2026-10-01", commit:"2026-10-14", lic:"MIT", kb:291, cat:"doc", st:5,
   c:"n y n n y y p y",
   what:"Khan Academy's maths typesetter. Renders LaTeX to HTML synchronously and far faster than MathJax.",
   pro:"Fast enough to render maths while the user types, with print-quality output",
@@ -876,7 +822,7 @@ window.LIBS = [
   js:["katex"], css:["katex"], site:"https://katex.org/", repo:"KaTeX/KaTeX" },
 
 /* ---------------- Editors & rich text ---------------- */
-{ k:"cm", n:"CodeMirror 6", pkg:"codemirror", ver:"6.0.2", pub:"2025-06-19", commit:"2026-04-15", lic:"MIT", kb:554, cat:"editor", st:5,
+{ k:"cm", n:"CodeMirror 6", pkg:"codemirror", ver:"6.0.2", pub:"2025-06-19", commit:"2026-04-15", lic:"MIT", kb:556, cat:"editor", st:5,
   c:"y n y n p y p y",
   what:"A code editor rebuilt from scratch around immutable state and a transaction model. Accessible, mobile-capable, extensible.",
   pro:"Modular, genuinely works on touch devices, and the extension system is excellent",
@@ -885,7 +831,7 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["codemirror"], site:"https://codemirror.net/", repo:"codemirror/basic-setup" },
 
-{ k:"quill", n:"Quill", pkg:"quill", ver:"2.0.3", pub:"2024-11-30", commit:"2025-07-25", lic:"BSD-3-Clause", kb:204, cat:"editor", st:4,
+{ k:"quill", n:"Quill", pkg:"quill", ver:"2.0.3", pub:"2024-11-30", commit:"2025-07-25", lic:"BSD-3-Clause", kb:228, cat:"editor", st:4,
   c:"y n n n p y p y",
   what:"A rich-text editor whose document model is Delta — a JSON operation list, not HTML.",
   pro:"Delta makes collaborative editing and diffing tractable",
@@ -894,7 +840,7 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["quill"], css:["quill"], site:"https://quilljs.com/", repo:"slab/quill" },
 
-{ k:"marked", n:"marked", pkg:"marked", ver:"18.1.1", vend:"15.0.7", pub:"2026-10-12", commit:"2026-10-13", lic:"MIT", kb:39, cat:"editor", st:5,
+{ k:"marked", n:"marked", pkg:"marked", ver:"18.1.1", pub:"2026-10-12", commit:"2026-10-13", lic:"MIT", kb:76, cat:"editor", st:5,
   c:"n y y n n a y y",
   what:"The fast, small Markdown compiler. Text in, HTML out, with a hookable renderer.",
   pro:"Very fast, CommonMark and GFM compliant, and the extension API is simple",
@@ -903,7 +849,7 @@ window.LIBS = [
   rnNote:"Yes — it is pure string transformation. Render the result with react-native-render-html.",
   js:["marked","dompurify"], site:"https://marked.js.org/", repo:"markedjs/marked" },
 
-{ k:"hljs", n:"highlight.js", pkg:"highlight.js", ver:"11.12.0", vend:"11.11.1", pub:"2026-08-12", commit:"2026-08-30", lic:"BSD-3-Clause", kb:125, cat:"editor", st:4,
+{ k:"hljs", n:"highlight.js", pkg:"highlight.js", dist:"@highlightjs/cdn-assets", ver:"11.12.0", pub:"2026-08-12", commit:"2026-08-30", lic:"BSD-3-Clause", kb:128, cat:"editor", st:4,
   c:"n y y n n a y y",
   what:"Syntax highlighting for around 190 languages, with automatic language detection.",
   pro:"Detects the language for you and works server-side just as well",
@@ -931,7 +877,7 @@ window.LIBS = [
   rnNote:"Web only; on native use react-native-gesture-handler.",
   js:["interact"], site:"https://interactjs.io/", repo:"taye/interact.js" },
 
-{ k:"floating", n:"Floating UI", pkg:"@floating-ui/dom", ver:"1.8.0", pub:"2026-07-11", commit:"2026-09-28", lic:"MIT", kb:10, cat:"ui", st:5,
+{ k:"floating", n:"Floating UI", pkg:"@floating-ui/dom", ver:"1.8.0", pub:"2026-07-11", commit:"2026-09-28", lic:"MIT", kb:22, cat:"ui", st:5,
   c:"n n n n y y y y",
   what:"The positioning engine under most tooltip and dropdown libraries. Places a floating element and keeps it on screen.",
   pro:"Flip, shift and size middleware solve edge-collision properly, in 10 KB",
@@ -940,7 +886,7 @@ window.LIBS = [
   rnNote:"Yes — @floating-ui/react-native is an official package.",
   js:["floatingui-core","floatingui"], site:"https://floating-ui.com/", repo:"floating-ui/floating-ui" },
 
-{ k:"swiper", n:"Swiper", pkg:"swiper", ver:"14.3.0", vend:"11.2.6", pub:"2026-09-28", commit:"2026-10-06", lic:"MIT", kb:150, cat:"ui", st:5,
+{ k:"swiper", n:"Swiper", pkg:"swiper", ver:"14.3.0", pub:"2026-09-28", commit:"2026-10-06", lic:"MIT", kb:164, cat:"ui", st:5,
   c:"y n n y y y n y",
   what:"The touch slider that ships in a large share of the world's mobile web. Carousels, coverflow, parallax, virtual slides.",
   pro:"Touch physics that feel native, plus every carousel mode you could want",
@@ -949,7 +895,7 @@ window.LIBS = [
   rnNote:"Web only; on native use react-native-reanimated-carousel.",
   js:["swiper"], css:["swiper"], site:"https://swiperjs.com/", repo:"nolimits4web/Swiper" },
 
-{ k:"driver", n:"Driver.js", pkg:"driver.js", ver:"1.9.0", vend:"1.8.0", pub:"2026-10-03", commit:"2026-10-13", lic:"MIT", kb:21, cat:"ui", st:4,
+{ k:"driver", n:"Driver.js", pkg:"driver.js", ver:"1.10.0", pub:"2026-10-15", commit:"2026-10-15", lic:"MIT", kb:29, cat:"ui", st:4,
   c:"n n n n n y n y",
   what:"Product tours and feature highlights: dims the page, spotlights an element, walks the user through steps.",
   pro:"21 KB, no dependencies, and it looks good immediately",
@@ -968,7 +914,7 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript, no DOM at all.",
   js:["fuse"], site:"https://www.fusejs.io/", repo:"krisk/Fuse" },
 
-{ k:"papa", n:"Papa Parse", pkg:"papaparse", ver:"5.7.0", vend:"5.5.4", pub:"2026-08-24", commit:"2026-10-09", lic:"MIT", kb:19, cat:"data", st:5,
+{ k:"papa", n:"Papa Parse", pkg:"papaparse", ver:"5.7.0", pub:"2026-08-24", commit:"2026-10-09", lic:"MIT", kb:18, cat:"data", st:5,
   c:"n y y n n a y y",
   what:"The CSV parser for JavaScript. Streaming, worker-threaded, and it gets the quoting edge cases right.",
   pro:"Handles gigabyte files by streaming, and auto-detects delimiters and types",
@@ -977,16 +923,16 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript, no DOM.",
   js:["papaparse"], site:"https://www.papaparse.com/", repo:"mholt/PapaParse" },
 
-{ k:"xlsx", n:"SheetJS", pkg:"xlsx", ver:"0.18.5", pub:"2022-03-24", commit:"2024-01-31", lic:"Apache-2.0", kb:1224, cat:"data", st:4,
+{ k:"xlsx", n:"SheetJS", pkg:"xlsx", npm:false, install:"npm i https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz", ver:"0.20.3", pub:"2024-07-12", commit:"2026-02-09", lic:"Apache-2.0", kb:1293, cat:"data", st:4,
   c:"n y y n n a y y",
   what:"Reads and writes Excel, ODS, CSV and a dozen other spreadsheet formats, entirely in the browser.",
   pro:"Genuinely reads real .xlsx files client-side — formulas, sheets and all",
-  con:"Large, and the npm build lags behind the vendor's own distribution",
+  con:"Large, and installed from SheetJS's own CDN: the xlsx package on npm stopped at 0.18.5, which has known vulnerabilities",
   try:"Edit the grid, then export a real .xlsx. Or read it back — the round trip runs entirely in this tab.",
   rnNote:"Yes — it works in React Native with a file-system module for I/O.",
-  js:["xlsx"], site:"https://sheetjs.com/", repo:"SheetJS/sheetjs" },
+  js:["xlsx"], site:"https://sheetjs.com/", repo:"https://git.sheetjs.com/sheetjs/sheetjs" },
 
-{ k:"dayjs", n:"Day.js", pkg:"dayjs", ver:"1.11.23", vend:"1.11.21", pub:"2026-08-17", commit:"2026-09-15", lic:"MIT", kb:7, cat:"data", st:5,
+{ k:"dayjs", n:"Day.js", pkg:"dayjs", ver:"1.11.23", pub:"2026-08-17", commit:"2026-09-15", lic:"MIT", kb:19, cat:"data", st:5,
   c:"n y a n n a y y",
   what:"Moment.js's API in 7 KB, immutable, with everything else behind opt-in plugins.",
   pro:"Tiny, immutable, and a drop-in replacement for most Moment code",
@@ -995,17 +941,17 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript. Time zones need the Intl API, which Hermes now supports.",
   js:["dayjs","dayjs-rel","dayjs-dur","dayjs-utc","dayjs-tz","dayjs-adv"], site:"https://day.js.org/", repo:"iamkun/dayjs" },
 
-{ k:"zod", n:"Zod", pkg:"zod", ver:"4.6.7", vend:"3.24.2", pub:"2026-10-12", commit:"2026-10-13", lic:"MIT", kb:173, cat:"data", st:5,
+{ k:"zod", n:"Zod", pkg:"zod", ver:"4.6.7", pub:"2026-10-12", commit:"2026-10-13", lic:"MIT", kb:448, cat:"data", st:5,
   c:"n y a n y a y y",
   what:"Schema validation where the TypeScript type is inferred from the schema — one definition, not two.",
   pro:"Static types and runtime checks stay in sync by construction",
-  con:"Schemas add real bundle weight, and heavy inference slows the type-checker",
+  con:"Size depends on tree-shaking: the whole namespace, every error-message locale included, is over 400 KB as this page loads it; Zod Mini is the small option",
   try:"Edit the JSON and watch validation run. The error objects below are exactly what Zod returns — paths, codes and all.",
   rnNote:"Yes — pure JavaScript with no environment assumptions.",
   js:["zod"], site:"https://zod.dev/", repo:"colinhacks/zod" },
 
 /* ---------------- Utility & computation ---------------- */
-{ k:"lodash", n:"Lodash", pkg:"lodash", ver:"4.18.1", pub:"2026-04-01", commit:"2026-09-11", lic:"MIT", kb:71, cat:"util", st:4,
+{ k:"lodash", n:"Lodash", pkg:"lodash", ver:"4.18.1", pub:"2026-04-01", commit:"2026-09-11", lic:"MIT", kb:72, cat:"util", st:4,
   c:"n y y n n a y y",
   what:"The utility belt: groupBy, cloneDeep, debounce, chunk, and 300 more, each handling the edge cases.",
   pro:"Correct, exhaustively tested, and still worth it for cloneDeep and debounce alone",
@@ -1014,7 +960,7 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript.",
   js:["lodash"], site:"https://lodash.com/", repo:"lodash/lodash" },
 
-{ k:"chroma", n:"chroma.js", pkg:"chroma-js", ver:"3.2.0", pub:"2025-11-28", commit:"2026-09-15", lic:"BSD-3-Clause AND Apache-2.0", kb:41, cat:"util", st:5,
+{ k:"chroma", n:"chroma.js", pkg:"chroma-js", ver:"3.2.0", pub:"2025-11-28", commit:"2026-09-15", lic:"BSD-3-Clause AND Apache-2.0", kb:51, cat:"util", st:5,
   c:"n y a n n a y y",
   what:"Colour manipulation done properly: perceptual colour spaces, scales, interpolation, contrast checks.",
   pro:"Interpolating through Lab or LCH gives scales that actually look even",
@@ -1023,7 +969,7 @@ window.LIBS = [
   rnNote:"Yes — pure maths, no DOM.",
   js:["chroma"], site:"https://gka.github.io/chroma.js/", repo:"gka/chroma.js" },
 
-{ k:"mathjs", n:"math.js", pkg:"mathjs", ver:"15.2.0", vend:"14.3.1", pub:"2026-04-07", commit:"2026-08-10", lic:"Apache-2.0", kb:668, cat:"util", st:4,
+{ k:"mathjs", n:"math.js", pkg:"mathjs", ver:"15.2.0", pub:"2026-04-07", commit:"2026-08-10", lic:"Apache-2.0", kb:634, cat:"util", st:4,
   c:"n y a n n a y y",
   what:"An extensive maths library with an expression parser, matrices, complex numbers, units and symbolic derivatives.",
   pro:"Parses and evaluates human-written expressions, units included",
@@ -1032,7 +978,7 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript.",
   js:["mathjs"], site:"https://mathjs.org/", repo:"josdejong/mathjs" },
 
-{ k:"purify", n:"DOMPurify", pkg:"dompurify", ver:"3.4.17", vend:"3.4.12", pub:"2026-10-12", commit:"2026-10-12", lic:"MPL-2.0 OR Apache-2.0", kb:22, cat:"util", st:5,
+{ k:"purify", n:"DOMPurify", pkg:"dompurify", ver:"3.4.17", pub:"2026-10-12", commit:"2026-10-12", lic:"MPL-2.0 OR Apache-2.0", kb:29, cat:"util", st:5,
   c:"n y y n n a p y",
   what:"The XSS sanitiser. Give it untrusted HTML, get back HTML that is safe to insert.",
   pro:"Actively audited, fast, and the correct answer whenever you touch innerHTML",
@@ -1042,16 +988,16 @@ window.LIBS = [
   js:["dompurify"], site:"https://github.com/cure53/DOMPurify", repo:"cure53/DOMPurify" },
 
 /* ---------------- Frameworks & runtimes ---------------- */
-{ k:"preact", n:"Preact", pkg:"preact", ver:"11.0.1", vend:"10.29.8", pub:"2026-10-08", commit:"2026-10-13", lic:"MIT", kb:11, cat:"fw", st:5,
+{ k:"preact", n:"Preact", pkg:"preact", ver:"11.0.1", pub:"2026-10-08", commit:"2026-10-13", lic:"MIT", kb:17, cat:"fw", st:5,
   c:"y y p n y y n y",
   what:"React's API and component model in 3 KB gzipped, with the same hooks and a compatibility layer.",
   pro:"Same mental model at a fraction of the size, and preact/compat runs most React libraries",
   con:"Subtle differences bite at the edges, and React Native is not in scope",
   try:"A live component with hooks, no build step — htm gives you JSX-like syntax in a plain script tag.",
   rnNote:"No. React Native requires React itself; Preact cannot drive the native renderer.",
-  js:["preact","preact-hooks","htm"], site:"https://preactjs.com/", repo:"preactjs/preact" },
+  js:["preact"], site:"https://preactjs.com/", repo:"preactjs/preact" },
 
-{ k:"alpine", n:"Alpine.js", pkg:"alpinejs", ver:"3.17.4", vend:"3.15.12", pub:"2026-09-21", commit:"2026-10-05", lic:"MIT", kb:44, cat:"fw", st:4,
+{ k:"alpine", n:"Alpine.js", pkg:"alpinejs", ver:"3.17.4", pub:"2026-09-21", commit:"2026-10-05", lic:"MIT", kb:55, cat:"fw", st:4,
   c:"y y n n n y n y",
   what:"Reactivity as HTML attributes. Sprinkle x-data and x-on onto server-rendered markup and you are done.",
   pro:"No build step, no components, no bundle config — just attributes",
@@ -1060,7 +1006,7 @@ window.LIBS = [
   rnNote:"No. It is an HTML-attribute framework with no native renderer.",
   js:["alpine"], site:"https://alpinejs.dev/", repo:"alpinejs/alpine" },
 
-{ k:"lit", n:"Lit", pkg:"lit", ver:"3.3.3", pub:"2026-05-14", commit:"2026-09-14", lic:"BSD-3-Clause", kb:15, cat:"fw", st:4,
+{ k:"lit", n:"Lit", pkg:"lit", ver:"3.3.3", pub:"2026-05-14", commit:"2026-09-14", lic:"BSD-3-Clause", kb:16, cat:"fw", st:4,
   c:"y y p n p y n y",
   what:"Web Components with a thin, fast reactive layer. Real custom elements that work in any framework.",
   pro:"Standards-based, 5 KB gzipped, and the components outlive framework churn",
@@ -1069,7 +1015,7 @@ window.LIBS = [
   rnNote:"No. Custom elements do not exist in React Native.",
   js:["lit"], site:"https://lit.dev/", repo:"lit/lit" },
 
-{ k:"htmx", n:"htmx", pkg:"htmx.org", ver:"2.0.11", vend:"2.0.10", pub:"2026-09-22", commit:"2026-09-22", lic:"0BSD", kb:50, cat:"fw", st:4,
+{ k:"htmx", n:"htmx", pkg:"htmx.org", ver:"2.0.11", pub:"2026-09-22", commit:"2026-09-22", lic:"0BSD", kb:51, cat:"fw", st:4,
   c:"y y n n n y n y",
   what:"Extends HTML so any element can issue a request and swap the response into the page. The server sends HTML, not JSON.",
   pro:"Deletes an entire client-side layer for CRUD-shaped applications",
@@ -1079,16 +1025,16 @@ window.LIBS = [
   js:["htmx"], site:"https://htmx.org/", repo:"bigskysoftware/htmx" },
 
 /* ---------------- Media, audio & devices ---------------- */
-{ k:"ws", n:"WaveSurfer.js", pkg:"wavesurfer.js", ver:"8.0.2", vend:"7.12.11", pub:"2026-10-07", commit:"2026-10-13", lic:"BSD-3-Clause", kb:42, cat:"media", st:4,
+{ k:"ws", n:"WaveSurfer.js", pkg:"wavesurfer.js", ver:"8.0.2", pub:"2026-10-07", commit:"2026-10-13", lic:"BSD-3-Clause", kb:73, cat:"media", st:4,
   c:"y y p y p y p y",
   what:"Audio waveform display and navigation, with plugins for regions, spectrograms, timelines and recording.",
   pro:"The standard answer for audio UI on the web, and the plugin set is good",
   con:"Decoding long files in the browser costs memory and time",
   try:"Click the waveform to seek, and drag across it to create a region. The audio is synthesised in this tab.",
   rnNote:"Web only; WebView on native.",
-  js:["wavesurfer"], site:"https://wavesurfer.xyz/", repo:"katspaugh/wavesurfer.js" },
+  js:["wavesurfer","wavesurfer-regions"], site:"https://wavesurfer.xyz/", repo:"katspaugh/wavesurfer.js" },
 
-{ k:"tone", n:"Tone.js", pkg:"tone", ver:"15.1.22", pub:"2025-04-27", commit:"2026-10-04", lic:"MIT", kb:338, cat:"media", st:4,
+{ k:"tone", n:"Tone.js", pkg:"tone", ver:"15.1.22", pub:"2025-04-27", commit:"2026-10-04", lic:"MIT", kb:337, cat:"media", st:4,
   c:"y n a n n y p y",
   what:"A music framework over the Web Audio API: synths, effects, and a transport that keeps musical time.",
   pro:"Sample-accurate scheduling and a synth/effect library you would not want to write",
@@ -1097,16 +1043,16 @@ window.LIBS = [
   rnNote:"Web Audio does not exist on device; react-native-audio-api is the emerging port.",
   js:["tone"], site:"https://tonejs.github.io/", repo:"Tonejs/Tone.js" },
 
-{ k:"cropper", n:"Cropper.js", pkg:"cropperjs", ver:"2.3.0", vend:"1.6.2", pub:"2026-10-07", commit:"2026-10-08", lic:"MIT", kb:36, cat:"media", st:4,
+{ k:"cropper", n:"Cropper.js", pkg:"cropperjs", ver:"2.3.0", pub:"2026-10-07", commit:"2026-10-08", lic:"MIT", kb:50, cat:"media", st:4,
   c:"y n n y n y n y",
   what:"The image cropper: aspect ratios, rotation, zoom, and a canvas of exactly the region selected.",
   pro:"Everything an avatar or banner cropper needs, working on touch",
   con:"v2 is a ground-up rewrite to custom elements, so v1 and v2 examples are not interchangeable",
   try:"Drag and resize the crop box, lock an aspect ratio, and rotate. The preview on the right is the real cropped canvas.",
   rnNote:"Web only; on native use expo-image-manipulator.",
-  js:["cropper"], css:["cropper"], site:"https://fengyuanchen.github.io/cropperjs/", repo:"fengyuanchen/cropperjs" },
+  js:["cropper"], site:"https://fengyuanchen.github.io/cropperjs/", repo:"fengyuanchen/cropperjs" },
 
-{ k:"sigpad", n:"Signature Pad", pkg:"signature_pad", ver:"5.1.4", pub:"2026-07-31", commit:"2026-09-29", lic:"MIT", kb:12, cat:"media", st:4,
+{ k:"sigpad", n:"Signature Pad", pkg:"signature_pad", ver:"5.1.4", pub:"2026-07-31", commit:"2026-09-29", lic:"MIT", kb:16, cat:"media", st:4,
   c:"y n n y n y p y",
   what:"Smooth signature capture: variable-width Bézier strokes from pointer input, exported as PNG or SVG.",
   pro:"12 KB, and the stroke smoothing makes signatures look real",
@@ -1115,7 +1061,7 @@ window.LIBS = [
   rnNote:"react-native-signature-canvas wraps this in a WebView; perfect-freehand is the pure-native route.",
   js:["signaturepad"], site:"https://github.com/szimek/signature_pad", repo:"szimek/signature_pad" },
 
-{ k:"xterm", n:"xterm.js", pkg:"@xterm/xterm", ver:"6.0.0", vend:"5.5.0", pub:"2025-12-22", commit:"2026-10-13", lic:"MIT", kb:283, cat:"media", st:5,
+{ k:"xterm", n:"xterm.js", pkg:"@xterm/xterm", ver:"6.0.0", pub:"2025-12-22", commit:"2026-10-13", lic:"MIT", kb:486, cat:"media", st:5,
   c:"y n y y n y n y",
   what:"The terminal emulator inside VS Code. Full xterm escape sequence support, GPU-accelerated rendering.",
   pro:"It is a real terminal — colours, cursor control, mouse tracking, the lot",
@@ -1125,7 +1071,7 @@ window.LIBS = [
   js:["xterm","xterm-fit"], css:["xterm"], site:"https://xtermjs.org/", repo:"xtermjs/xterm.js" },
 
 /* ---------------- State & reactivity ---------------- */
-{ k:"zustand", n:"Zustand", pkg:"zustand", ver:"5.0.15", vend:"5.0.14", pub:"2026-08-13", commit:"2026-09-29", lic:"MIT", kb:1, cat:"state", st:5,
+{ k:"zustand", n:"Zustand", pkg:"zustand", ver:"5.0.15", pub:"2026-08-13", commit:"2026-09-29", lic:"MIT", kb:1, cat:"state", st:5,
   c:"n y a n y a y y",
   what:"A store in about a kilobyte. No provider, no reducers, no context — you call a hook and read state.",
   pro:"The smallest thing that still scales; the vanilla store works with no framework at all",
@@ -1134,7 +1080,7 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript, and it is one of the most common state choices in React Native.",
   js:["zustand"], site:"https://zustand.docs.pmnd.rs/", repo:"pmndrs/zustand" },
 
-{ k:"xstate", n:"XState", pkg:"xstate", ver:"5.33.2", vend:"5.32.5", pub:"2026-09-15", commit:"2026-10-13", lic:"MIT", kb:46, cat:"state", st:4,
+{ k:"xstate", n:"XState", pkg:"xstate", ver:"5.33.2", pub:"2026-09-15", commit:"2026-10-13", lic:"MIT", kb:46, cat:"state", st:4,
   c:"y y a n y a y y",
   what:"Statecharts for JavaScript. You declare the states and the transitions between them; impossible states stop being reachable.",
   pro:"Turns tangled boolean flags into a diagram you can point at and reason about",
@@ -1143,7 +1089,7 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript with no DOM assumptions.",
   js:["xstate"], site:"https://stately.ai/docs", repo:"statelyai/xstate" },
 
-{ k:"mobx", n:"MobX", pkg:"mobx", ver:"7.0.6", vend:"6.13.7", pub:"2026-10-02", commit:"2026-10-13", lic:"MIT", kb:54, cat:"state", st:4,
+{ k:"mobx", n:"MobX", pkg:"mobx", ver:"7.0.6", pub:"2026-10-02", commit:"2026-10-13", lic:"MIT", kb:46, cat:"state", st:4,
   c:"n y a n y a y y",
   what:"Transparent reactive state: mutate a plain object, and anything that read it re-runs. No selectors, no immutability rules.",
   pro:"The least ceremony of any state library — you write normal mutable code",
@@ -1161,7 +1107,7 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript.",
   js:["rxjs"], site:"https://rxjs.dev/", repo:"reactivex/rxjs" },
 
-{ k:"immer", n:"Immer", pkg:"immer", ver:"11.1.21", vend:"10.2.0", pub:"2026-10-02", commit:"2026-10-02", lic:"MIT", kb:14, cat:"state", st:5,
+{ k:"immer", n:"Immer", pkg:"immer", ver:"11.1.21", pub:"2026-10-02", commit:"2026-10-02", lic:"MIT", kb:18, cat:"state", st:5,
   c:"n y y n y a y y",
   what:"Write mutating code, get an immutable result. A Proxy records your changes and produces a structurally shared copy.",
   pro:"Deletes the spread-operator soup from every reducer you will ever write",
@@ -1170,7 +1116,7 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript, and it ships inside Redux Toolkit.",
   js:["immer"], site:"https://immerjs.github.io/immer/", repo:"immerjs/immer" },
 
-{ k:"nanostores", n:"Nano Stores", pkg:"nanostores", ver:"1.5.5", vend:"0.11.4", pub:"2026-10-06", commit:"2026-10-14", lic:"MIT", kb:5, cat:"state", st:4,
+{ k:"nanostores", n:"Nano Stores", pkg:"nanostores", ver:"1.5.5", pub:"2026-10-06", commit:"2026-10-14", lic:"MIT", kb:6, cat:"state", st:4,
   c:"n y a n y a y y",
   what:"Framework-agnostic atoms in under a kilobyte, with lazy subscription — a store with no listeners does no work.",
   pro:"Tiny, tree-shakeable, and the same store works from React, Vue, Svelte or nothing",
@@ -1180,7 +1126,7 @@ window.LIBS = [
   js:["nanostores"], site:"https://github.com/nanostores/nanostores", repo:"nanostores/nanostores" },
 
 /* ---------------- Networking & async ---------------- */
-{ k:"axios", n:"Axios", pkg:"axios", ver:"1.20.0", vend:"1.8.4", pub:"2026-08-26", commit:"2026-10-14", lic:"MIT", kb:53, cat:"net", st:4,
+{ k:"axios", n:"Axios", pkg:"axios", ver:"1.20.0", pub:"2026-08-26", commit:"2026-10-14", lic:"MIT", kb:67, cat:"net", st:4,
   c:"n y a n n a y y",
   what:"The HTTP client most codebases already have. Interceptors, automatic JSON, cancellation, and the same API in Node.",
   pro:"Interceptors make auth refresh and error normalising a single place",
@@ -1189,16 +1135,16 @@ window.LIBS = [
   rnNote:"Yes — Axios is the default HTTP choice in a lot of React Native code.",
   js:["axios"], site:"https://axios-http.com/", repo:"axios/axios" },
 
-{ k:"ky", n:"ky", pkg:"ky", ver:"2.2.0", vend:"1.14.3", pub:"2026-10-09", commit:"2026-10-09", lic:"MIT", kb:14, cat:"net", st:4,
+{ k:"ky", n:"ky", pkg:"ky", ver:"2.2.0", pub:"2026-10-09", commit:"2026-10-09", lic:"MIT", kb:35, cat:"net", st:4,
   c:"n y a n n a y y",
   what:"A tiny wrapper over fetch that adds the things fetch is missing: retries, timeouts, hooks and a throwing error model.",
-  pro:"A quarter of Axios's size, built on the platform rather than around it",
+  pro:"About half of Axios's size, built on the platform rather than around it",
   con:"Needs a real fetch, so ancient environments are out",
   try:"Watch the retry policy: a failing request backs off and retries automatically, and the hooks fire at each stage.",
   rnNote:"Yes — React Native ships a fetch implementation.",
   js:["ky"], site:"https://github.com/sindresorhus/ky", repo:"sindresorhus/ky" },
 
-{ k:"tanquery", n:"TanStack Query", pkg:"@tanstack/query-core", ver:"5.104.2", vend:"5.101.4", pub:"2026-10-11", commit:"2026-10-15", lic:"MIT", kb:40, cat:"net", st:5,
+{ k:"tanquery", n:"TanStack Query", pkg:"@tanstack/query-core", ver:"5.104.3", pub:"2026-10-15", commit:"2026-10-15", lic:"MIT", kb:44, cat:"net", st:5,
   c:"n y y n y a y y",
   what:"Server state, treated as its own thing: caching, deduplication, background refetch, stale-while-revalidate. Not a data-fetching library — a cache.",
   pro:"Deletes most of your loading/error/refetch code, and the cache behaviour is genuinely well thought out",
@@ -1208,7 +1154,7 @@ window.LIBS = [
   js:["tanquery"], site:"https://tanstack.com/query", repo:"TanStack/query" },
 
 /* ---------------- Headless UI logic ---------------- */
-{ k:"tantable", n:"TanStack Table", pkg:"@tanstack/table-core", ver:"9.3.1", vend:"8.21.3", pub:"2026-10-12", commit:"2026-10-12", lic:"MIT", kb:56, cat:"headless", st:5,
+{ k:"tantable", n:"TanStack Table", pkg:"@tanstack/table-core", ver:"9.3.1", pub:"2026-10-12", commit:"2026-10-12", lic:"MIT", kb:113, cat:"headless", st:5,
   c:"y y y n y y y y",
   what:"A table engine with no markup at all. Sorting, filtering, grouping and pagination as state; you render every cell yourself.",
   pro:"You keep total control of the DOM, which is why design systems reach for it",
@@ -1217,7 +1163,7 @@ window.LIBS = [
   rnNote:"Yes — headless by design, so the same core drives a FlatList.",
   js:["tantable"], site:"https://tanstack.com/table", repo:"TanStack/table" },
 
-{ k:"tanvirtual", n:"TanStack Virtual", pkg:"@tanstack/virtual-core", ver:"3.19.4", vend:"3.17.7", pub:"2026-10-13", commit:"2026-10-15", lic:"MIT", kb:23, cat:"headless", st:5,
+{ k:"tanvirtual", n:"TanStack Virtual", pkg:"@tanstack/virtual-core", ver:"3.19.4", pub:"2026-10-13", commit:"2026-10-15", lic:"MIT", kb:26, cat:"headless", st:5,
   c:"n y y n y y y y",
   what:"Renders only the rows in view. 100,000 items, a couple of dozen DOM nodes.",
   pro:"Handles dynamic row heights, which is where most virtualisers fall over",
@@ -1227,16 +1173,8 @@ window.LIBS = [
   js:["tanvirtual"], site:"https://tanstack.com/virtual", repo:"TanStack/virtual" },
 
 /* ---------------- Forms & input controls ---------------- */
-{ k:"flatpickr", n:"flatpickr", pkg:"flatpickr", ver:"4.6.13", pub:"2022-04-14", commit:"2022-09-26", lic:"MIT", kb:49, cat:"forms", st:4,
-  c:"y n a n p y n y",
-  what:"The date picker that is small, dependency-free and does ranges, times and multiple dates.",
-  pro:"Looks right out of the box and weighs a fraction of the alternatives",
-  con:"No release since 2022, and theming means overriding its CSS",
-  try:"Switch between single, range and multiple date modes, and turn the time picker on.",
-  rnNote:"Web only; on native use the platform date picker.",
-  js:["flatpickr"], css:["flatpickr"], site:"https://flatpickr.js.org/", repo:"chmln/flatpickr" },
 
-{ k:"tomselect", n:"Tom Select", pkg:"tom-select", ver:"2.6.2", vend:"2.4.3", pub:"2026-07-07", commit:"2026-10-02", lic:"Apache-2.0", kb:49, cat:"forms", st:5,
+{ k:"tomselect", n:"Tom Select", pkg:"tom-select", ver:"2.6.2", pub:"2026-07-07", commit:"2026-10-02", lic:"Apache-2.0", kb:58, cat:"forms", st:5,
   c:"y y p n n y n y",
   what:"The maintained successor to Selectize: autocomplete, tagging, remote loading and option creation on a plain select element.",
   pro:"Progressive enhancement of a real <select>, so it degrades correctly",
@@ -1254,7 +1192,7 @@ window.LIBS = [
   rnNote:"The core is portable; on native react-native-mask-input is the usual choice.",
   js:["imask"], site:"https://imask.js.org/", repo:"uNmAnNeR/imaskjs" },
 
-{ k:"nouislider", n:"noUiSlider", pkg:"nouislider", ver:"15.8.1", pub:"2024-06-21", commit:"2024-11-26", lic:"MIT", kb:27, cat:"forms", st:4,
+{ k:"nouislider", n:"noUiSlider", pkg:"nouislider", ver:"15.8.1", pub:"2024-06-21", commit:"2024-11-26", lic:"MIT", kb:31, cat:"forms", st:4,
   c:"y n a n n y n y",
   what:"A range slider with no dependencies: multiple handles, non-linear scales, keyboard support and proper touch behaviour.",
   pro:"Accessible, touch-correct, and the non-linear scale support is rare",
@@ -1263,7 +1201,7 @@ window.LIBS = [
   rnNote:"Web only.",
   js:["nouislider"], css:["nouislider"], site:"https://refreshless.com/nouislider/", repo:"leongersen/noUiSlider" },
 
-{ k:"pickr", n:"Pickr", pkg:"@simonwep/pickr", ver:"1.10.2", vend:"1.9.1", pub:"2026-09-08", commit:"2026-09-08", lic:"MIT", kb:23, cat:"forms", st:4,
+{ k:"pickr", n:"Pickr", pkg:"@simonwep/pickr", ver:"1.10.2", pub:"2026-09-08", commit:"2026-09-08", lic:"MIT", kb:31, cat:"forms", st:4,
   c:"y n a y n y n y",
   what:"A colour picker with no dependencies, alpha support and every output format you would want.",
   pro:"Small, good-looking, and it emits HEX, RGBA, HSLA and CMYK from one control",
@@ -1273,7 +1211,7 @@ window.LIBS = [
   js:["pickr"], css:["pickr"], site:"https://simonwep.github.io/pickr/", repo:"simonwep/pickr" },
 
 /* ---------------- Overlays & feedback ---------------- */
-{ k:"swal", n:"SweetAlert2", pkg:"sweetalert2", ver:"11.26.25", vend:"11.17.2", pub:"2026-05-23", commit:"2026-10-14", lic:"MIT", kb:73, cat:"overlay", st:4,
+{ k:"swal", n:"SweetAlert2", pkg:"sweetalert2", ver:"11.26.25", pub:"2026-05-23", commit:"2026-10-14", lic:"MIT", kb:77, cat:"overlay", st:4,
   c:"y n a n p y n y",
   what:"A replacement for alert(), confirm() and prompt() that is promise-based, themeable and accessible.",
   pro:"Covers confirmations, forms, toasts and queues in one dependency",
@@ -1282,25 +1220,7 @@ window.LIBS = [
   rnNote:"Web only; on native use Alert or a modal component.",
   js:["sweetalert2"], site:"https://sweetalert2.github.io/", repo:"sweetalert2/sweetalert2" },
 
-{ k:"toastify", n:"Toastify", pkg:"toastify-js", ver:"1.12.0", pub:"2022-07-21", commit:"2024-08-19", lic:"MIT", kb:15, cat:"overlay", st:4,
-  c:"n n a n n y n n",
-  what:"Toast notifications in 15 KB with no dependencies and no framework.",
-  pro:"Does one job, weighs almost nothing, works anywhere",
-  con:"Quiet since 2022, and no TypeScript types",
-  try:"Fire toasts from each corner, with and without a close button. They stack and dismiss on their own timers.",
-  rnNote:"Web only.",
-  js:["toastify"], css:["toastify"], site:"https://apvarun.github.io/toastify-js/", repo:"apvarun/toastify-js" },
-
-{ k:"tippy", n:"Tippy.js", pkg:"tippy.js", ver:"6.3.7", pub:"2021-11-10", commit:"2022-02-05", lic:"MIT", kb:25, cat:"overlay", st:4,
-  c:"n n a n p y n y",
-  what:"Tooltips and popovers built on Popper: interactive content, delays, singleton groups, follow-cursor.",
-  pro:"Everything a tooltip needs is already in it, including the fiddly parts",
-  con:"No release since 2021, and it carries Popper with it",
-  try:"Hover each trigger. One follows the cursor, one holds interactive content you can click into, one is part of a singleton group that shares a transition.",
-  rnNote:"Web only.",
-  js:["popperjs","tippy"], css:["tippy"], site:"https://atomiks.github.io/tippyjs/", repo:"atomiks/tippyjs" },
-
-{ k:"photoswipe", n:"PhotoSwipe", pkg:"photoswipe", ver:"5.4.4", pub:"2024-05-24", commit:"2025-12-04", lic:"MIT", kb:53, cat:"overlay", st:4,
+{ k:"photoswipe", n:"PhotoSwipe", pkg:"photoswipe", ver:"5.4.4", pub:"2024-05-24", commit:"2025-12-04", lic:"MIT", kb:74, cat:"overlay", st:4,
   c:"y n p y n y n y",
   what:"The image lightbox: pinch zoom, momentum panning, keyboard control, and a proper open/close animation from the thumbnail.",
   pro:"Touch behaviour that feels native, which almost nothing else gets right",
@@ -1309,7 +1229,7 @@ window.LIBS = [
   rnNote:"Web only.",
   js:["photoswipe","photoswipe-lb"], css:["photoswipe"], site:"https://photoswipe.com/", repo:"dimsemenov/Photoswipe" },
 
-{ k:"micromodal", n:"Micromodal", pkg:"micromodal", ver:"0.7.0", vend:"0.6.1", pub:"2026-06-03", commit:"2026-06-03", lic:"ISC", kb:7, cat:"overlay", st:4,
+{ k:"micromodal", n:"Micromodal", pkg:"micromodal", ver:"0.7.0", pub:"2026-06-03", commit:"2026-06-03", lic:"ISC", kb:9, cat:"overlay", st:4,
   c:"y n a n n y n y",
   what:"7 KB of accessible modal: focus trapping, aria wiring, escape and overlay dismissal. You bring the markup.",
   pro:"Gets accessibility right, which is the only genuinely hard part of a modal",
@@ -1319,7 +1239,7 @@ window.LIBS = [
   js:["micromodal"], site:"https://micromodal.vercel.app/", repo:"ghosh/micromodal" },
 
 /* ---------------- Scroll & layout ---------------- */
-{ k:"lenis", n:"Lenis", pkg:"lenis", ver:"1.3.26", vend:"1.2.3", pub:"2026-08-05", commit:"2026-10-01", lic:"MIT", kb:14, cat:"scroll", st:4,
+{ k:"lenis", n:"Lenis", pkg:"lenis", ver:"1.3.26", pub:"2026-08-05", commit:"2026-10-01", lic:"MIT", kb:18, cat:"scroll", st:4,
   c:"n n a n y y n y",
   what:"Smooth scrolling that keeps the real scrollbar and native anchor behaviour, rather than faking the whole viewport.",
   pro:"Feels expensive, and it does not break accessibility the way scroll-hijacking libraries do",
@@ -1328,25 +1248,7 @@ window.LIBS = [
   rnNote:"Web only.",
   js:["lenis"], site:"https://lenis.darkroom.engineering/", repo:"darkroomengineering/lenis" },
 
-{ k:"aos", n:"AOS", pkg:"aos", ver:"2.3.4", pub:"2018-10-03", commit:"2018-10-03", lic:"MIT", kb:14, cat:"scroll", st:3,
-  c:"n n a n n y n n",
-  what:"Animate-on-scroll declared in data attributes. The library that put fade-up on half the marketing sites on the internet.",
-  pro:"One attribute per element and you are done",
-  con:"Unmaintained since 2018 and uses scroll listeners rather than IntersectionObserver",
-  try:"Scroll the panel. Each card declares its own animation, delay and offset in a data attribute — there is no JavaScript per element.",
-  rnNote:"Web only.",
-  js:["aos"], css:["aos"], site:"https://michalsnik.github.io/aos/", repo:"michalsnik/aos" },
-
-{ k:"split", n:"Split.js", pkg:"split.js", ver:"1.6.5", pub:"2022-01-07", commit:"2023-07-04", lic:"MIT", kb:7, cat:"scroll", st:4,
-  c:"y n a n p y n y",
-  what:"Resizable split panes in 2 KB gzipped, with no dependencies and no wrapper elements.",
-  pro:"Does exactly one thing, works with any layout, and remembers sizes",
-  con:"Quiet development, and nested splits need care",
-  try:"Drag the gutters. Try the nested vertical split inside the right pane, and watch the size percentages update.",
-  rnNote:"Web only.",
-  js:["split"], site:"https://split.js.org/", repo:"nathancahill/split" },
-
-{ k:"simplebar", n:"SimpleBar", pkg:"simplebar", ver:"6.3.3", vend:"6.3.2", pub:"2025-11-09", commit:"2025-11-09", lic:"MIT", kb:27, cat:"scroll", st:4,
+{ k:"simplebar", n:"SimpleBar", pkg:"simplebar", ver:"6.3.3", pub:"2025-11-09", commit:"2025-11-09", lic:"MIT", kb:30, cat:"scroll", st:4,
   c:"n n a n p y n y",
   what:"Custom scrollbars that keep native scrolling. It styles the bar and leaves the scrolling to the browser.",
   pro:"No scroll-jacking, so momentum and accessibility survive",
@@ -1355,17 +1257,8 @@ window.LIBS = [
   rnNote:"Web only.",
   js:["simplebar"], css:["simplebar"], site:"https://grsmto.github.io/simplebar/", repo:"grsmto/simplebar" },
 
-{ k:"muuri", n:"Muuri", pkg:"muuri", ver:"0.9.5", pub:"2021-07-09", commit:"2022-09-15", lic:"MIT", kb:82, cat:"scroll", st:3,
-  c:"y y p n n y n n",
-  what:"Responsive, sortable, filterable, draggable grid layouts — masonry that you can also rearrange by hand.",
-  pro:"Nothing else combines masonry layout with drag-sorting this well",
-  con:"Unmaintained since 2021, and it is heavy for a layout library",
-  try:"Drag the tiles to rearrange them, then filter by colour — the remaining tiles animate into their new positions.",
-  rnNote:"Web only.",
-  js:["muuri"], site:"https://muuri.dev/", repo:"haltu/muuri" },
-
 /* ---------------- Templating & text ---------------- */
-{ k:"handlebars", n:"Handlebars", pkg:"handlebars", ver:"4.7.10", vend:"4.7.9", pub:"2026-10-05", commit:"2026-06-25", lic:"MIT", kb:86, cat:"textproc", st:4,
+{ k:"handlebars", n:"Handlebars", pkg:"handlebars", ver:"4.7.10", pub:"2026-10-05", commit:"2026-06-25", lic:"MIT", kb:89, cat:"textproc", st:4,
   c:"n y y n n a y y",
   what:"Logic-less templates that compile to a function. Still the lingua franca for server-rendered HTML and email.",
   pro:"Templates are data, so they can come from a database or a CMS",
@@ -1374,16 +1267,16 @@ window.LIBS = [
   rnNote:"Yes — pure string transformation.",
   js:["handlebars"], site:"https://handlebarsjs.com/", repo:"handlebars-lang/handlebars.js" },
 
-{ k:"markdownit", n:"markdown-it", pkg:"markdown-it", ver:"15.0.2", vend:"14.1.0", pub:"2026-09-11", commit:"2026-09-11", lic:"MIT", kb:121, cat:"textproc", st:5,
+{ k:"markdownit", n:"markdown-it", pkg:"markdown-it", ver:"15.0.2", pub:"2026-09-11", commit:"2026-09-11", lic:"MIT", kb:142, cat:"textproc", st:5,
   c:"n y y n n a y y",
   what:"The other Markdown parser: CommonMark-exact, plugin-driven, and it exposes the token stream so you can rewrite anything.",
   pro:"The token stream and plugin system make custom syntax genuinely tractable",
-  con:"Three times the size of marked for parsing you may not need",
+  con:"More than twice the size of marked, for parsing you may not need",
   try:"Toggle the token view: this is the intermediate representation plugins hook into, which marked does not expose.",
   rnNote:"Yes — pure string transformation.",
   js:["markdownit","dompurify"], site:"https://markdown-it.github.io/", repo:"markdown-it/markdown-it" },
 
-{ k:"jsdiff", n:"jsdiff", pkg:"diff", ver:"9.0.0", vend:"7.0.0", pub:"2026-04-13", commit:"2026-10-14", lic:"BSD-3-Clause", kb:77, cat:"textproc", st:4,
+{ k:"jsdiff", n:"jsdiff", pkg:"diff", ver:"9.0.0", pub:"2026-04-13", commit:"2026-10-14", lic:"BSD-3-Clause", kb:36, cat:"textproc", st:4,
   c:"n y y n n a y y",
   what:"Text diffing: characters, words, lines, sentences, JSON and CSS — plus unified patch output.",
   pro:"The same library that powers a lot of review tooling, in the browser",
@@ -1392,7 +1285,7 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript.",
   js:["jsdiff"], site:"https://github.com/kpdecker/jsdiff", repo:"kpdecker/jsdiff" },
 
-{ k:"linkify", n:"Linkify", pkg:"linkifyjs", ver:"4.3.3", vend:"4.2.0", pub:"2026-05-13", commit:"2026-06-22", lic:"MIT", kb:19, cat:"textproc", st:4,
+{ k:"linkify", n:"Linkify", pkg:"linkifyjs", ver:"4.3.3", pub:"2026-05-13", commit:"2026-06-22", lic:"MIT", kb:38, cat:"textproc", st:4,
   c:"n y y n y a y y",
   what:"Finds URLs, emails, mentions and hashtags in plain text and turns them into links — with a real scanner, not a regex.",
   pro:"Handles the cases a regex gets wrong: trailing punctuation, parentheses, unicode domains",
@@ -1402,7 +1295,7 @@ window.LIBS = [
   js:["linkify","linkify-html"], site:"https://linkify.js.org/", repo:"nfrasser/linkifyjs" },
 
 /* ---------------- Storage, files & workers ---------------- */
-{ k:"dexie", n:"Dexie.js", pkg:"dexie", ver:"4.4.6", vend:"4.0.11", pub:"2026-09-10", commit:"2026-10-14", lic:"Apache-2.0", kb:92, cat:"storage", st:5,
+{ k:"dexie", n:"Dexie.js", pkg:"dexie", ver:"4.4.6", pub:"2026-09-10", commit:"2026-10-14", lic:"Apache-2.0", kb:94, cat:"storage", st:5,
   c:"n y y n y a p y",
   what:"IndexedDB with an API you can actually use: promises, compound indexes, live queries and versioned migrations.",
   pro:"Makes IndexedDB approachable, and the migration story is properly designed",
@@ -1410,15 +1303,6 @@ window.LIBS = [
   try:"Add rows, then query by index and by range. Everything is written to a real IndexedDB database — reload the page and it is still there.",
   rnNote:"IndexedDB does not exist on device; use expo-sqlite or WatermelonDB.",
   js:["dexie"], site:"https://dexie.org/", repo:"dexie/Dexie.js" },
-
-{ k:"localforage", n:"localForage", pkg:"localforage", ver:"1.10.0", pub:"2021-08-18", commit:"2024-07-30", lic:"Apache-2.0", kb:29, cat:"storage", st:4,
-  c:"n y p n n a p y",
-  what:"localStorage's API, backed by IndexedDB. Same three methods, but asynchronous and able to store blobs.",
-  pro:"A drop-in mental model that stores real objects instead of strings",
-  con:"Quiet since 2021, and the simple API hides IndexedDB's power",
-  try:"Store a string, an object, a typed array and a Blob. localStorage could only have taken the first.",
-  rnNote:"There is an AsyncStorage driver, but AsyncStorage directly is the norm.",
-  js:["localforage"], site:"https://localforage.github.io/localForage/", repo:"localForage/localForage" },
 
 { k:"comlink", n:"Comlink", pkg:"comlink", ver:"4.4.2", pub:"2024-11-07", commit:"2025-06-17", lic:"Apache-2.0", kb:5, cat:"storage", st:5,
   c:"n n y n n a y y",
@@ -1429,7 +1313,7 @@ window.LIBS = [
   rnNote:"Yes, where the runtime provides workers.",
   js:["comlink"], site:"https://github.com/GoogleChromeLabs/comlink", repo:"GoogleChromeLabs/comlink" },
 
-{ k:"filepond", n:"FilePond", pkg:"filepond", ver:"4.32.12", vend:"4.32.7", pub:"2026-03-02", commit:"2026-07-13", lic:"MIT", kb:115, cat:"storage", st:4,
+{ k:"filepond", n:"FilePond", pkg:"filepond", ver:"4.32.12", pub:"2026-03-02", commit:"2026-07-13", lic:"MIT", kb:133, cat:"storage", st:4,
   c:"y n p n y y n y",
   what:"A file upload control with drag and drop, previews, reordering, validation and chunked uploads.",
   pro:"Handles the whole upload lifecycle, and the interaction is genuinely polished",
@@ -1439,7 +1323,7 @@ window.LIBS = [
   js:["filepond"], css:["filepond"], site:"https://pqina.nl/filepond/", repo:"pqina/filepond" },
 
 /* ---------------- Internationalization ---------------- */
-{ k:"i18next", n:"i18next", pkg:"i18next", ver:"26.4.5", vend:"24.2.3", pub:"2026-10-14", commit:"2026-10-14", lic:"MIT", kb:43, cat:"intl", st:5,
+{ k:"i18next", n:"i18next", pkg:"i18next", ver:"26.4.5", pub:"2026-10-14", commit:"2026-10-14", lic:"MIT", kb:43, cat:"intl", st:5,
   c:"n y y n y a y y",
   what:"The translation framework: interpolation, pluralisation, context, namespaces, fallback chains and lazy loading.",
   pro:"Covers the linguistics other libraries skip — plural categories, gendered context, nesting",
@@ -1448,7 +1332,7 @@ window.LIBS = [
   rnNote:"Yes — react-i18next is the standard React Native choice.",
   js:["i18next"], site:"https://www.i18next.com/", repo:"i18next/i18next" },
 
-{ k:"luxon", n:"Luxon", pkg:"luxon", ver:"3.7.2", vend:"3.6.1", pub:"2025-09-05", commit:"2026-08-09", lic:"MIT", kb:79, cat:"intl", st:5,
+{ k:"luxon", n:"Luxon", pkg:"luxon", ver:"3.7.2", pub:"2025-09-05", commit:"2026-08-09", lic:"MIT", kb:80, cat:"intl", st:5,
   c:"n y a n n a y y",
   what:"Moment's successor from the same author, built on the Intl API. Immutable, time-zone aware, and honest about durations.",
   pro:"Real time zone support without shipping a zone database",
@@ -1457,7 +1341,7 @@ window.LIBS = [
   rnNote:"Yes, provided the runtime has full Intl — Hermes now does.",
   js:["luxon"], site:"https://moment.github.io/luxon/", repo:"moment/luxon" },
 
-{ k:"datefns", n:"date-fns", pkg:"date-fns", ver:"4.4.0", pub:"2026-05-29", commit:"2026-09-22", lic:"MIT", kb:72, cat:"intl", st:5,
+{ k:"datefns", n:"date-fns", pkg:"date-fns", ver:"4.4.0", pub:"2026-05-29", commit:"2026-09-22", lic:"MIT", kb:73, cat:"intl", st:5,
   c:"n y a n n a y y",
   what:"200-odd small functions over the native Date. No wrapper object, no prototype patching — import only what you call.",
   pro:"Tree-shakes to almost nothing, and the functional style composes",
@@ -1467,7 +1351,7 @@ window.LIBS = [
   js:["datefns"], site:"https://date-fns.org/", repo:"date-fns/date-fns" },
 
 /* ---------------- Client-side search ---------------- */
-{ k:"minisearch", n:"MiniSearch", pkg:"minisearch", ver:"7.2.0", vend:"7.1.2", pub:"2025-09-16", commit:"2025-09-16", lic:"MIT", kb:84, cat:"search", st:5,
+{ k:"minisearch", n:"MiniSearch", pkg:"minisearch", ver:"7.2.0", pub:"2025-09-16", commit:"2025-09-16", lic:"MIT", kb:84, cat:"search", st:5,
   c:"n y y n n a y y",
   what:"A real inverted index in the browser: prefix search, fuzzy matching, field boosting, and an index you can serialise.",
   pro:"Proper relevance ranking, and the index can be built server-side then shipped",
@@ -1476,7 +1360,7 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript.",
   js:["minisearch"], site:"https://lucaong.github.io/minisearch/", repo:"lucaong/minisearch" },
 
-{ k:"flexsearch", n:"FlexSearch", pkg:"flexsearch", ver:"0.8.212", vend:"0.7.43", pub:"2025-09-06", commit:"2026-05-29", lic:"Apache-2.0", kb:16, cat:"search", st:4,
+{ k:"flexsearch", n:"FlexSearch", pkg:"flexsearch", ver:"0.8.212", pub:"2025-09-06", commit:"2026-05-29", lic:"Apache-2.0", kb:50, cat:"search", st:4,
   c:"n y y n n a y p",
   what:"The fastest full-text search library in the browser, by a wide margin, with contextual indexing and worker support.",
   pro:"Genuinely very fast, and it scales to large document sets",
@@ -1485,26 +1369,9 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript.",
   js:["flexsearch"], site:"https://github.com/nextapps-de/flexsearch", repo:"nextapps-de/flexsearch" },
 
-{ k:"lunr", n:"Lunr.js", pkg:"lunr", ver:"2.3.9", pub:"2020-08-19", commit:"2020-08-19", lic:"MIT", kb:29, cat:"search", st:3,
-  c:"n y p n n a y y",
-  what:"A small Solr-like search index, and the engine behind a great many static documentation sites.",
-  pro:"Stemming and stop words built in; index once, ship the JSON",
-  con:"No release since 2020, and the index is immutable once built",
-  try:"Search with a stemmed word — 'running' finds 'run'. The pipeline that does that is shown below the results.",
-  rnNote:"Yes — pure JavaScript.",
-  js:["lunr"], site:"https://lunrjs.com/", repo:"olivernn/lunr.js" },
-
 /* ---------------- Crypto & identifiers ---------------- */
-{ k:"cryptojs", n:"CryptoJS", pkg:"crypto-js", ver:"4.2.0", pub:"2023-10-24", commit:"2023-10-25", lic:"MIT", kb:62, cat:"crypto", st:3,
-  c:"n y y n n a y y",
-  what:"Hashing and symmetric encryption in pure JavaScript: SHA family, MD5, HMAC, AES, PBKDF2.",
-  pro:"Works everywhere, including places without Web Crypto",
-  con:"Web Crypto is native, audited and faster — prefer it when you can",
-  try:"Hash and encrypt the same input. The note compares each line with the Web Crypto equivalent you would use instead.",
-  rnNote:"Yes — pure JavaScript, and commonly used on device where Web Crypto is absent.",
-  js:["cryptojs"], site:"https://github.com/brix/crypto-js", repo:"brix/crypto-js" },
 
-{ k:"nanoid", n:"Nano ID", pkg:"nanoid", ver:"6.0.2", vend:"5.1.16", pub:"2026-10-05", commit:"2026-10-10", lic:"MIT", kb:1, cat:"crypto", st:5,
+{ k:"nanoid", n:"Nano ID", pkg:"nanoid", ver:"6.0.2", pub:"2026-10-05", commit:"2026-10-10", lic:"MIT", kb:1, cat:"crypto", st:5,
   c:"n n y n n a y y",
   what:"URL-safe unique ids in 130 bytes, using the platform's cryptographic random source.",
   pro:"Smaller and faster than UUID, with a shorter string for the same collision resistance",
@@ -1513,7 +1380,7 @@ window.LIBS = [
   rnNote:"Yes — use nanoid/non-secure or a polyfilled random source.",
   js:["nanoid"], site:"https://github.com/ai/nanoid", repo:"ai/nanoid" },
 
-{ k:"uuid", n:"uuid", pkg:"uuid", ver:"14.0.3", vend:"11.1.1", pub:"2026-10-10", commit:"2026-10-13", lic:"MIT", kb:11, cat:"crypto", st:5,
+{ k:"uuid", n:"uuid", pkg:"uuid", ver:"14.0.3", pub:"2026-10-10", commit:"2026-10-13", lic:"MIT", kb:10, cat:"crypto", st:5,
   c:"n n y n n a y y",
   what:"RFC-compliant UUIDs: v4 random, v7 time-ordered, plus the namespace-based v3 and v5.",
   pro:"The standard everything else expects, and v7 sorts by creation time",
@@ -1523,7 +1390,7 @@ window.LIBS = [
   js:["uuid"], site:"https://github.com/uuidjs/uuid", repo:"uuidjs/uuid" },
 
 /* ---------------- Games & audio ---------------- */
-{ k:"phaser", n:"Phaser", pkg:"phaser", ver:"4.2.1", vend:"3.88.2", pub:"2026-07-09", commit:"2026-08-21", lic:"MIT", kb:1166, cat:"game", st:5,
+{ k:"phaser", n:"Phaser", pkg:"phaser", ver:"4.2.1", pub:"2026-07-09", commit:"2026-08-21", lic:"MIT", kb:1344, cat:"game", st:5,
   c:"y n y y n y p y",
   what:"The 2D game framework for the web: scenes, sprites, physics, tweens, input and asset loading in one package.",
   pro:"Everything a 2D game needs is already there, with a huge tutorial ecosystem",
@@ -1542,7 +1409,7 @@ window.LIBS = [
   js:["howler"], site:"https://howlerjs.com/", repo:"goldfire/howler.js" },
 
 /* ---------------- Delight ---------------- */
-{ k:"confetti", n:"canvas-confetti", pkg:"canvas-confetti", ver:"1.9.4", vend:"1.9.3", pub:"2025-10-25", commit:"2025-10-25", lic:"ISC", kb:24, cat:"delight", st:4,
+{ k:"confetti", n:"canvas-confetti", pkg:"canvas-confetti", ver:"1.9.4", pub:"2025-10-25", commit:"2025-10-25", lic:"ISC", kb:24, cat:"delight", st:4,
   c:"n n p y n y p y",
   what:"Confetti. It performs well, it can run off the main thread, and it is on rather more production sites than anyone admits.",
   pro:"Zero dependencies, respects reduced-motion, and can render in an OffscreenCanvas",
@@ -1551,16 +1418,7 @@ window.LIBS = [
   rnNote:"Web only; on native use react-native-confetti-cannon.",
   js:["confetti"], site:"https://github.com/catdad/canvas-confetti", repo:"catdad/canvas-confetti" },
 
-{ k:"typed", n:"Typed.js", pkg:"typed.js", ver:"3.0.0", vend:"2.1.0", pub:"2026-01-24", commit:"2026-01-25", lic:"GPL-3.0", kb:10, cat:"delight", st:3,
-  c:"n n a n n y p y",
-  what:"The typewriter effect: types a string out, backspaces, moves to the next. On more hero sections than you would guess.",
-  pro:"10 KB and it does exactly what it says",
-  con:"GPL-3.0 — a copyleft licence, which matters for proprietary products",
-  try:"Watch the loop, then change the speed and the backspace delay.",
-  rnNote:"Web only, though the effect is trivial to reimplement.",
-  js:["typed"], site:"https://mattboldt.com/demos/typed-js/", repo:"mattboldt/typed.js" },
-
-{ k:"countup", n:"CountUp.js", pkg:"countup.js", ver:"2.10.1", vend:"2.8.0", pub:"2026-07-02", commit:"2026-07-02", lic:"MIT", kb:6, cat:"delight", st:4,
+{ k:"countup", n:"CountUp.js", pkg:"countup.js", ver:"2.10.1", pub:"2026-07-02", commit:"2026-07-02", lic:"MIT", kb:7, cat:"delight", st:4,
   c:"n y a n n y y y",
   what:"Animates a number from one value to another, with easing, grouping and locale-aware formatting.",
   pro:"6 KB, handles large numbers and decimals correctly, and respects reduced-motion",
@@ -1569,7 +1427,7 @@ window.LIBS = [
   rnNote:"The maths is portable; on native drive an Animated value.",
   js:["countup"], site:"https://github.com/inorganik/countUp.js", repo:"inorganik/countUp.js" },
 
-{ k:"autoanimate", n:"AutoAnimate", pkg:"@formkit/auto-animate", ver:"0.10.0", vend:"0.8.4", pub:"2026-07-10", commit:"2026-07-10", lic:"MIT", kb:8, cat:"delight", st:5,
+{ k:"autoanimate", n:"AutoAnimate", pkg:"@formkit/auto-animate", ver:"0.10.0", pub:"2026-07-10", commit:"2026-07-10", lic:"MIT", kb:8, cat:"delight", st:5,
   c:"y n a n y y n y",
   what:"One function call on a parent element, and every add, remove and reorder inside it animates. That is the whole API.",
   pro:"The best effort-to-result ratio in front-end animation",
@@ -1579,11 +1437,11 @@ window.LIBS = [
   js:["autoanimate"], site:"https://auto-animate.formkit.com/", repo:"formkit/auto-animate" },
 
 /* ---------------- Icons ---------------- */
-{ k:"lucide", n:"Lucide", pkg:"lucide", ver:"1.57.0", vend:"0.487.0", pub:"2026-10-14", commit:"2026-10-14", lic:"ISC", kb:340, cat:"icons", st:5,
+{ k:"lucide", n:"Lucide", pkg:"lucide", ver:"1.57.0", pub:"2026-10-14", commit:"2026-10-14", lic:"ISC", kb:443, cat:"icons", st:5,
   c:"n y y n y y y y",
   what:"The community fork of Feather, grown to over 1,500 icons. Consistent 24px grid, stroke-based, tree-shakeable.",
   pro:"Huge, coherent set with first-party bindings for every framework",
-  con:"Importing the whole set is 340 KB — take individual icons",
+  con:"Importing the whole set is over 400 KB — take individual icons",
   try:"Search the full set, then change the stroke width and size. Every icon is inline SVG, so it inherits colour from CSS.",
   rnNote:"Yes — lucide-react-native renders through react-native-svg.",
   js:["lucide"], site:"https://lucide.dev/", repo:"lucide-icons/lucide" },
@@ -1598,16 +1456,16 @@ window.LIBS = [
   js:["feather"], site:"https://feathericons.com/", repo:"feathericons/feather" },
 
 /* ---------------- added to existing categories ---------------- */
-{ k:"hotkeys", n:"hotkeys-js", pkg:"hotkeys-js", ver:"4.0.8", vend:"3.13.9", pub:"2026-09-09", commit:"2026-09-10", lic:"MIT", kb:7, cat:"ui", st:4,
+{ k:"hotkeys", n:"hotkeys-js", pkg:"hotkeys-js", ver:"4.0.8", pub:"2026-09-09", commit:"2026-09-10", lic:"MIT", kb:8, cat:"ui", st:4,
   c:"y n a n n p n y",
-  what:"Keyboard shortcuts with scopes: 7 KB, no dependencies, and it knows not to fire while you are typing in a field.",
+  what:"Keyboard shortcuts with scopes: 8 KB, no dependencies, and it knows not to fire while you are typing in a field.",
   pro:"Scoping and the filter for input elements are the two things people always get wrong",
   con:"No chord sequences, and key names differ across layouts",
   try:"Press the listed combinations. Then click into the text field and press them again — the filter suppresses them.",
   rnNote:"Web only; hardware keyboards on native go through a different API.",
   js:["hotkeys"], site:"https://wangchujiang.com/hotkeys-js/", repo:"jaywcjlove/hotkeys-js" },
 
-{ k:"ramda", n:"Ramda", pkg:"ramda", ver:"0.32.0", vend:"0.30.1", pub:"2025-10-10", commit:"2026-10-11", lic:"MIT", kb:52, cat:"util", st:3,
+{ k:"ramda", n:"Ramda", pkg:"ramda", ver:"0.32.0", pub:"2025-10-10", commit:"2026-10-11", lic:"MIT", kb:53, cat:"util", st:3,
   c:"n y y n n a y y",
   what:"Functional utilities where everything is curried and data comes last, so composition is the default way to work.",
   pro:"Point-free pipelines read beautifully once the style clicks",
@@ -1616,7 +1474,7 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript.",
   js:["ramda"], site:"https://ramdajs.com/", repo:"ramda/ramda" },
 
-{ k:"validator", n:"validator.js", pkg:"validator", ver:"13.15.35", vend:"13.15.0", pub:"2026-04-02", commit:"2026-09-11", lic:"MIT", kb:94, cat:"util", st:4,
+{ k:"validator", n:"validator.js", pkg:"validator", ver:"13.15.35", pub:"2026-04-02", commit:"2026-09-11", lic:"MIT", kb:97, cat:"util", st:4,
   c:"n y y n n a y y",
   what:"String validators and sanitisers: email, URL, IBAN, credit card, postal codes, MIME types — around a hundred of them.",
   pro:"Someone has already thought about the edge cases in each format",
@@ -1625,16 +1483,16 @@ window.LIBS = [
   rnNote:"Yes — pure JavaScript.",
   js:["validator"], site:"https://github.com/validatorjs/validator.js", repo:"validatorjs/validator.js" },
 
-{ k:"jsyaml", n:"js-yaml", pkg:"js-yaml", ver:"5.4.3", vend:"4.1.0", pub:"2026-10-05", commit:"2026-10-06", lic:"MIT", kb:39, cat:"data", st:5,
+{ k:"jsyaml", n:"js-yaml", pkg:"js-yaml", ver:"5.4.3", pub:"2026-10-05", commit:"2026-10-06", lic:"MIT", kb:60, cat:"data", st:5,
   c:"n y y n n a y y",
   what:"The YAML parser and serialiser for JavaScript. If a tool reads YAML in Node, this is usually what is doing it.",
-  pro:"Complete YAML 1.2 support, including anchors, aliases and custom types",
+  pro:"Passes the whole YAML test suite: YAML 1.2 by default, with 1.1 extras such as merge keys as opt-in tags",
   con:"YAML's own footguns remain — the Norway problem is a spec issue, not a library one",
-  try:"Edit the YAML. Anchors and aliases resolve, and the Norway problem row shows why some people prefer JSON.",
+  try:"Edit the YAML. Anchors, aliases and merge keys resolve, and the bool row shows YAML 1.2 keeping 'yes' a string.",
   rnNote:"Yes — pure JavaScript.",
   js:["jsyaml"], site:"https://github.com/nodeca/js-yaml", repo:"nodeca/js-yaml" },
 
-{ k:"ajv", n:"Ajv", pkg:"ajv", ver:"8.20.0", pub:"2026-04-24", commit:"2026-04-24", lic:"MIT", kb:125, cat:"data", st:4,
+{ k:"ajv", n:"Ajv", pkg:"ajv", ver:"8.20.0", pub:"2026-04-24", commit:"2026-04-24", lic:"MIT", kb:131, cat:"data", st:4,
   c:"n y y n n a y y",
   what:"The JSON Schema validator. Compiles a schema to a specialised function, which is why it is the fastest one.",
   pro:"The standard everybody's OpenAPI and config tooling already speaks",
@@ -1643,7 +1501,7 @@ window.LIBS = [
   rnNote:"Yes, using the pre-compiled standalone output rather than runtime codegen.",
   js:["ajv"], site:"https://ajv.js.org/", repo:"ajv-validator/ajv" },
 
-{ k:"vue", n:"Vue 3", pkg:"vue", ver:"3.5.44", vend:"3.5.40", pub:"2026-10-13", commit:"2026-10-13", lic:"MIT", kb:162, cat:"fw", st:5,
+{ k:"vue", n:"Vue 3", pkg:"vue", ver:"3.5.44", pub:"2026-10-13", commit:"2026-10-13", lic:"MIT", kb:167, cat:"fw", st:5,
   c:"y y p n n y n y",
   what:"The framework that made fine-grained reactivity mainstream. Templates, a signals-style reactivity core, and a gentle upgrade path.",
   pro:"Reactivity that tracks dependencies for you, and single-file components are genuinely pleasant",
@@ -1652,16 +1510,16 @@ window.LIBS = [
   rnNote:"No official React Native target; NativeScript-Vue is the nearest equivalent.",
   js:["vue"], site:"https://vuejs.org/", repo:"vuejs/core" },
 
-{ k:"react", n:"React", pkg:"react", ver:"19.3.1", vend:"18.3.1", pub:"2026-10-14", commit:"2026-10-14", lic:"MIT", kb:139, cat:"fw", st:5,
+{ k:"react", n:"React", pkg:"react", ver:"19.3.1", pub:"2026-10-14", commit:"2026-10-15", lic:"MIT", kb:218, cat:"fw", st:5,
   c:"y y p n y y y y",
   what:"The one the rest of this category is measured against. A component model, a reconciler, and an ecosystem larger than most languages have.",
   pro:"The ecosystem, the hiring pool, and React Native sharing the same model",
   con:"You assemble your own stack, and the hooks rules bite everyone eventually",
   try:"A component with state, memoisation and an effect, rendered without a build step. The render counter shows what memoisation actually saved.",
   rnNote:"Yes — this is the model React Native runs on.",
-  js:["react","reactdom"], site:"https://react.dev/", repo:"react/react" },
+  js:["react"], site:"https://react.dev/", repo:"react/react" },
 
-{ k:"jquery", n:"jQuery", pkg:"jquery", ver:"4.0.0", vend:"3.7.1", pub:"2026-01-18", commit:"2026-10-05", lic:"MIT", kb:85, cat:"fw", st:3,
+{ k:"jquery", n:"jQuery", pkg:"jquery", ver:"4.0.0", pub:"2026-01-18", commit:"2026-10-05", lic:"MIT", kb:77, cat:"fw", st:3,
   c:"y n n n n y n y",
   what:"Still on a large share of the web. It exists here because knowing what it solved explains why the modern APIs look the way they do.",
   pro:"One consistent API over DOM traversal, events, effects and Ajax, on anything",
@@ -1670,12 +1528,4 @@ window.LIBS = [
   rnNote:"No. It is a DOM library.",
   js:["jquery"], site:"https://jquery.com/", repo:"jquery/jquery" },
 
-{ k:"plyr", n:"Plyr", pkg:"plyr", ver:"3.8.5", vend:"3.7.8", pub:"2026-10-06", commit:"2026-10-08", lic:"MIT", kb:111, cat:"media", st:4,
-  c:"y n a n p y n y",
-  what:"An accessible, themeable media player for audio, video, YouTube and Vimeo, built on the native element.",
-  pro:"Keyboard and screen-reader support done properly, and it stays a real <audio>/<video> underneath",
-  con:"Large for a skin, and captions styling is fiddly",
-  try:"The audio is synthesised in this tab. Everything on the control bar is Plyr; the element underneath is a plain <audio>.",
-  rnNote:"Web only; on native use expo-av.",
-  js:["plyr"], css:["plyr"], site:"https://plyr.io/", repo:"sampotts/plyr" },
 ];

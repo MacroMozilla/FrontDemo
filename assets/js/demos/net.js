@@ -102,7 +102,7 @@ B.ky = async function (ctx) {
   host.innerHTML =
     '<p class="demo-h">fetch, with the missing parts filled in</p>' +
     '<p class="demo-p">Retries with backoff, a timeout, hooks at each stage, and a non-2xx response ' +
-    "throws instead of quietly succeeding. 14 KB against Axios's 53.</p>" +
+    "throws instead of quietly succeeding. 35 KB here against Axios's 67.</p>" +
     '<div class="demo-log" id="ky-log"></div>' +
     '<p class="demo-h" style="margin-top:18px">The instance</p>' +
     '<pre class="demo-pre">' + ctx.esc([
@@ -110,9 +110,9 @@ B.ky = async function (ctx) {
       "  timeout: 5000,",
       "  retry: { limit: 3, methods: ['get'], backoffLimit: 2000 },",
       "  hooks: {",
-      "    beforeRequest:  [req  => log(`→ ${req.method} ${req.url}`)],",
+      "    beforeRequest:  [({request}) => log(`→ ${request.method} ${request.url}`)],",
       "    beforeRetry:    [({retryCount}) => log(`retry #${retryCount}`)],",
-      "    afterResponse:  [(_, __, res) => log(`← ${res.status}`)],",
+      "    afterResponse:  [({response}) => log(`← ${response.status}`)],",
       "  }",
       "});"
     ].join("\n")) + "</pre>";
@@ -125,33 +125,47 @@ B.ky = async function (ctx) {
     while (logEl.children.length > 12) logEl.removeChild(logEl.lastChild);
   }
 
+  /* Requests still running (or waiting to retry) when the page is left are
+     cancelled with it. */
+  var stop = new AbortController();
+  ctx.onDestroy(function () { stop.abort(); });
+
   var api = ky.create({
+    signal: stop.signal,
     timeout: 5000,
     retry: { limit: 3, methods: ["get"], statusCodes: [404, 408, 500, 502, 503], backoffLimit: 1200 },
+    /* Ky 2 hands every hook one state object: { request, options, response, retryCount… }. */
     hooks: {
-      beforeRequest: [function (req) { log('<span class="m">→ ' + req.method + "</span> " + req.url.split("/").pop()); }],
-      beforeRetry: [function (o) { log('<span style="color:' + T.part + '">retry #' + o.retryCount + "</span> backing off"); }],
-      afterResponse: [function (req, opts, res) {
-        log((res.ok ? '<span style="color:' + T.yes + '">← ' : '<span style="color:' + T.bad + '">← ') +
-            res.status + "</span> " + req.url.split("/").pop());
-        return res;
+      beforeRequest: [function (s) { log('<span class="m">→ ' + s.request.method + "</span> " + s.request.url.split("/").pop()); }],
+      beforeRetry: [function (s) { log('<span style="color:' + T.part + '">retry #' + s.retryCount + "</span> backing off"); }],
+      afterResponse: [function (s) {
+        log((s.response.ok ? '<span style="color:' + T.yes + '">← ' : '<span style="color:' + T.bad + '">← ') +
+            s.response.status + "</span> " + s.request.url.split("/").pop());
       }]
     }
   });
 
   var out = ctx.readout("");
   ctx.btn("GET (succeeds)", function () {
-    api.get(ENDPOINT).text().then(function (t) { out("ok · <b>" + t.length + "</b> bytes"); });
+    api.get(ENDPOINT).text()
+      .then(function (t) { out("ok · <b>" + t.length + "</b> bytes"); })
+      .catch(function (e) { if (!ctx.dead()) out('<span style="color:' + T.bad + '">' + e.name + "</span>"); });
   }, true);
   ctx.btn("GET (404 → retries, then throws)", function () {
     out("watch the backoff…");
     api.get("assets/fragments/nope.html").text()
       .then(function () { out("unexpectedly succeeded"); })
-      .catch(function (e) { out('<span style="color:' + T.bad + '">threw <b>' + e.name + "</b> after exhausting retries</span>"); });
+      .catch(function (e) {
+        if (!ctx.dead()) out('<span style="color:' + T.bad + '">threw <b>' + e.name + "</b> after exhausting retries</span>");
+      });
   });
-  ctx.btn("Timeout after 300ms", function () {
-    ky.get(ENDPOINT, { timeout: 1 }).text()
-      .catch(function (e) { log('<span style="color:' + T.bad + '">' + e.name + "</span>"); out("timed out — fetch alone would hang"); });
+  ctx.btn("Time out after 1 ms", function () {
+    ky.get(ENDPOINT, { timeout: 1, signal: stop.signal }).text()
+      .catch(function (e) {
+        if (ctx.dead()) return;
+        log('<span style="color:' + T.bad + '">' + e.name + "</span>");
+        out("timed out — fetch alone would hang");
+      });
   });
 };
 
@@ -285,28 +299,30 @@ B.tantable = async function (ctx) {
     { accessorKey: "cost", header: "Cost", cell: function (i) { return "$" + i.getValue().toLocaleString(); } }
   ];
 
-  /* The vanilla adapter wants the full state object, so seed it from the
-     table's own initialState rather than hand-writing every slice. */
-  var tableState = {};
-  var table = TanTable.createTable({
+  /* Version 9 registers each feature the table uses, with the row model that
+     goes with it; the table owns its state, and a page without a framework
+     re-renders from a subscription to the table's store. */
+  var TT = TanTable;
+  var features = TT.tableFeatures({
+    coreReactivityFeature: TT.storeReactivityBindings(),
+    columnFilteringFeature: TT.columnFilteringFeature,
+    globalFilteringFeature: TT.globalFilteringFeature,
+    rowSortingFeature: TT.rowSortingFeature,
+    rowPaginationFeature: TT.rowPaginationFeature,
+    columnVisibilityFeature: TT.columnVisibilityFeature,
+    filteredRowModel: TT.createFilteredRowModel(),
+    sortedRowModel: TT.createSortedRowModel(),
+    paginatedRowModel: TT.createPaginatedRowModel(),
+    filterFns: TT.filterFns,                 /* every built-in, as v8 had them */
+    sortFns: TT.sortFns
+  });
+  var table = TT.constructTable({
+    features: features,
     data: data,
     columns: columns,
-    state: tableState,
-    getCoreRowModel: TanTable.getCoreRowModel(),
-    getSortedRowModel: TanTable.getSortedRowModel(),
-    getFilteredRowModel: TanTable.getFilteredRowModel(),
-    getPaginationRowModel: TanTable.getPaginationRowModel(),
-    onStateChange: function (updater) {
-      tableState = typeof updater === "function" ? updater(tableState) : updater;
-      table.setOptions(function (prev) {
-        return Object.assign({}, prev, { state: tableState });
-      });
-      render();
-    },
-    renderFallbackValue: null
+    globalFilterFn: "includesString",
+    initialState: { pagination: { pageIndex: 0, pageSize: 10 } }
   });
-  tableState = Object.assign({}, table.initialState, { pagination: { pageIndex: 0, pageSize: 10 } });
-  table.setOptions(function (prev) { return Object.assign({}, prev, { state: tableState }); });
 
   var out = ctx.readout("");
 
@@ -332,7 +348,7 @@ B.tantable = async function (ctx) {
       th.addEventListener("click", function () { table.getColumn(th.dataset.col).toggleSorting(); });
     });
 
-    var p = table.getState().pagination;
+    var p = table.atoms.pagination.get();
     host.querySelector("#tt-pager").innerHTML =
       '<button id="tt-prev">‹ prev</button><span class="demo-note">page <b>' + (p.pageIndex + 1) +
       "</b> of " + table.getPageCount() + '</span><button id="tt-next">next ›</button>';
@@ -347,6 +363,8 @@ B.tantable = async function (ctx) {
         " rows after filtering · <b>" + table.getRowModel().rows.length + "</b> rendered");
   }
   render();
+  var sub = table.store.subscribe(function () { render(); });
+  ctx.onDestroy(function () { sub.unsubscribe(); });
 
   var filterInput = host.querySelector("#tt-filter");
   filterInput.addEventListener("input", function () {
@@ -363,7 +381,7 @@ B.tantable = async function (ctx) {
     { v: "points:desc", t: "points ↓" },
     { v: "points:asc", t: "points ↑" },
     { v: "cost:desc", t: "cost ↓" },
-    { v: "name:asc", t: "name A→Z" }
+    { v: "title:asc", t: "title A→Z" }
   ], function (v) {
     if (!v) { table.resetSorting(); return; }
     var parts = v.split(":");

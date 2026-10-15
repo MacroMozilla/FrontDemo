@@ -34,7 +34,7 @@ B.ws = async function (ctx) {
   host.appendChild(wave);
   var note = ctx.mk("p", "demo-note");
   note.innerHTML = "The audio is synthesised in this tab and encoded to a WAV blob — no file is fetched. " +
-                   "Click anywhere on the waveform to seek.";
+                   "Click anywhere on the waveform to seek, or drag across it to mark a region.";
   host.appendChild(note);
 
   /* Four bars of a plucked arpeggio with an envelope, so the waveform
@@ -80,8 +80,18 @@ B.ws = async function (ctx) {
     out('<span style="color:' + T.bad + '">' + String(e).slice(0, 80) + "</span>");
   });
 
+  /* The Regions plugin: drag across the waveform to mark a region, click one
+     to play just that stretch. */
+  var regions = ws.registerPlugin(WaveSurfer.Regions.create());
+  regions.enableDragSelection({ color: ctx.series(3) + "40" });
+  regions.on("region-created", function (r) {
+    out("region <b>" + r.start.toFixed(2) + "–" + r.end.toFixed(2) + " s</b> · click it to play just that part");
+  });
+  regions.on("region-clicked", function (r, e) { e.stopPropagation(); r.play(true); });
+
   ctx.btn("Play / pause", function () { ws.playPause(); }, true);
   ctx.btn("Stop", function () { ws.stop(); });
+  ctx.btn("Clear regions", function () { regions.clearRegions(); });
   ctx.range("zoom", { min: 0, max: 200, value: 0,
                       fmt: function (v) { return v + " px/s"; } },
             function (v) { try { ws.zoom(v); } catch (e) {} });
@@ -236,10 +246,9 @@ B.cropper = async function (ctx) {
 
   var img = ctx.mk("img");
   img.src = src.toDataURL("image/png");
-  img.style.cssText = "max-width:100%;display:block";
+  img.alt = "";
   var holder = ctx.mk("div");
-  holder.style.cssText = "padding:16px";
-  holder.appendChild(img);
+  holder.style.cssText = "position:absolute;inset:0;padding:16px;box-sizing:border-box";
   p.a.appendChild(holder);
 
   var right = ctx.mk("div");
@@ -248,46 +257,67 @@ B.cropper = async function (ctx) {
     '<div id="crop-out" style="margin-bottom:12px"></div><dl class="kv" id="crop-info"></dl>';
   p.b.appendChild(right);
 
-  var out = ctx.readout("");
-  var cropper = new Cropper(img, {
-    viewMode: 1,
-    autoCropArea: .6,
-    background: false,
-    responsive: true,
-    crop: function (e) {
-      var d = e.detail;
-      document.getElementById("crop-info").innerHTML =
-        "<dt>x</dt><dd>" + Math.round(d.x) + "</dt>" +
-        "<dt>y</dt><dd>" + Math.round(d.y) + "</dd>" +
-        "<dt>width</dt><dd><b>" + Math.round(d.width) + "</b> px</dd>" +
-        "<dt>height</dt><dd><b>" + Math.round(d.height) + "</b> px</dd>" +
-        "<dt>rotate</dt><dd>" + Math.round(d.rotate) + "°</dd>" +
-        "<dt>scaleX</dt><dd>" + d.scaleX + "</dd>";
-      out(Math.round(d.width) + " × " + Math.round(d.height) + " px selected");
-    }
+  /* Cropper.js 2 is made of custom elements: new Cropper(img) puts a
+     <cropper-canvas> where the image was, holding a <cropper-image> and a
+     <cropper-selection> with its grid and handles. The template is the
+     default one, sized to the pane and with a larger first selection. */
+  var CropperJS = window.Cropper;
+  var cropper = new CropperJS.default(img, {
+    container: holder,
+    template: CropperJS.DEFAULT_TEMPLATE
+      .replace("<cropper-canvas background>", '<cropper-canvas style="height:100%">')
+      .replace('initial-coverage="0.5"', 'initial-coverage="0.6"')
   });
-  ctx.onDestroy(function () { cropper.destroy(); });
+  var image = cropper.getCropperImage(), selection = cropper.getCropperSelection();
+
+  var out = ctx.readout("");
+  var turned = 0, flipped = false;
+  function info(d) {
+    document.getElementById("crop-info").innerHTML =
+      "<dt>x</dt><dd>" + Math.round(d.x) + "</dd>" +
+      "<dt>y</dt><dd>" + Math.round(d.y) + "</dd>" +
+      "<dt>width</dt><dd><b>" + Math.round(d.width) + "</b> px</dd>" +
+      "<dt>height</dt><dd><b>" + Math.round(d.height) + "</b> px</dd>" +
+      "<dt>image turned</dt><dd>" + turned + "°</dd>" +
+      "<dt>image flipped</dt><dd>" + (flipped ? "yes" : "no") + "</dd>";
+    out(Math.round(d.width) + " × " + Math.round(d.height) + " px of the canvas selected");
+  }
+  /* "change" is announced with the new box before it is applied. */
+  selection.addEventListener("change", function (e) { info(e.detail); });
 
   function preview() {
-    var canvas = cropper.getCroppedCanvas({ maxWidth: 520, maxHeight: 380 });
-    if (!canvas) { out("the cropper is still measuring the image — try again in a moment"); return; }
-    var box = document.getElementById("crop-out");
-    box.innerHTML = "";
-    canvas.style.cssText = "max-width:100%;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.35)";
-    box.appendChild(canvas);
-    out("cropped to <b>" + canvas.width + " × " + canvas.height + "</b> px");
+    selection.$toCanvas().then(function (canvas) {
+      if (ctx.dead()) return;
+      var box = document.getElementById("crop-out");
+      box.innerHTML = "";
+      canvas.style.cssText = "max-width:100%;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.35)";
+      box.appendChild(canvas);
+      out("cropped to <b>" + canvas.width + " × " + canvas.height + "</b> px");
+    });
   }
 
   ctx.btn("Crop", preview, true);
   ctx.select("aspect ratio", [
     { v: "0", t: "free" }, { v: "1", t: "1:1" }, { v: "1.7777", t: "16:9" },
     { v: "0.75", t: "3:4" }, { v: "2.35", t: "2.35:1" }
-  ], function (v) { cropper.setAspectRatio(+v || NaN); }, "0");
-  ctx.btn("Rotate 90°", function () { cropper.rotate(90); });
-  ctx.btn("Flip", function () { cropper.scaleX(-cropper.getData().scaleX || -1); });
-  ctx.btn("Reset", function () { cropper.reset(); });
-  /* getCroppedCanvas only works once the image has been measured. */
-  img.addEventListener("ready", preview);
+  ], function (v) {
+    var r = +v || NaN;
+    selection.aspectRatio = r;
+    if (r) selection.$change(selection.x, selection.y, selection.width, selection.height, r);
+    info(selection);
+  }, "0");
+  ctx.btn("Rotate 90°", function () { image.$rotate("90deg"); turned = (turned + 90) % 360; info(selection); });
+  ctx.btn("Flip", function () { image.$scale(-1, 1); flipped = !flipped; info(selection); });
+  ctx.btn("Reset", function () {
+    image.$resetTransform().$center("contain");
+    selection.$reset();
+    turned = 0; flipped = false;
+    info(selection);
+  });
+  /* The first selection is laid out once the image has loaded. */
+  image.$ready().then(function () {
+    ctx.after(60, function () { info(selection); preview(); });
+  });
 };
 
 /* --------------------------------------------------------- Signature Pad */
@@ -513,216 +543,5 @@ B.xterm = async function (ctx) {
   ctx.onDestroy(function () { term.dispose(); });
 };
 
-
-/* ------------------------------------------------------------------ Plyr */
-B.plyr = async function (ctx) {
-  var T = ctx.T;
-  await ctx.css("plyr");
-  ctx.mount("scroll pad");
-  ctx.tall();
-
-  var host = ctx.mk("div");
-  host.innerHTML = '<p class="demo-h">A skin over the real element, not a replacement for it</p>' +
-    '<p class="demo-p">Both players below wrap an ordinary <code>&lt;audio&gt;</code> or ' +
-    "<code>&lt;video&gt;</code>. Tab into one and the whole control bar is reachable from the " +
-    "keyboard, with correct ARIA roles — that is what you are actually buying. Nothing was " +
-    "downloaded: the audio is synthesised here and the video clip is recorded from a canvas in " +
-    "this tab.</p>";
-  ctx.el.appendChild(host);
-
-  var style = ctx.mk("style");
-  style.textContent =
-    ":root{--plyr-color-main:" + T.accent + ";--plyr-audio-controls-background:" + T.panel +
-      ";--plyr-audio-control-color:" + T.ink2 + ";--plyr-audio-control-color-hover:" +
-      (T.dark ? "#0b0e14" : "#fff") + ";--plyr-video-control-color:#fff;" +
-      "--plyr-menu-background:" + T.panel + ";--plyr-menu-color:" + T.ink2 +
-      ";--plyr-tooltip-background:" + T.panel + ";--plyr-tooltip-color:" + T.ink + "}" +
-    ".plyr--audio .plyr__controls{border:1px solid " + T.line + ";border-radius:10px}" +
-    ".fd-plyr-box{background:" + T.panel + ";border:1px solid " + T.line +
-      ";border-radius:12px;padding:14px 16px;margin-bottom:14px}" +
-    ".fd-plyr-h{font:700 9.5px " + T.mono + ";letter-spacing:.14em;color:" + T.muted + ";margin-bottom:10px}";
-  ctx.el.appendChild(style);
-
-  /* ---------- an audio track, synthesised ---------- */
-  var RATE = 22050, SECONDS = 24;
-  var n = RATE * SECONDS;
-  var pcm = new Float32Array(n);
-  var SCALE = [0, 2, 4, 7, 9, 12, 14, 16];
-  for (var i = 0; i < n; i++) {
-    var t = i / RATE;
-    var beat = Math.floor(t * 2);
-    var semi = SCALE[(beat * 3) % SCALE.length] + (beat % 8 < 4 ? 0 : 5);
-    var f = 220 * Math.pow(2, semi / 12);
-    var phase = t - beat / 2;
-    var env = Math.exp(-phase * 3.4);
-    var bass = Math.sin(2 * Math.PI * (f / 2) * t) * 0.28 * Math.exp(-phase * 1.6);
-    pcm[i] = (Math.sin(2 * Math.PI * f * t) * 0.4 +
-              Math.sin(2 * Math.PI * f * 2 * t) * 0.12) * env + bass;
-    pcm[i] *= Math.min(1, t * 1.5) * Math.min(1, (SECONDS - t) * 0.6) * 0.7;
-  }
-  var audioUrl = URL.createObjectURL(wavBlob(pcm, RATE));
-  ctx.onDestroy(function () { URL.revokeObjectURL(audioUrl); });
-
-  var audioBox = ctx.mk("div", "fd-plyr-box");
-  audioBox.innerHTML = '<div class="fd-plyr-h">AUDIO PLAYER</div>' +
-    '<p class="demo-note" style="margin:0 0 12px">Press space, then try ← → to seek, ↑ ↓ for volume ' +
-    "and 0–9 to jump. Every one of those is Plyr, not the browser.</p>";
-  ctx.el.appendChild(audioBox);
-  var audioEl = ctx.mk("audio");
-  audioEl.controls = true;
-  audioEl.preload = "auto";
-  var src = ctx.mk("source");
-  src.src = audioUrl;
-  src.type = "audio/wav";
-  audioEl.appendChild(src);
-  audioBox.appendChild(audioEl);
-
-  var players = [];
-  var audioPlayer = new Plyr(audioEl, {
-    controls: ["play", "progress", "current-time", "duration", "mute", "volume", "settings"],
-    settings: ["speed", "loop"],
-    speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
-    keyboard: { focused: true, global: false },
-    seekTime: 5,
-    markers: { enabled: true, points: [
-      { time: 4, label: "verse" }, { time: 12, label: "chorus" }, { time: 20, label: "outro" }
-    ] }
-  });
-  players.push(audioPlayer);
-
-  /* ---------- state panel ---------- */
-  var stateBox = ctx.mk("div", "fd-plyr-box");
-  stateBox.innerHTML = '<div class="fd-plyr-h">PLAYER STATE</div>';
-  ctx.el.appendChild(stateBox);
-  var stateHost = ctx.mk("div");
-  stateBox.appendChild(stateHost);
-
-  var logHost = ctx.mk("div");
-  logHost.style.cssText = "font:500 11.5px " + T.mono + ";line-height:1.9;color:" + T.ink2 +
-    ";background:" + T.sunk + ";border:1px solid " + T.line + ";border-radius:8px;padding:9px 12px;" +
-    "height:120px;overflow:auto;margin-top:12px";
-  stateBox.appendChild(logHost);
-  function say(html, colour) {
-    var row = ctx.mk("div");
-    row.innerHTML = '<span style="color:' + T.muted + '">› </span><span style="color:' +
-      (colour || T.ink2) + '">' + html + "</span>";
-    logHost.insertBefore(row, logHost.firstChild);
-    while (logHost.children.length > 40) logHost.removeChild(logHost.lastChild);
-  }
-  ["play", "pause", "ended", "seeked", "ratechange", "volumechange", "enterfullscreen"]
-    .forEach(function (ev) {
-      audioPlayer.on(ev, function () { say("audio → <b>" + ev + "</b>"); });
-    });
-
-  var out = ctx.readout("press play — browsers require a click before audio can start");
-  ctx.every(200, function () {
-    var p2 = audioPlayer;
-    stateHost.innerHTML = '<table class="demo-tbl" style="table-layout:fixed;width:100%">' +
-      '<colgroup><col style="width:150px"><col></colgroup><tbody>' + [
-        ["player.playing", String(p2.playing)],
-        ["player.currentTime", (p2.currentTime || 0).toFixed(2) + " s"],
-        ["player.duration", (p2.duration || 0).toFixed(2) + " s"],
-        ["player.volume", (p2.volume != null ? p2.volume : 1).toFixed(2)],
-        ["player.speed", String(p2.speed)],
-        ["player.loop", String(p2.loop)],
-        ["player.media.tagName", p2.media ? p2.media.tagName.toLowerCase() : "—"]
-      ].map(function (r) {
-        return "<tr><td><code>" + r[0] + '</code></td><td style="font-family:' + T.mono +
-          ';font-size:11.5px">' + ctx.esc(r[1]) + "</td></tr>";
-      }).join("") + "</tbody></table>";
-  });
-
-  /* ---------- a video clip, recorded from a canvas ---------- */
-  var videoBox = ctx.mk("div", "fd-plyr-box");
-  videoBox.innerHTML = '<div class="fd-plyr-h">VIDEO PLAYER</div>' +
-    '<p class="demo-note" id="fd-plyr-vid-note" style="margin:0 0 12px">Recording a four-second clip ' +
-    "from a canvas with MediaRecorder — the player appears when it finishes.</p>";
-  ctx.el.appendChild(videoBox);
-
-  (function recordClip() {
-    if (typeof MediaRecorder === "undefined") {
-      videoBox.querySelector("#fd-plyr-vid-note").textContent =
-        "This browser has no MediaRecorder, so there is no clip to show. Plyr drives <video>, " +
-        "YouTube and Vimeo with the same API as the audio player above.";
-      return;
-    }
-    var types = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"]
-      .filter(function (t) { return MediaRecorder.isTypeSupported(t); });
-    if (!types.length) return;
-
-    var cv = document.createElement("canvas");
-    cv.width = 640; cv.height = 360;
-    var g = cv.getContext("2d");
-    var frame = 0;
-    var drawId = setInterval(function () {
-      frame++;
-      var t = frame / 30;
-      g.fillStyle = T.stage; g.fillRect(0, 0, 640, 360);
-      for (var k = 0; k < 6; k++) {
-        var x = 320 + Math.cos(t * (0.7 + k * 0.19) + k) * (60 + k * 34);
-        var y = 180 + Math.sin(t * (0.9 + k * 0.13) + k * 2) * (40 + k * 20);
-        g.fillStyle = ctx.series(k);
-        g.beginPath();
-        g.arc(x, y, 26 + Math.sin(t * 2 + k) * 9, 0, Math.PI * 2);
-        g.fill();
-      }
-      g.fillStyle = T.ink;
-      g.font = "600 22px " + T.mono.replace(/"/g, "");
-      g.fillText("recorded in your browser · " + t.toFixed(1) + "s", 24, 336);
-    }, 33);
-
-    var rec = new MediaRecorder(cv.captureStream(30), { mimeType: types[0] });
-    var chunks = [];
-    rec.ondataavailable = function (e) { if (e.data.size) chunks.push(e.data); };
-    rec.onstop = function () {
-      clearInterval(drawId);
-      if (ctx.dead()) return;
-      var url = URL.createObjectURL(new Blob(chunks, { type: types[0] }));
-      ctx.onDestroy(function () { URL.revokeObjectURL(url); });
-      var note = videoBox.querySelector("#fd-plyr-vid-note");
-      note.innerHTML = "Four seconds of canvas, captured with <code>MediaRecorder</code> and handed " +
-        "to Plyr as a normal <code>&lt;video&gt;</code>. Quality, speed, loop, PiP and fullscreen " +
-        "all come from the same control bar.";
-      var v = ctx.mk("video");
-      v.controls = true;
-      v.playsInline = true;
-      v.loop = true;
-      v.muted = true;
-      v.src = url;
-      v.style.cssText = "width:100%;max-width:640px";
-      videoBox.appendChild(v);
-      var vp = new Plyr(v, {
-        controls: ["play-large", "play", "progress", "current-time", "mute", "volume",
-          "settings", "pip", "fullscreen"],
-        settings: ["speed", "loop"],
-        speed: { selected: 1, options: [0.25, 0.5, 1, 1.5, 2] },
-        ratio: "16:9"
-      });
-      players.push(vp);
-      say("video clip ready — " + (chunks.reduce(function (a, c) { return a + c.size; }, 0) / 1024)
-        .toFixed(0) + " KB of webm", T.yes);
-    };
-    rec.start();
-    ctx.after(4000, function () { if (rec.state !== "inactive") rec.stop(); });
-    ctx.onDestroy(function () {
-      clearInterval(drawId);
-      if (rec.state !== "inactive") { try { rec.stop(); } catch (e) {} }
-    });
-  })();
-
-  ctx.onDestroy(function () {
-    players.forEach(function (p2) { try { p2.destroy(); } catch (e) {} });
-  });
-
-  ctx.btn("Play", function () { audioPlayer.play(); out("playing"); }, true);
-  ctx.btn("Pause", function () { audioPlayer.pause(); });
-  ctx.btn("Jump to the chorus", function () { audioPlayer.currentTime = 12; });
-  ctx.select("speed", ["0.5", "0.75", "1", "1.5", "2"], function (v) {
-    audioPlayer.speed = +v;
-  }, "1");
-  ctx.range("volume", { min: 0, max: 1, step: 0.05, value: 1, fmt: function (v) { return v.toFixed(2); } },
-    function (v) { audioPlayer.volume = v; });
-  ctx.check("loop", false, function (v) { audioPlayer.loop = v; });
-};
 
 })();

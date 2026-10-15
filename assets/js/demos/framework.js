@@ -879,7 +879,7 @@ B.jquery = async function (ctx) {
     var jqChars = ROWS.reduce(function (a, r) { return a + r.jq.length; }, 0);
     var vanChars = ROWS.reduce(function (a, r) { return a + r.van.length; }, 0);
     out("<b>" + jqChars + "</b> characters of jQuery versus <b>" + vanChars +
-      "</b> of platform API — for <b>85 KB</b> of download");
+      "</b> of platform API — for <b>77 KB</b> of download");
   }
   runAll();
 
