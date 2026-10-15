@@ -44,6 +44,9 @@ function hexToRgb(h) {
 /* --------------------------------------------------------- MapLibre GL JS */
 B.ml = async function (ctx) {
   var T = ctx.T;
+  /* MapLibre 6 ships as ES modules: the map, and the worker that parses data. */
+  var maplibregl = ctx.mod;
+  maplibregl.setWorkerUrl(new URL("vendor/maplibre/maplibre-gl-worker.js", document.baseURI).href);
   ctx.tall();
 
   /* The style is written by hand — no tile server, no network. */

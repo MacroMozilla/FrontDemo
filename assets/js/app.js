@@ -653,14 +653,17 @@ function renderLib(k) {
   document.title = l.n + " — FrontDemo";
 
   var licWarn = /SEE LICENSE|no-charge|LGPL|MPL/i.test(l.lic);
+  /* A library installed from somewhere other than npm says how. */
+  var install = l.install || "npm i " + l.pkg;
+  var repoUrl = /^https?:/.test(l.repo || "");
   var h = '<div class="pad">';
   h += '<header class="lib-head">' +
        '<div class="lib-title"><h2>' + esc(l.n) + "</h2>" +
        '<span class="stars" title="How readily I would reach for it">' + stars(l.st) + "</span>" +
-       (l.npm === false
+       (l.npm === false && !l.install
          ? '<a class="npm" href="' + esc(l.site) + '" target="_blank" rel="noopener" title="How it is embedded">' +
            esc(l.ext || l.pkg) + ' <span class="cp">embed docs</span></a>'
-         : '<button class="npm" id="cpNpm" type="button" title="Copy install command">npm i ' + esc(l.pkg) +
+         : '<button class="npm" id="cpNpm" type="button" title="Copy install command">' + esc(install) +
            ' <span class="cp">copy</span></button>') + "</div>" +
        '<p class="lib-what">' + esc(l.what) + "</p>" +
        '<div class="facts">' +
@@ -703,7 +706,8 @@ function renderLib(k) {
        }).join("") + "</div></div>";
   h += '<div class="card"><h4>Links</h4><div class="linkrow">' +
        '<a href="' + esc(l.site) + '" target="_blank" rel="noopener">Homepage</a>' +
-       (l.repo ? '<a href="https://github.com/' + esc(l.repo) + '" target="_blank" rel="noopener">GitHub</a>' : "") +
+       (l.repo ? '<a href="' + esc(repoUrl ? l.repo : "https://github.com/" + l.repo) +
+                 '" target="_blank" rel="noopener">' + (repoUrl ? "Source" : "GitHub") + "</a>" : "") +
        (l.npm === false ? "" :
          '<a href="https://www.npmjs.com/package/' + esc(l.pkg) + '" target="_blank" rel="noopener">npm</a>') +
        '<a href="#/matrix">Compare</a></div></div>';
@@ -719,7 +723,7 @@ function renderLib(k) {
 
   if ($("#cpNpm")) $("#cpNpm").addEventListener("click", function () {
     var b = this;
-    navigator.clipboard.writeText("npm i " + l.pkg).then(function () {
+    navigator.clipboard.writeText(install).then(function () {
       var s = b.querySelector(".cp");
       s.textContent = "copied";
       setTimeout(function () { s.textContent = "copy"; }, 1600);

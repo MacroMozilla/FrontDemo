@@ -34,7 +34,7 @@ B.ws = async function (ctx) {
   host.appendChild(wave);
   var note = ctx.mk("p", "demo-note");
   note.innerHTML = "The audio is synthesised in this tab and encoded to a WAV blob — no file is fetched. " +
-                   "Click anywhere on the waveform to seek.";
+                   "Click anywhere on the waveform to seek, or drag across it to mark a region.";
   host.appendChild(note);
 
   /* Four bars of a plucked arpeggio with an envelope, so the waveform
@@ -80,8 +80,18 @@ B.ws = async function (ctx) {
     out('<span style="color:' + T.bad + '">' + String(e).slice(0, 80) + "</span>");
   });
 
+  /* The Regions plugin: drag across the waveform to mark a region, click one
+     to play just that stretch. */
+  var regions = ws.registerPlugin(WaveSurfer.Regions.create());
+  regions.enableDragSelection({ color: ctx.series(3) + "40" });
+  regions.on("region-created", function (r) {
+    out("region <b>" + r.start.toFixed(2) + "–" + r.end.toFixed(2) + " s</b> · click it to play just that part");
+  });
+  regions.on("region-clicked", function (r, e) { e.stopPropagation(); r.play(true); });
+
   ctx.btn("Play / pause", function () { ws.playPause(); }, true);
   ctx.btn("Stop", function () { ws.stop(); });
+  ctx.btn("Clear regions", function () { regions.clearRegions(); });
   ctx.range("zoom", { min: 0, max: 200, value: 0,
                       fmt: function (v) { return v + " px/s"; } },
             function (v) { try { ws.zoom(v); } catch (e) {} });
@@ -236,10 +246,9 @@ B.cropper = async function (ctx) {
 
   var img = ctx.mk("img");
   img.src = src.toDataURL("image/png");
-  img.style.cssText = "max-width:100%;display:block";
+  img.alt = "";
   var holder = ctx.mk("div");
-  holder.style.cssText = "padding:16px";
-  holder.appendChild(img);
+  holder.style.cssText = "position:absolute;inset:0;padding:16px;box-sizing:border-box";
   p.a.appendChild(holder);
 
   var right = ctx.mk("div");
@@ -248,46 +257,67 @@ B.cropper = async function (ctx) {
     '<div id="crop-out" style="margin-bottom:12px"></div><dl class="kv" id="crop-info"></dl>';
   p.b.appendChild(right);
 
-  var out = ctx.readout("");
-  var cropper = new Cropper(img, {
-    viewMode: 1,
-    autoCropArea: .6,
-    background: false,
-    responsive: true,
-    crop: function (e) {
-      var d = e.detail;
-      document.getElementById("crop-info").innerHTML =
-        "<dt>x</dt><dd>" + Math.round(d.x) + "</dt>" +
-        "<dt>y</dt><dd>" + Math.round(d.y) + "</dd>" +
-        "<dt>width</dt><dd><b>" + Math.round(d.width) + "</b> px</dd>" +
-        "<dt>height</dt><dd><b>" + Math.round(d.height) + "</b> px</dd>" +
-        "<dt>rotate</dt><dd>" + Math.round(d.rotate) + "°</dd>" +
-        "<dt>scaleX</dt><dd>" + d.scaleX + "</dd>";
-      out(Math.round(d.width) + " × " + Math.round(d.height) + " px selected");
-    }
+  /* Cropper.js 2 is made of custom elements: new Cropper(img) puts a
+     <cropper-canvas> where the image was, holding a <cropper-image> and a
+     <cropper-selection> with its grid and handles. The template is the
+     default one, sized to the pane and with a larger first selection. */
+  var CropperJS = window.Cropper;
+  var cropper = new CropperJS.default(img, {
+    container: holder,
+    template: CropperJS.DEFAULT_TEMPLATE
+      .replace("<cropper-canvas background>", '<cropper-canvas style="height:100%">')
+      .replace('initial-coverage="0.5"', 'initial-coverage="0.6"')
   });
-  ctx.onDestroy(function () { cropper.destroy(); });
+  var image = cropper.getCropperImage(), selection = cropper.getCropperSelection();
+
+  var out = ctx.readout("");
+  var turned = 0, flipped = false;
+  function info(d) {
+    document.getElementById("crop-info").innerHTML =
+      "<dt>x</dt><dd>" + Math.round(d.x) + "</dd>" +
+      "<dt>y</dt><dd>" + Math.round(d.y) + "</dd>" +
+      "<dt>width</dt><dd><b>" + Math.round(d.width) + "</b> px</dd>" +
+      "<dt>height</dt><dd><b>" + Math.round(d.height) + "</b> px</dd>" +
+      "<dt>image turned</dt><dd>" + turned + "°</dd>" +
+      "<dt>image flipped</dt><dd>" + (flipped ? "yes" : "no") + "</dd>";
+    out(Math.round(d.width) + " × " + Math.round(d.height) + " px of the canvas selected");
+  }
+  /* "change" is announced with the new box before it is applied. */
+  selection.addEventListener("change", function (e) { info(e.detail); });
 
   function preview() {
-    var canvas = cropper.getCroppedCanvas({ maxWidth: 520, maxHeight: 380 });
-    if (!canvas) { out("the cropper is still measuring the image — try again in a moment"); return; }
-    var box = document.getElementById("crop-out");
-    box.innerHTML = "";
-    canvas.style.cssText = "max-width:100%;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.35)";
-    box.appendChild(canvas);
-    out("cropped to <b>" + canvas.width + " × " + canvas.height + "</b> px");
+    selection.$toCanvas().then(function (canvas) {
+      if (ctx.dead()) return;
+      var box = document.getElementById("crop-out");
+      box.innerHTML = "";
+      canvas.style.cssText = "max-width:100%;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.35)";
+      box.appendChild(canvas);
+      out("cropped to <b>" + canvas.width + " × " + canvas.height + "</b> px");
+    });
   }
 
   ctx.btn("Crop", preview, true);
   ctx.select("aspect ratio", [
     { v: "0", t: "free" }, { v: "1", t: "1:1" }, { v: "1.7777", t: "16:9" },
     { v: "0.75", t: "3:4" }, { v: "2.35", t: "2.35:1" }
-  ], function (v) { cropper.setAspectRatio(+v || NaN); }, "0");
-  ctx.btn("Rotate 90°", function () { cropper.rotate(90); });
-  ctx.btn("Flip", function () { cropper.scaleX(-cropper.getData().scaleX || -1); });
-  ctx.btn("Reset", function () { cropper.reset(); });
-  /* getCroppedCanvas only works once the image has been measured. */
-  img.addEventListener("ready", preview);
+  ], function (v) {
+    var r = +v || NaN;
+    selection.aspectRatio = r;
+    if (r) selection.$change(selection.x, selection.y, selection.width, selection.height, r);
+    info(selection);
+  }, "0");
+  ctx.btn("Rotate 90°", function () { image.$rotate("90deg"); turned = (turned + 90) % 360; info(selection); });
+  ctx.btn("Flip", function () { image.$scale(-1, 1); flipped = !flipped; info(selection); });
+  ctx.btn("Reset", function () {
+    image.$resetTransform().$center("contain");
+    selection.$reset();
+    turned = 0; flipped = false;
+    info(selection);
+  });
+  /* The first selection is laid out once the image has loaded. */
+  image.$ready().then(function () {
+    ctx.after(60, function () { info(selection); preview(); });
+  });
 };
 
 /* --------------------------------------------------------- Signature Pad */

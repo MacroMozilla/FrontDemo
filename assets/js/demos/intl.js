@@ -139,19 +139,16 @@ B.i18next = async function (ctx) {
     lng: "en",
     fallbackLng: "en",
     resources: resources,
-    interpolation: {
-      escapeValue: false,
-      format: function (value, fmt, lng) {
-        if (fmt === "currency") {
-          return new Intl.NumberFormat(lng, { style: "currency", currency: CURRENCY[lng] || "USD" })
-            .format(value);
-        }
-        if (fmt === "date") {
-          return new Intl.DateTimeFormat(lng, { dateStyle: "long", timeStyle: "short" }).format(value);
-        }
-        return value;
-      }
-    }
+    interpolation: { escapeValue: false }
+  });
+  /* "{{amount, currency}}" names a formatter. i18next ships Intl-based ones;
+     these two replace them so the currency and the date style follow the
+     language without every call passing options. */
+  i18n.services.formatter.add("currency", function (value, lng) {
+    return new Intl.NumberFormat(lng, { style: "currency", currency: CURRENCY[lng] || "USD" }).format(value);
+  });
+  i18n.services.formatter.add("date", function (value, lng) {
+    return new Intl.DateTimeFormat(lng, { dateStyle: "long", timeStyle: "short" }).format(value);
   });
 
   var c = cols(ctx);

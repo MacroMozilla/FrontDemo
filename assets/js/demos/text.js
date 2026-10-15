@@ -33,7 +33,7 @@ function split(ctx, source, render, hint) {
 /* ---------------------------------------------------------------- Mermaid */
 B.mer = async function (ctx) {
   var T = ctx.T;
-  var M = window.MermaidLib.default || window.MermaidLib;
+  var M = window.mermaid;
 
   var samples = {
     flowchart: [

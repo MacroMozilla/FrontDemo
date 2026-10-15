@@ -17,9 +17,9 @@ const { GROUPS, CATS, CAPS, LIBS, MK, CHECKED } = win;
 
 if (!LIBS?.length) { console.error('data.js exposed no LIBS'); process.exit(1); }
 
-/* Where the version running here is recorded (see scripts/freshness.mjs). */
+/* scripts/bundles builds everything in vendor/, so its package.json records
+   the version running here (see scripts/freshness.mjs). */
 const bundled = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/bundles/package.json'), 'utf8')).dependencies;
-const pinned = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/vendor-versions.json'), 'utf8'));
 if (!/^\d{4}-\d{2}-\d{2}$/.test(CHECKED || '')) fail.push('window.CHECKED is not a yyyy-mm-dd date');
 
 const catIds = new Set(CATS.map(c => c.id));
@@ -51,9 +51,13 @@ for (const l of LIBS) {
     if (!fs.existsSync(path.join(ROOT, 'vendor', j + '.js'))) fail.push(`${at}: vendor/${j}.js is missing`);
   }
   if (l.esm && !fs.existsSync(path.join(ROOT, 'vendor', l.esm))) fail.push(`${at}: vendor/${l.esm} is missing`);
-  if (!l.ext && !(l.k in pinned) && !bundled[l.pkg])
-    fail.push(`${at}: its build's version is in neither scripts/vendor-versions.json nor scripts/bundles/package.json`);
-  if (!l.repo) fail.push(`${at}: missing field "repo" (GitHub owner/name, for the commit date)`);
+  if (!l.ext && !bundled[l.dist || l.pkg])
+    fail.push(`${at}: ${l.dist || l.pkg} is not pinned in scripts/bundles/package.json`);
+  /* A library installed from somewhere other than npm says how, and says
+     the same thing as the pin. */
+  if (l.install && !l.install.endsWith(' ' + bundled[l.pkg]))
+    fail.push(`${at}: install command "${l.install}" does not match the pin ${bundled[l.pkg]}`);
+  if (!l.repo) fail.push(`${at}: missing field "repo" (GitHub owner/name or a git URL, for the commit date)`);
   for (const c of l.css || []) {
     if (!fs.existsSync(path.join(ROOT, 'assets/css/lib', c + '.css'))) fail.push(`${at}: assets/css/lib/${c}.css is missing`);
   }
@@ -67,6 +71,33 @@ const registered = new Set([...demoSrc.matchAll(/^\s*B(?:\.(\w+)|\[["'](\w+)["']
   .map(m => m[1] || m[2]));
 for (const l of LIBS) if (!registered.has(l.k)) fail.push(`lib ${l.k}: no builder registered in assets/js/demos/`);
 for (const k of registered) if (!LIBS.some(l => l.k === k)) warn.push(`builder "${k}" has no entry in data.js`);
+
+/* ---- every file in vendor/ and assets/css/lib/ is loaded by some page ----
+   A library's js, css and esm files, plus what a demo or the shell asks for
+   by name (need("d3"), ctx.css("filepond")) or by path ("vendor/x.js"). */
+const shellSrc = fs.readFileSync(path.join(ROOT, 'assets/js/app.js'), 'utf8');
+const usedJs = new Set(), usedCss = new Set(), usedPaths = new Set();
+for (const l of LIBS) {
+  (l.js || []).forEach(j => usedJs.add(j));
+  (l.css || []).forEach(c => usedCss.add(c));
+  if (l.esm) usedPaths.add(path.dirname(l.esm) === '.' ? l.esm : path.dirname(l.esm) + '/');
+}
+for (const src of [shellSrc, demoSrcAll()]) {
+  for (const m of src.matchAll(/\bneed\("([\w-]+)"\)/g)) usedJs.add(m[1]);
+  for (const m of src.matchAll(/\bcss\("([\w-]+)"\)/g)) usedCss.add(m[1]);
+  for (const m of src.matchAll(/vendor\/([\w./-]+?\.js)\b/g)) usedPaths.add(m[1].includes('/') ? m[1].split('/')[0] + '/' : m[1]);
+}
+function demoSrcAll() {
+  return fs.readdirSync(path.join(ROOT, 'assets/js/demos')).filter(f => f.endsWith('.js'))
+    .map(f => fs.readFileSync(path.join(ROOT, 'assets/js/demos', f), 'utf8')).join('\n');
+}
+for (const e of fs.readdirSync(path.join(ROOT, 'vendor'), { withFileTypes: true })) {
+  const used = e.isDirectory() ? usedPaths.has(e.name + '/') : usedJs.has(e.name.replace(/\.js$/, '')) || usedPaths.has(e.name);
+  if (!used) warn.push(`vendor/${e.name}${e.isDirectory() ? '/' : ''} is not loaded by any page`);
+}
+for (const f of fs.readdirSync(path.join(ROOT, 'assets/css/lib'))) {
+  if (f.endsWith('.css') && !usedCss.has(f.slice(0, -4))) warn.push(`assets/css/lib/${f} is not loaded by any page`);
+}
 
 /* ---- every demo file is referenced by index.html ---- */
 const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');

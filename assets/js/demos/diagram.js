@@ -887,7 +887,7 @@ B.vf = async function (ctx) {
   var app = Vue.createApp({
     setup: function () {
       return function () {
-        return h(VueFlow.VueFlow, {
+        return h(VueFlowCore.VueFlow, {
           nodes: nodes, edges: edges, fitViewOnInit: true,
           style: { width: "100%", height: "100%", background: T.stage },
           onConnect: function (c) {
@@ -922,9 +922,10 @@ B.djs = async function (ctx) {
   var D = window.DJS;
 
   /* diagram-js ships no shapes at all, so a renderer is the first thing
-     you write. This one is the entire visual language of the demo. */
-  function Renderer(eventBus, styles) {
-    D.Diagram.prototype;                       /* (keeps the bundler honest) */
+     you write: a BaseRenderer that claims every element, at a priority above
+     the plain default one. This is the entire visual language of the demo. */
+  function Renderer(eventBus) {
+    D.BaseRenderer.call(this, eventBus, 2000);
     this.canRender = function () { return true; };
     this.drawShape = function (parent, el) {
       var r = D.svgCreate("rect");
@@ -949,12 +950,35 @@ B.djs = async function (ctx) {
     this.getShapePath = function (s) {
       return "M" + s.x + "," + s.y + "h" + s.width + "v" + s.height + "h-" + s.width + "z";
     };
+    this.getConnectionPath = function (c) {
+      return c.waypoints.map(function (p, i) { return (i ? "L" : "M") + p.x + "," + p.y; }).join("");
+    };
   }
-  Renderer.$inject = ["eventBus", "styles"];
+  Renderer.prototype = Object.create(D.BaseRenderer.prototype);
+  Renderer.prototype.constructor = Renderer;
+  Renderer.$inject = ["eventBus"];
+
+  /* The core's layouter joins centres. This one stops each line at the box
+     edges, so the arrowhead lands on the border instead of under a label. */
+  function Layouter() {}
+  Layouter.prototype.layoutConnection = function (c, hints) {
+    var s = (hints && hints.source) || c.source, t = (hints && hints.target) || c.target;
+    var a = mid(s), b = mid(t);
+    return [edge(s, a, b), edge(t, b, a)];
+  };
+  function mid(e) { return { x: e.x + e.width / 2, y: e.y + e.height / 2 }; }
+  /* Where the line from a box's centre towards a point leaves the box. */
+  function edge(box, from, to) {
+    var dx = to.x - from.x, dy = to.y - from.y;
+    var k = Math.min(dx ? box.width / 2 / Math.abs(dx) : Infinity,
+                     dy ? box.height / 2 / Math.abs(dy) : Infinity, 1);
+    return { x: Math.round(from.x + dx * k), y: Math.round(from.y + dy * k) };
+  }
 
   var CustomRenderer = {
     __init__: ["customRenderer"],
-    customRenderer: ["type", Renderer]
+    customRenderer: ["type", Renderer],
+    layouter: ["type", Layouter]
   };
 
   var diagram = new D.Diagram({

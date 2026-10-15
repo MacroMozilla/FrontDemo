@@ -102,7 +102,7 @@ B.minisearch = async function (ctx) {
     "typing, and fuzzy matching survives the typo.</p>";
   ctx.el.appendChild(host);
 
-  var input = searchBox(ctx, ctx.el, "Search 162 libraries…", function (v) { run(v); });
+  var input = searchBox(ctx, ctx.el, "Search " + docs.length + " libraries…", function (v) { run(v); });
 
   var c = cols(ctx);
   var resCard = card(ctx, c.a, "RESULTS", "Ranked by BM25-style score across three fields.");
@@ -205,7 +205,7 @@ B.flexsearch = async function (ctx) {
     "a word — at a real cost in index size, shown on the right.</p>";
   ctx.el.appendChild(host);
 
-  var input = searchBox(ctx, ctx.el, "Search the same 162 libraries…", function () { run(); });
+  var input = searchBox(ctx, ctx.el, "Search the same " + docs.length + " libraries…", function () { run(); });
 
   var c = cols(ctx);
   var resCard = card(ctx, c.a, "RESULTS", "Per-field results, merged and deduplicated.");

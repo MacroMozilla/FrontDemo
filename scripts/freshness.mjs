@@ -1,23 +1,25 @@
 /* Refreshes the "last update" facts in assets/js/data.js:
 
-     ver     latest version on npm (draw.io: latest GitHub release tag)
+     ver     latest version on npm (a library marked npm:false, such as
+             draw.io or SheetJS: the latest vX.Y.Z tag in its repository)
      pub     when that version was published
      commit  date of the newest commit on the repository's main line
      vend    the version actually running here, when it is not ver
-     kb      size of the files the demo loads, for builds made by
-             scripts/bundles (pinned builds keep the size recorded for them)
+     kb      size of the files the demo loads (an embedded app: the size
+             recorded for it)
 
    and window.CHECKED, the day the facts were last looked up.
 
-   The version running here comes from scripts/bundles/package.json for
-   the builds scripts/bundles makes, and from scripts/vendor-versions.json
-   for the pinned builds copied into vendor/ as published. Replace a pinned
-   build, and update its entry there.
+   The version running here is the one scripts/bundles/package.json pins,
+   since scripts/bundles builds everything in vendor/: the pin of the
+   library's package, or of the package named in its dist field when the
+   browser build comes from another one (highlight.js publishes its browser
+   build as @highlightjs/cdn-assets).
 
      node scripts/freshness.mjs           print what is current
      node scripts/freshness.mjs --write   also rewrite data.js (then run readme.mjs)
 
-   Needs network access to registry.npmjs.org and github.com, and git. */
+   Needs network access to registry.npmjs.org and to the repositories, and git. */
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -32,7 +34,13 @@ const write = process.argv.includes('--write');
 const win = {};
 new Function('window', fs.readFileSync(DATA, 'utf8'))(win);
 const pins = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/bundles/package.json'), 'utf8')).dependencies;
-const pinned = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/vendor-versions.json'), 'utf8'));
+
+/* A pin is a version, or the URL of a tarball named after its version
+   (SheetJS installs from cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz). */
+const pinnedVersion = (pin) => pin && (/-(\d+\.\d+\.\d+[^/]*)\.tgz$/.exec(pin) || [, pin])[1];
+
+/* A repository is a GitHub owner/name, or the URL of any git host. */
+const repoUrl = (repo) => /^https?:/.test(repo) ? repo : 'https://github.com/' + repo + '.git';
 
 /* Helper builds a demo loads that are not part of the library it shows. */
 const HELPERS = new Set(['d3']);
@@ -53,9 +61,9 @@ async function npmLatest(pkg) {
 /* The date of the commit a ref points at: just that commit is fetched,
    without history, trees or files. */
 async function commitDate(repo, ref) {
-  const dir = path.join(tmp, repo.replace('/', '_') + '_' + ref.replace(/\W/g, ''));
+  const dir = path.join(tmp, repo.replace(/\W/g, '_') + '_' + ref.replace(/\W/g, ''));
   await git('init', '-q', '--bare', dir);
-  await git('-C', dir, 'fetch', '-q', '--depth', '1', '--filter=tree:0', 'https://github.com/' + repo + '.git', ref);
+  await git('-C', dir, 'fetch', '-q', '--depth', '1', '--filter=tree:0', repoUrl(repo), ref);
   return git('-C', dir, 'log', '-1', '--format=%cs', 'FETCH_HEAD');
 }
 
@@ -64,7 +72,7 @@ async function commitDate(repo, ref) {
    branch (sigma.js's HEAD is archive/v0.1, last touched in 2014). */
 async function newestCommit(repo) {
   const seen = new Set(), dates = [];
-  for (const line of (await git('ls-remote', 'https://github.com/' + repo + '.git', 'HEAD', 'refs/heads/main', 'refs/heads/master')).split('\n')) {
+  for (const line of (await git('ls-remote', repoUrl(repo), 'HEAD', 'refs/heads/main', 'refs/heads/master')).split('\n')) {
     const [sha, ref] = line.split('\t');
     if (!ref || seen.has(sha)) continue;
     seen.add(sha);
@@ -73,9 +81,9 @@ async function newestCommit(repo) {
   return dates.sort().pop() || '';
 }
 
-/* draw.io is not on npm: its releases are vX.Y.Z tags on GitHub. */
+/* draw.io is not on npm, and SheetJS left it: their releases are vX.Y.Z tags. */
 async function latestTag(repo) {
-  const tags = (await git('ls-remote', '--tags', '--refs', 'https://github.com/' + repo + '.git'))
+  const tags = (await git('ls-remote', '--tags', '--refs', repoUrl(repo)))
     .split('\n').map(l => l.split('refs/tags/')[1]).filter(t => /^v\d+\.\d+\.\d+$/.test(t));
   tags.sort((a, b) => {
     const x = a.slice(1).split('.').map(Number), y = b.slice(1).split('.').map(Number);
@@ -101,10 +109,10 @@ async function look(l) {
     console.error('  ' + l.k + ': ' + String(e.message).split('\n')[0]);
     Object.assign(r, { ver: l.ver, pub: l.pub, commit: l.commit || '' });
   }
-  const running = l.k in pinned ? pinned[l.k] : pins[l.pkg];
+  const running = pinnedVersion(pins[l.dist || l.pkg]);
   r.vend = running && running !== r.ver ? running : '';
-  /* An embedded app is measured by hand, and a pinned build never changes. */
-  r.kb = l.ext || l.k in pinned ? l.kb : sizeKb(l);
+  /* An embedded app is measured by hand. */
+  r.kb = l.ext ? l.kb : sizeKb(l);
   return r;
 }
 

@@ -306,17 +306,19 @@ B.zod = async function (ctx) {
   right.innerHTML = '<div id="zod-out"></div>';
   p.b.appendChild(right);
 
+  /* Zod 4 spells string formats as top-level schemas: z.uuid(), z.email(),
+     z.url(), z.iso.datetime(). */
   var Schema = z.object({
-    id: z.string().uuid(),
-    email: z.string().email(),
+    id: z.uuid(),
+    email: z.email(),
     age: z.number().int().min(13).max(120),
     role: z.enum(["admin", "editor", "viewer"]),
     tags: z.array(z.string().min(2)).max(5),
     profile: z.object({
       displayName: z.string().min(2).max(32),
-      website: z.string().url().optional()
+      website: z.url().optional()
     }),
-    createdAt: z.string()
+    createdAt: z.iso.datetime()
   });
 
   var SAMPLES = {
@@ -336,7 +338,7 @@ B.zod = async function (ctx) {
       role: "owner",
       tags: ["a", "maps", "x", "y", "z", "too many"],
       profile: { displayName: "A", website: "notaurl" },
-      createdAt: "2026-03-14T09:30:00Z"
+      createdAt: "14/03/2026"
     },
     "missing fields": { email: "dev@example.com", role: "viewer" }
   };
@@ -382,7 +384,7 @@ B.zod = async function (ctx) {
     editor.value = JSON.stringify(SAMPLES[v], null, 2);
     validate(editor.value);
   }, "several problems");
-  ctx.label("schema: id uuid · email · age 13-120 · role enum · tags ≤5 · nested profile");
+  ctx.label("schema: id uuid · email · age 13-120 · role enum · tags ≤5 · nested profile · ISO date");
 };
 
 
@@ -459,11 +461,14 @@ B.jsyaml = async function (ctx) {
   var out = ctx.readout("");
   var view = "json", indent = 2, sortKeys = false, flowLevel = -1;
 
+  /* js-yaml 5 reads plain YAML 1.2 unless told otherwise. Merge keys (<<) and
+     timestamps are YAML 1.1 extras, added to the schema here as opt-in tags. */
+  var schema = jsyaml.CORE_SCHEMA.withTags(jsyaml.mergeTag, jsyaml.timestampTag);
+
   function run() {
     var text = ta.value;
     try {
-      var docs = [];
-      jsyaml.loadAll(text, function (d) { docs.push(d); });
+      var docs = jsyaml.loadAll(text, { schema: schema });
       var value = docs.length === 1 ? docs[0] : docs;
 
       var body;

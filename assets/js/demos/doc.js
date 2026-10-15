@@ -156,7 +156,7 @@ B.pdfjs = async function (ctx) {
     cv.width = vp.width; cv.height = vp.height;
     cv.style.width = (vp.width / Math.min(devicePixelRatio || 1, 2)) + "px";
     cv.style.height = (vp.height / Math.min(devicePixelRatio || 1, 2)) + "px";
-    await p.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+    await p.render({ canvas: cv, viewport: vp }).promise;
     var text = await p.getTextContent();
     out("page <b>" + pageNo + "</b> / " + pdf.numPages + " · " +
         Math.round(bytes.byteLength / 1024) + " KB of PDF · <b>" +
@@ -256,7 +256,7 @@ B.jspdf = async function (ctx) {
     var vp = pg.getViewport({ scale: (preview.clientWidth - 40) / pg.getViewport({ scale: 1 }).width * dpr });
     cv.width = vp.width; cv.height = vp.height;
     cv.style.width = (vp.width / dpr) + "px";
-    await pg.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+    await pg.render({ canvas: cv, viewport: vp }).promise;
 
     document.getElementById("jspdf-stats").innerHTML =
       "<dt>format</dt><dd>" + state.format.toUpperCase() + " " + state.orientation + "</dd>" +

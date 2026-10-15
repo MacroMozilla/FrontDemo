@@ -42,7 +42,8 @@ for (const grp of GROUPS) {
     out.push('|---|---|---|---|---|---|:--:|---|');
     for (const l of libs) {
       const rn = RN[l.c.split(/\s+/)[6]] || '?';
-      const pkg = l.npm === false ? '— (embedded from ' + esc(l.ext) + ')' : '`' + esc(l.pkg) + '`';
+      const pkg = l.ext ? '— (embedded from ' + esc(l.ext) + ')'
+        : '`' + esc(l.pkg) + '`' + (l.install ? ' (from ' + esc(new URL(l.install.split(' ').pop()).host) + ')' : '');
       out.push('| **' + esc(l.n) + '** | ' + pkg + ' | ' + '★'.repeat(l.st) +
         ' | ' + esc(l.lic) + ' | ' + size(l.kb) + ' | ' + lastUpdate(l) + ' | ' + rn + ' | ' + esc(l.what) + ' |');
     }

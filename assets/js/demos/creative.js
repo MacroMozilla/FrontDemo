@@ -255,9 +255,10 @@ B.rough = async function (ctx) {
 
 /* ------------------------------------------------------------- Excalidraw */
 B.exc = async function (ctx) {
-  var Ex = window.ExcalidrawLib;
-  var h = React.createElement;
-  var root = ReactDOM.createRoot(ctx.el);
+  /* An ES-module build that brings its own React (ctx.mod.React). */
+  var Ex = ctx.mod;
+  var h = Ex.React.createElement;
+  var root = Ex.ReactDOM.createRoot(ctx.el);
   ctx.tall();
 
   var api = null;
@@ -265,8 +266,11 @@ B.exc = async function (ctx) {
     h(Ex.Excalidraw, {
       theme: ctx.dark ? "dark" : "light",
       excalidrawAPI: function (a) { api = a; },
+      /* Excalidraw draws dark mode by inverting the canvas, so colours are
+         given for the light theme only; in the dark one its defaults (a white
+         page and black ink) come out as a dark page with light ink. */
       initialData: {
-        appState: { viewBackgroundColor: ctx.T.stage, currentItemStrokeColor: ctx.series(0) },
+        appState: ctx.dark ? {} : { viewBackgroundColor: ctx.T.stage, currentItemStrokeColor: ctx.series(0) },
         scrollToContent: true
       },
       UIOptions: { canvasActions: { loadScene: false, saveToActiveFile: false, export: false } }

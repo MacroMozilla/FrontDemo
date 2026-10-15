@@ -203,14 +203,17 @@ B.me = async function (ctx) {
     }
   };
 
-  var me = new MindElixir({
+  /* The browser build is the module itself: the class is its default export,
+     next to the layout and theme constants. */
+  var ME = window.MindElixir;
+  var me = new ME.default({
     el: host,
-    direction: MindElixir.SIDE,
+    direction: ME.SIDE,
     draggable: true,
     contextMenu: true,
     toolBar: true,
     keypress: true,
-    theme: ctx.dark ? MindElixir.DARK_THEME : MindElixir.THEME
+    theme: ctx.dark ? ME.DARK_THEME : ME.THEME
   });
   me.init(data);
 
@@ -218,8 +221,8 @@ B.me = async function (ctx) {
   me.bus.addListener("operation", function (op) {
     out("operation <b>" + op.name + "</b> — undo and redo are built in");
   });
-  me.bus.addListener("selectNode", function (node) {
-    out("selected <b>" + node.topic + "</b>");
+  me.bus.addListener("selectNodes", function (nodes) {
+    if (nodes && nodes.length) out("selected <b>" + nodes.map(function (n) { return n.topic; }).join(", ") + "</b>");
   });
 
   ctx.btn("Expand all", function () {
@@ -231,13 +234,15 @@ B.me = async function (ctx) {
     out("<b>" + JSON.stringify(d).length + " bytes</b> of JSON describe the whole map");
   });
   ctx.select("layout", [
-    { v: String(MindElixir.SIDE), t: "both sides" },
-    { v: String(MindElixir.LEFT), t: "left" },
-    { v: String(MindElixir.RIGHT), t: "right" }
-  ], function (v) { me.initSide ? me.initSide() : null; me.direction = Number(v); me.refresh(); },
-     String(MindElixir.SIDE));
+    { v: String(ME.SIDE), t: "both sides" },
+    { v: String(ME.LEFT), t: "left" },
+    { v: String(ME.RIGHT), t: "right" }
+  ], function (v) {
+    v = Number(v);
+    if (v === ME.LEFT) me.initLeft(); else if (v === ME.RIGHT) me.initRight(); else me.initSide();
+  }, String(ME.SIDE));
 
-  ctx.onDestroy(function () { host.innerHTML = ""; });
+  ctx.onDestroy(function () { me.destroy(); host.innerHTML = ""; });
 };
 
 })();
