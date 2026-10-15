@@ -589,20 +589,24 @@ B.filepond = async function (ctx) {
     });
   }
 
-  pond.addFile(fakeCsv(400));
-  pond.addFile(await fakePng(320));
-  ctx.after(400, function () { pond.processFiles(); });
+  /* FilePond's promises reject when a file is refused, fails to upload or
+     is removed mid-upload; the callbacks above already report each case. */
+  function quiet() {}
 
-  ctx.btn("Add a generated PNG", async function () { pond.addFile(await fakePng(160 + Math.floor(Math.random() * 400))); }, true);
-  ctx.btn("Add a CSV", function () { pond.addFile(fakeCsv(2000)); });
+  pond.addFile(fakeCsv(400)).catch(quiet);
+  pond.addFile(await fakePng(320)).catch(quiet);
+  ctx.after(400, function () { pond.processFiles().catch(quiet); });
+
+  ctx.btn("Add a generated PNG", async function () { pond.addFile(await fakePng(160 + Math.floor(Math.random() * 400))).catch(quiet); }, true);
+  ctx.btn("Add a CSV", function () { pond.addFile(fakeCsv(2000)).catch(quiet); });
   ctx.btn("Add an oversized file", function () {
     var big = new Uint8Array(4 * 1024 * 1024);
-    pond.addFile(new File([big], "too-big.bin", { type: "application/octet-stream" }));
+    pond.addFile(new File([big], "too-big.bin", { type: "application/octet-stream" })).catch(quiet);
   });
-  ctx.btn("Upload all", function () { failNext = false; pond.processFiles(); });
+  ctx.btn("Upload all", function () { failNext = false; pond.processFiles().catch(quiet); });
   ctx.btn("Upload and fail", function () {
     failNext = true;
-    pond.processFiles().then(function () { failNext = false; });
+    pond.processFiles().catch(quiet).then(function () { failNext = false; });
   });
   ctx.select("upload speed", [{ v: "0.4", t: "slow" }, { v: "1", t: "normal" }, { v: "3", t: "fast" }],
     function (v) { speed = +v; }, "1");
