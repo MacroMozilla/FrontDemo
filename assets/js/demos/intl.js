@@ -309,7 +309,9 @@ B.luxon = async function (ctx) {
   }
 
   function drawDur() {
-    var d = Duration.fromObject({ hours: 50, minutes: 135, seconds: 90 });
+    /* Durations format through Intl too, so they follow the locale picker
+       rather than the browser's language. */
+    var d = Duration.fromObject({ hours: 50, minutes: 135, seconds: 90 }, { locale: locale });
     var iv = Interval.fromDateTimes(
       DateTime.fromISO("2026-01-01T09:00", { zone: "utc" }),
       DateTime.fromISO("2026-01-01T17:30", { zone: "utc" }));
@@ -318,7 +320,7 @@ B.luxon = async function (ctx) {
       [".shiftTo('days','hours','minutes')", d.shiftTo("days", "hours", "minutes").toHuman({ maximumFractionDigits: 0 })],
       [".rescale()", d.rescale().toHuman({ maximumFractionDigits: 0 })],
       [".toISO()", d.toISO()],
-      ["Interval 09:00 → 17:30 length", iv.toDuration(["hours", "minutes"]).toHuman()],
+      ["Interval 09:00 → 17:30 length", iv.toDuration(["hours", "minutes"]).reconfigure({ locale: locale }).toHuman()],
       [".splitBy({ hours: 2 })", iv.splitBy({ hours: 2 }).map(function (s) {
         return s.start.toFormat("HH:mm");
       }).join(" · ")],
@@ -490,7 +492,7 @@ B.datefns = async function (ctx) {
       ["formatDistance(selected, now)", fns.formatDistance(d, now, { addSuffix: true })],
       ["formatDistanceStrict(…)", fns.formatDistanceStrict(d, now, { addSuffix: true })],
       ["formatRelative(selected, now)", fns.formatRelative(d, now)],
-      ["intlFormatDistance(…)", fns.intlFormatDistance(d, now)],
+      ["intlFormatDistance(…)", fns.intlFormatDistance(d, now, { locale: "en-US" })],   /* Intl would follow the browser */
       ["differenceInCalendarDays", fns.differenceInCalendarDays(d, now)],
       ["differenceInBusinessDays", fns.differenceInBusinessDays(d, now)],
       ["differenceInCalendarWeeks", fns.differenceInCalendarWeeks(d, now)]
