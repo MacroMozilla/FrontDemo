@@ -142,9 +142,16 @@ kbd {
 }
 .cat > summary::-webkit-details-marker { display: none; }
 .cat > summary:hover { background: var(--panel); color: var(--ink); }
-.cat > summary .arw { font-size: 9px; color: var(--muted); transition: transform .14s; flex: 0 0 auto; width: 9px; }
+.cat > summary .arw {
+  font-size: 9px; color: var(--muted); transition: transform .14s; flex: 0 0 auto; width: 9px;
+  padding: 4px 3px; margin: -4px -3px; box-sizing: content-box;   /* a bigger target: it alone folds */
+}
 .cat[open] > summary .arw { transform: rotate(90deg); }
-.cat > summary .n { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat > summary .n {
+  flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: inherit; text-decoration: none;
+}
+.cat.cur > summary { color: var(--ink); background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .cat > summary .c { font-family: var(--mono); font-size: 9.5px; color: var(--muted); }
 .cat[data-has-hit="1"] > summary .c { color: var(--accent); }
 .cat-items { padding: 1px 0 4px 8px; margin-left: 9px; border-left: 1px solid var(--line); }
@@ -158,6 +165,8 @@ kbd {
 .item.on { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--ink); font-weight: 600; }
 .item.on .dot { background: var(--accent); }
 .item .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--line-2); flex: 0 0 auto; }
+.item.vis { color: var(--ink); }
+.item.vis .dot { background: var(--accent); }
 .item .nm { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .item .st { font-family: var(--mono); font-size: 9px; color: var(--muted); flex: 0 0 auto; }
 .item[hidden], .cat[hidden] { display: none; }
@@ -288,6 +297,109 @@ kbd {
   font-family: var(--mono); font-size: 9px; letter-spacing: .13em; text-transform: uppercase;
   color: var(--accent); flex: 0 0 auto; padding-top: 3px;
 }
+
+/* ---------------- category page: one panel per library ----------------
+   Two panels to a row (three on very wide screens), each half a screen
+   tall, so a big screen shows four or six at once. */
+.cat-head { padding: 2px 0 14px; }
+.cat-title { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.cat-title h2 { font-size: 23px; letter-spacing: -.022em; }
+.cat-title .n { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+.cat-title .g { font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.cat-blurb { margin: 4px 0 0; color: var(--ink-2); font-size: 13.5px; max-width: 96ch; line-height: 1.55; }
+.cat-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 11px; }
+.cat-hint { font-size: 11.5px; color: var(--muted); }
+.cat-hint b { color: var(--ink-2); font-weight: 600; }
+.cat-hint .ht { display: none; }
+@media (pointer: coarse) { .cat-hint .hm { display: none; } .cat-hint .ht { display: inline; } }
+.seg { display: inline-flex; align-items: stretch; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; background: var(--panel); }
+.seg .k { font-size: 11px; color: var(--muted); padding: 4px 9px; }
+.seg button {
+  font: inherit; font-size: 12px; background: none; border: 0; border-left: 1px solid var(--line);
+  color: var(--ink-2); padding: 3px 11px; cursor: pointer;
+}
+.seg button:hover { color: var(--ink); background: var(--panel-2); }
+.seg button.on { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--ink); font-weight: 650; }
+
+.pgrid {
+  --cols: 2;
+  --ph: clamp(380px, calc(50vh - 40px), 820px);
+  display: grid; gap: 14px; position: relative;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+}
+.pgrid[data-cols="1"] { --cols: 1; --ph: clamp(420px, calc(100vh - 150px), 920px); }
+.pgrid[data-cols="3"] { --cols: 3; }
+@media (max-width: 1279px) { .pgrid[data-cols="auto"] { --cols: 1; --ph: clamp(400px, calc(100vh - 160px), 780px); } }
+@media (min-width: 2160px) { .pgrid[data-cols="auto"] { --cols: 3; } }
+
+.panel {
+  height: var(--ph); min-width: 0;
+  display: flex; flex-direction: column;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  overflow: hidden; box-shadow: var(--shadow);
+}
+.panel.big { grid-column: 1 / -1; height: clamp(480px, calc(100vh - 90px), 1100px); }
+.panel.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), var(--shadow); }
+.panel.flash { animation: flash 1.3s ease-out; }
+@keyframes flash {
+  0%, 35% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 65%, transparent), var(--shadow); }
+  100% { box-shadow: var(--shadow); }
+}
+.panel.dragging { z-index: 25; opacity: .96; box-shadow: 0 22px 60px -14px rgba(0,0,0,.6); }
+body.dragging-panel { user-select: none; cursor: grabbing; }
+body.dragging-panel iframe { pointer-events: none; }
+
+.ph { display: flex; align-items: flex-start; gap: 6px; padding: 7px 9px 7px 5px; border-bottom: 1px solid var(--line); flex: 0 0 auto; }
+.grip {
+  flex: 0 0 auto; cursor: grab; touch-action: none;
+  background: none; border: 0; color: var(--muted); font-size: 17px; line-height: 1;
+  padding: 7px 5px; border-radius: 6px;
+}
+.grip:hover, .grip:focus-visible { color: var(--ink); background: var(--sunk); }
+.dragging .grip { cursor: grabbing; }
+.pt { flex: 1 1 auto; min-width: 0; }
+.pn { display: flex; align-items: baseline; gap: 8px; min-width: 0; white-space: nowrap; }
+.pn .nm { font-size: 14px; font-weight: 650; color: var(--ink); flex: 0 0 auto; }
+.pn .nm:hover { color: var(--accent); text-decoration: none; }
+.pn .stars { font-size: 10px; flex: 0 0 auto; }
+.pn .pv { font-family: var(--mono); font-size: 10.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.pn .pv .warn { color: var(--part); font-weight: 500; }
+.pw { margin: 1px 0 0; font-size: 12px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pa { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; padding-top: 1px; }
+.pa button, .pa a {
+  font: inherit; font-size: 11px; line-height: 1; cursor: pointer;
+  background: var(--sunk); color: var(--ink-2); border: 1px solid var(--line); border-radius: 6px;
+  min-width: 26px; height: 24px; padding: 0 7px; display: inline-flex; align-items: center; justify-content: center;
+}
+.pa button:hover:not(:disabled), .pa a:hover { border-color: var(--accent); color: var(--ink); text-decoration: none; }
+.pa button:disabled { opacity: .35; cursor: default; }
+.pa .mv .v { display: none; }
+.pgrid[data-cols="1"] .mv .h { display: none; }
+.pgrid[data-cols="1"] .mv .v { display: inline; }
+@media (max-width: 1279px) {
+  .pgrid[data-cols="auto"] .mv .h { display: none; }
+  .pgrid[data-cols="auto"] .mv .v { display: inline; }
+}
+
+.pbody { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; position: relative; }
+.panel .stage-bar { padding: 5px 10px; min-height: 37px; gap: 8px; }
+.panel .stage, .panel .stage.tall { flex: 1 1 0; height: auto; min-height: 0; }
+
+/* A panel not clicked into lets the wheel scroll the page (see wireGrid).
+   On a touch screen a finger would pan it instead, and an iframe takes
+   everything, so those stages are covered until clicked into. */
+.panel.frame:not(.on) .stage::after { content: ""; position: absolute; inset: 0; z-index: 7; cursor: pointer; }
+@media (pointer: coarse) {
+  .panel:not(.on) .stage::after { content: ""; position: absolute; inset: 0; z-index: 7; }
+}
+.wheel-hint {
+  position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 8;
+  pointer-events: none; white-space: nowrap; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis;
+  background: color-mix(in srgb, var(--ink) 88%, transparent); color: var(--bg);
+  font-size: 12px; padding: 5px 13px; border-radius: 20px;
+  opacity: 0; transition: opacity .2s;
+}
+.wheel-hint.on { opacity: 1; }
 
 /* ---------------- info cards ---------------- */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(272px, 1fr)); gap: 12px; margin-top: 16px; }
@@ -447,10 +559,19 @@ table.m.cmp td.ver .p { display: block; font-size: 9.5px; color: var(--muted); }
   .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 55; }
   .scrim.on { display: block; }
   .stage { height: clamp(300px, 52vh, 460px); }
+  .pgrid[data-cols] { --cols: 1; --ph: clamp(360px, 76vh, 620px); }
+  .pgrid[data-cols] .mv .h { display: none; }
+  .pgrid[data-cols] .mv .v { display: inline; }
+  .pgrid[data-cols] .panel.big { height: clamp(420px, 86vh, 760px); }
+  .seg { display: none; }
   .hero h2 { font-size: 26px; }
   .pad { padding: 16px 14px 70px; }
 }
-@media (prefers-reduced-motion: reduce) { .side { transition: none; } .main { scroll-behavior: auto; } }
+@media (prefers-reduced-motion: reduce) {
+  .side { transition: none; }
+  .main { scroll-behavior: auto; }
+  .panel.flash { animation: none; }
+}
 
 /* ==================================================================
    Demo primitives — shared building blocks the individual demos use

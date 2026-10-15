@@ -75,6 +75,9 @@ B.fb = async function (ctx) {
   ctx.el.appendChild(cv);
 
   var F = window.fabric;
+  /* Fabric 7 positions objects by their centre; the coordinates below are
+     top-left corners, as they were before 7. */
+  F.FabricObject && Object.assign(F.FabricObject.ownDefaults, { originX: "left", originY: "top" });
   var canvas = new F.Canvas(cv, {
     backgroundColor: T.stage,
     selection: true,
@@ -111,7 +114,8 @@ B.fb = async function (ctx) {
       function () { return new F.Triangle({ width: 80, height: 80 }); }
     ];
     var o = kinds[Math.floor(Math.random() * 3)]();
-    o.set({ left: 40 + Math.random() * 500, top: 320 + Math.random() * 80,
+    o.set({ left: 40 + Math.random() * Math.max(100, cv.width - 180),
+            top: Math.min(320, Math.max(40, canvas.height - 130)) + Math.random() * 60,
             fill: ctx.series(Math.floor(Math.random() * 8)), angle: Math.random() * 40 - 20 });
     canvas.add(o); canvas.setActiveObject(o); canvas.renderAll();
   });

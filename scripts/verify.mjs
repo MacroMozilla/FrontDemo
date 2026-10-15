@@ -1,8 +1,14 @@
-/* Drives every library page in headless Chromium and reports anything
-   that fails to start. Usage:
-     node scripts/verify.mjs            all libraries
-     node scripts/verify.mjs xyf x6     only these
+/* Drives every library page and every category page in headless Chromium
+   and reports anything that fails to start. Usage:
+     node scripts/verify.mjs            every library page, then every category page
+     node scripts/verify.mjs xyf x6     only these libraries, and the categories they are in
+     node scripts/verify.mjs --libs     library pages only
+     node scripts/verify.mjs --cats     category pages only
      node scripts/verify.mjs --shots    also write screenshots to /tmp/fd-shots
+
+   A category page runs all of its libraries at once, one panel each, so it
+   also catches demos that get in each other's way: an element id used in
+   two panels, a page-wide listener or stylesheet that breaks a neighbour.
 */
 import { chromium } from 'playwright';
 import fs from 'fs';
@@ -11,7 +17,8 @@ import http from 'http';
 import { fileURLToPath } from 'url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MIME = { '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8',
+const MIME = { '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
+               '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8',
                '.json': 'application/json', '.woff2': 'font/woff2', '.svg': 'image/svg+xml',
                '.png': 'image/png', '.wasm': 'application/wasm' };
 
@@ -42,8 +49,10 @@ new Function('window', fs.readFileSync(path.join(ROOT, 'assets/js/data.js'), 'ut
 
 const args = process.argv.slice(2);
 const shots = args.includes('--shots');
+const doLibs = !args.includes('--cats'), doCats = !args.includes('--libs');
 const only = args.filter(a => !a.startsWith('--'));
-const libs = win.LIBS.filter(l => !only.length || only.includes(l.k));
+const libs = doLibs ? win.LIBS.filter(l => !only.length || only.includes(l.k)) : [];
+const cats = doCats ? win.CATS.filter(c => win.LIBS.some(l => l.cat === c.id && (!only.length || only.includes(l.k)))) : [];
 const unknown = only.filter(k => !win.LIBS.some(l => l.k === k));
 if (unknown.length) {
   console.error('no such library: ' + unknown.join(' ') + '\nkeys: ' + win.LIBS.map(l => l.k).join(' '));
@@ -68,6 +77,7 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 950 }, loc
 
 let errors = [];
 page.on('pageerror', e => errors.push('pageerror: ' + e.message.split('\n')[0].slice(0, 160)));
+/* A 404 from inside draw.io's frame (its notifications feed) is not ours. */
 page.on('console', m => {
   if (m.type() === 'error') {
     const t = m.text().slice(0, 160);
@@ -114,6 +124,55 @@ async function attempt(l) {
   return { ok: state === 'ok' && painted > 0 && errs.length === 0, state, painted, errors: errs };
 }
 
+/* The stage message of one panel: loading, ok, or the error it shows. */
+function panelState(k) {
+  return page.evaluate(k => {
+    const m = document.querySelector('.panel[data-k="' + k + '"] .stage-msg');
+    if (!m) return 'nomsg';
+    if (m.classList.contains('err')) return 'ERR:' + m.textContent.trim().replace(/\s+/g, ' ').slice(0, 170);
+    return m.classList.contains('on') ? 'loading' : 'ok';
+  }, k);
+}
+
+/* Opens a category page and brings each panel into view in turn (panels
+   start when they are seen), then checks every one of them is up and
+   painted, with no element id shared between two panels. */
+async function attemptCat(c) {
+  errors = [];
+  await page.goto(`http://localhost:${PORT}/#/c/${c.id}`, { waitUntil: 'load' });
+  await page.evaluate(id => { location.hash = '#/c/' + id; }, c.id);
+  await page.waitForTimeout(200);
+  const keys = await page.evaluate(() => [...document.querySelectorAll('.panel')]
+    .sort((a, b) => a.style.order - b.style.order).map(p => p.dataset.k));
+  const state = {};
+  for (const k of keys) {
+    await page.evaluate(([id, k]) => { location.hash = '#/c/' + id + '/' + k; }, [c.id, k]);
+    const t0 = Date.now();
+    do {
+      await page.waitForTimeout(220);
+      state[k] = await panelState(k);
+    } while (state[k] === 'loading' && Date.now() - t0 < 22000);
+    if (state[k] === 'loading') state[k] = 'timeout';
+  }
+  await page.waitForTimeout(800);
+  const info = await page.evaluate(() => {
+    const ids = {};
+    document.querySelectorAll('[id]').forEach(e => {
+      const p = e.closest('.panel');
+      (ids[e.id] = ids[e.id] || new Set()).add(p ? p.dataset.k : 'page');
+    });
+    const painted = {};
+    document.querySelectorAll('.panel').forEach(p => {
+      const m = p.querySelector('.mount'), r = m.getBoundingClientRect();
+      painted[p.dataset.k] = m.children.length && r.width > 40 && r.height > 40 ? m.querySelectorAll('*').length + 1 : 0;
+    });
+    return { shared: Object.keys(ids).filter(i => ids[i].size > 1).map(i => i + ' (' + [...ids[i]].join(', ') + ')'), painted };
+  });
+  const failing = keys.filter(k => state[k] !== 'ok' || !info.painted[k]).map(k => k + ': ' + (state[k] === 'ok' ? 'nothing painted' : state[k]));
+  const errs = errors.slice(0, 3);
+  return { ok: !failing.length && !info.shared.length && !errs.length, n: keys.length, failing, shared: info.shared, errors: errs };
+}
+
 const bad = [];
 for (const l of libs) {
   let r = await attempt(l);
@@ -129,9 +188,30 @@ for (const l of libs) {
   if (shots) await page.screenshot({ path: `/tmp/fd-shots/${l.k}.png`, clip: { x: 0, y: 0, width: 1440, height: 950 } });
 }
 
-console.log(`\n${libs.length - bad.length}/${libs.length} ok`);
+const badCats = [];
+if (cats.length && libs.length) console.log('');
+for (const c of cats) {
+  let r = await attemptCat(c);
+  if (!r.ok && !r.failing.length && !r.shared.length && r.errors.every(NET_ONLY)) r = await attemptCat(c);
+  if (!r.ok) badCats.push(c.id);
+  console.log(
+    (r.ok ? '  ok  ' : ' FAIL ') + ('#/c/' + c.id).padEnd(16) + String(r.n).padStart(2) + ' panels' +
+    (r.failing.length ? '  ' + r.failing.join('; ') : '') +
+    (r.shared.length ? '  ids in two panels: ' + r.shared.slice(0, 4).join(', ') : '') +
+    (r.errors.length ? '  ⟨' + r.errors.slice(0, 2).join(' | ') + '⟩' : '')
+  );
+  if (shots) {
+    await page.evaluate(() => { const m = document.getElementById('main'); m.style.scrollBehavior = 'auto'; m.scrollTop = 0; });
+    await page.waitForTimeout(700);
+    await page.screenshot({ path: `/tmp/fd-shots/c-${c.id}.png` });
+  }
+}
+
+if (libs.length) console.log(`\n${libs.length - bad.length}/${libs.length} library pages ok`);
 if (bad.length) console.log('failing: ' + bad.map(b => b.k).join(' '));
+if (cats.length) console.log(`${cats.length - badCats.length}/${cats.length} category pages ok`);
+if (badCats.length) console.log('failing: ' + badCats.join(' '));
 
 await browser.close();
 server.close();
-process.exit(bad.length ? 1 : 0);
+process.exit(bad.length || badCats.length ? 1 : 0);

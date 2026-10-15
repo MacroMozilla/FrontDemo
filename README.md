@@ -3,8 +3,9 @@
 **A playground for front-end libraries. 150 of them, across 36 categories, each one actually running
 in the page — nine diagram editors among them, drawing the same flowchart side by side.**
 
-Pick a library from the sidebar and you get it mounted on a real stage, with controls that drive its
-actual API — not a screenshot, not a canned recording, not a code sample you have to imagine working.
+Pick a category from the sidebar and every library in it opens at once, side by side, each mounted on
+a live panel with controls that drive its actual API — not a screenshot, not a canned recording, not a
+code sample you have to imagine working.
 
 Live: <https://macromozilla.github.io/FrontDemo/>
 
@@ -13,10 +14,31 @@ Live: <https://macromozilla.github.io/FrontDemo/>
 ## Why this exists
 
 Choosing a front-end library usually means reading three README files, opening two CodeSandboxes that
-have rotted, and still not knowing how the thing feels. This site is the other approach: one page per
-library, the library running, and an honest sentence about where it falls down.
+have rotted, and still not knowing how the thing feels. This site is the other approach: the candidates
+running next to each other, and an honest sentence about where each one falls down.
 
-Each library page gives you:
+### Category panels
+
+A category opens as a grid of panels, one per library, all running at once:
+
+- **Two to a row, half a screen tall**, so a desktop screen shows four at a time; three to a row on a
+  very wide screen (2160 px and up), so six; one to a row on narrow screens. The *Per row* buttons
+  pick 1, 2 or 3 instead, and that choice is remembered.
+- **Reorder, never remove.** Drag a panel by **⠿**, press **◀ ▶** in its header, or focus **⠿** and use
+  the arrow keys. The order is remembered per category; *Reset order* goes back to the default. There
+  is no way to close a panel.
+- **One long page.** More panels than fit simply continue below; the wheel scrolls the page.
+- **The wheel scrolls the page, even over a map or an editor.** Maps, diagram editors, 3D scenes and
+  graphs all take the wheel to zoom, which would leave nothing to scroll the page with. A panel only
+  gets the wheel after you click into it (it gets a blue outline) until you click elsewhere; Ctrl or
+  Cmd with the wheel, or a trackpad pinch, always reaches it. On a touch screen a panel likewise takes
+  a tap before it takes a drag, and the draw.io panel (an iframe) a click.
+- **⤢ widens a panel** to the full row and most of the screen's height, and the demo refits.
+- A panel starts its library when it scrolls into view, and keeps running after that; off screen its
+  animation loops idle. Each panel header has the name, rating, version, last update and a one-line
+  summary; **Details** opens the library's own page.
+
+Each library's own page gives you:
 
 | | |
 |---|---|
@@ -44,8 +66,8 @@ feedback · scroll and layout · templating and text · storage, files and worke
 internationalization · client-side search · crypto and identifiers · games and audio · delight and
 micro-interactions · icons
 
-Nothing here is a stub. Every one of the 150 pages runs its library for real, and
-`scripts/verify.mjs` drives them all in headless Chromium.
+Nothing here is a stub. Every one of the 150 libraries runs for real, on its own page and in its
+category's panels, and `scripts/verify.mjs` drives them all in headless Chromium.
 
 ## Fit for production
 
@@ -192,7 +214,7 @@ index.html                  the shell — everything else is rendered by JS
 assets/css/app.css          layout, both themes, and the shared demo primitives
 assets/css/lib/*.css        per-library stylesheets (and KaTeX's fonts), loaded on demand
 assets/js/data.js           ★ single source of truth: libraries, categories, capabilities
-assets/js/app.js            sidebar, search, routing, theming, the demo context API
+assets/js/app.js            sidebar, search, routing, theming, the category panels, the demo context API
 assets/js/demos/*.js        one file per area; every demo builder lives here
                             (diagram.js holds the nine editors and their shared flowchart)
 assets/fragments/*.html     HTML fragments the htmx demo fetches
@@ -203,7 +225,7 @@ vendor/maplibre/            MapLibre's ES module and its worker
 scripts/bundles/            produces everything in vendor/ from the versions in its package.json
 scripts/freshness.mjs       refreshes versions, release and commit dates, and sizes in data.js
 scripts/check.mjs           static checks, run in CI on every pull request and push to main
-scripts/verify.mjs          drives every page in headless Chromium
+scripts/verify.mjs          drives every library page and every category page in headless Chromium
 scripts/audit.mjs           screenshots every stage and measures what was actually painted
 scripts/montage.mjs         tiles the audit screenshots into contact sheets
 scripts/readme.mjs          regenerates the library tables in this file from data.js
@@ -245,13 +267,20 @@ marks a demo that looks the same in either theme, so a theme switch leaves it ru
 editor in `diagram.js` uses that file's helpers instead: `paper(ctx)` for the white page, `counter`
 for the node and edge readout, `dataButton` for the Data panel, and `FLOW` for the flowchart.
 
+Your demo runs in a panel next to every other library of its category, so it has to share the page:
+prefix any element ids, look elements up inside `ctx.el` rather than the whole document, and add
+window or document listeners with `ctx.on`, so they go when the panel does. `onResize` fires whenever
+the stage changes size — a resized window, a widened panel, a toolbar that wrapped — and a demo that
+uses `ctx.raf` for its animation gets paused for free while its panel is off screen.
+
 4. Run the checks:
 
 ```bash
 node scripts/check.mjs             # registry integrity, missing builders, missing vendor files
 node scripts/readme.mjs            # regenerate the library tables in README.md
-node scripts/verify.mjs            # every page in headless Chromium
-node scripts/verify.mjs mylib      # just yours
+node scripts/verify.mjs            # every library page, then every category page, in headless Chromium
+node scripts/verify.mjs mylib      # just yours, on its own page and among its category's panels
+node scripts/verify.mjs --libs     # library pages only (--cats: category pages only)
 node scripts/verify.mjs --shots    # also write screenshots to /tmp/fd-shots
 node scripts/audit.mjs mylib       # did it actually paint anything?
 ```
@@ -266,6 +295,9 @@ npx playwright install chromium
 
 `verify.mjs`, `audit.mjs` and `shot.mjs` present an ordinary Chrome user agent and honour `HTTPS_PROXY`,
 because the draw.io page has to reach embed.diagrams.net.
+
+A category page runs all of its demos at once, so `verify.mjs` checks every panel there too, and
+fails an element id found in two panels.
 
 `verify.mjs` only proves a demo ran without throwing — a blank canvas passes it. `audit.mjs` is the
 answer to that: it screenshots each stage through the Chrome DevTools Protocol (so animated pages
@@ -338,6 +370,9 @@ adapt the demo where the API changed. The October 2026 round of upgrades changed
 | hotkeys-js 4 | `hotkeys.trigger()` passes the handler an empty object where the keyboard event used to be |
 | Mermaid 12, Mind Elixir 5 | Their official browser builds replace the hand-made bundles the site used to carry |
 | Excalidraw 0.18 | ES modules only; the page runs its own copy of React, and its fonts are served from `vendor/excalidraw/` |
+| Fabric.js 7 | Objects are positioned by their centre (`originX`/`originY` default to `center`); the demo sets them back to the top-left corner its coordinates use |
+| Pickr 1.10 | The `default` colour option is ignored; the demo sets its starting colour with `setColor()` once the picker is up |
+| Mind Elixir 5 | Sets `position: relative` on the element it is given, so that element needs an explicit size |
 
 ## Deployment
 
