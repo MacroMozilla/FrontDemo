@@ -217,7 +217,7 @@ B.bab = async function (ctx) {
     });
     camera.alpha += .0016 * spin;
   });
-  engine.runRenderLoop(function () {
+  function frame() {
     scene.render();
     frames++;
     var now = performance.now();
@@ -226,7 +226,10 @@ B.bab = async function (ctx) {
           " meshes with PBR materials and soft shadows");
       frames = 0; last = now;
     }
-  });
+  }
+  engine.runRenderLoop(frame);
+  /* Babylon renders from a loop of its own: stop it while the panel is out of view. */
+  ctx.onVisible(function (on) { if (on) engine.runRenderLoop(frame); else engine.stopRenderLoop(frame); });
 
   ctx.range("speed", { min: 0, max: 30, value: 10, fmt: function (v) { return (v / 10).toFixed(1) + "×"; } },
             function (v) { spin = v / 10; });

@@ -235,6 +235,15 @@ const SHARED = {
   vueflow: { vue: 'Vue' }
 };
 
+/* Rules a published stylesheet aims at the whole page, scoped to the
+   library's own elements: a category page runs every library of the
+   category at once, so its stylesheet applies to all the panels around it.
+   LogicFlow's bare :focus{outline:none} would take every focus ring off
+   the page. */
+const RESTYLE = {
+  logicflow: css => css.replace(/(^|\})\s*:focus\{outline:none\}/, '$1.lf-graph :focus{outline:none}')
+};
+
 /* assets/css/lib/<name>.css, copied from the published stylesheet (several
    files are joined in order), built together with vendor/<name>.js. */
 const STYLES = {
@@ -399,13 +408,13 @@ const TASKS = {};
 for (const [name, from] of Object.entries(COPIED)) {
   TASKS[name] = async () => {
     copyJs(from, name + '.js');
-    if (STYLES[name]) copyCss(STYLES[name], name + '.css');
+    if (STYLES[name]) copyCss(STYLES[name], name + '.css', RESTYLE[name]);
   };
 }
 for (const [name, globalName] of Object.entries(BUNDLED)) {
   TASKS[name] = async () => {
     await iife(name + '.js', globalName, name + '.js', SHARED[name]);
-    if (STYLES[name]) copyCss(STYLES[name], name + '.css');
+    if (STYLES[name]) copyCss(STYLES[name], name + '.css', RESTYLE[name]);
   };
 }
 

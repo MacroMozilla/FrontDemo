@@ -171,6 +171,12 @@ B.matter = async function (ctx) {
   var runner = M.Runner.create();
   M.Runner.run(runner, engine);
   M.Render.run(render);
+  /* The runner and the renderer are loops of their own: stop both while
+     the panel is out of view. */
+  ctx.onVisible(function (on) {
+    if (on) { M.Runner.run(runner, engine); M.Render.run(render); }
+    else { M.Runner.stop(runner); M.Render.stop(render); }
+  });
 
   spawn(60);
 
