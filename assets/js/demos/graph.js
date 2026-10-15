@@ -21,50 +21,75 @@ function sample(n, extra, seed) {
 B.g6 = async function (ctx) {
   var T = ctx.T;
   var data = sample(46, 12);
-  var graph = null;
 
-  function build(layoutType) {
-    if (graph) { graph.destroy(); ctx.el.innerHTML = ""; }
-    graph = new G6.Graph({
-      container: ctx.el,
-      autoFit: "view",
-      background: T.stage,
-      data: {
-        nodes: data.nodes.map(function (n) { return { id: n.id, data: { group: n.group } }; }),
-        edges: data.links.map(function (l, i) { return { id: "e" + i, source: l.source, target: l.target }; })
-      },
-      node: {
-        style: {
-          size: 18,
-          fill: function (d) { return ctx.series(d.data.group); },
-          stroke: T.stage, lineWidth: 1.5,
-          labelText: function (d) { return d.id; },
-          labelFill: T.muted, labelFontSize: 9, labelPlacement: "bottom"
-        },
-        state: { active: { fill: T.accent, halo: true, labelFill: T.ink, labelFontSize: 11 } }
-      },
-      edge: { style: { stroke: T.edge, lineWidth: 1, endArrow: false, strokeOpacity: .55 } },
-      layout: layoutType === "force"
-        ? { type: "d3-force", link: { distance: 62 }, collide: { radius: 18 } }
-        : { type: layoutType },
-      behaviors: ["drag-canvas", "zoom-canvas", "drag-element", "hover-activate"]
-    });
-    graph.render();
+  /* With the force layout a dragged node pulls the simulation along, so
+     the rest of the graph reacts; with the others it simply moves. Both
+     drag behaviours stay installed and the current layout decides which
+     one acts (a swapped-out behaviour would leave listeners behind, see
+     onDestroy below). */
+  var current = "force";
+  function layout(type) {
+    return type === "force" ? { type: "d3-force", link: { distance: 62 }, collide: { radius: 18 } } : { type: type };
   }
-  build("force");
 
+  var graph = new G6.Graph({
+    container: ctx.el,
+    autoFit: "view",
+    background: T.stage,
+    data: {
+      nodes: data.nodes.map(function (n) { return { id: n.id, data: { group: n.group } }; }),
+      edges: data.links.map(function (l, i) { return { id: "e" + i, source: l.source, target: l.target }; })
+    },
+    node: {
+      style: {
+        size: 18,
+        fill: function (d) { return ctx.series(d.data.group); },
+        stroke: T.stage, lineWidth: 1.5,
+        labelText: function (d) { return d.id; },
+        labelFill: T.muted, labelFontSize: 9, labelPlacement: "bottom"
+      },
+      state: { active: { fill: T.accent, halo: true, labelFill: T.ink, labelFontSize: 11 } }
+    },
+    edge: { style: { stroke: T.edge, lineWidth: 1, endArrow: false, strokeOpacity: .55 } },
+    layout: layout("force"),
+    behaviors: ["drag-canvas", "zoom-canvas",
+                { type: "drag-element-force", enable: function () { return current === "force"; } },
+                { type: "drag-element", enable: function () { return current !== "force"; } },
+                "hover-activate"]
+  });
+  /* A layout still running when the page is left gets finished by G6
+     after destroy() and fails on the destroyed graph. Nothing is left to
+     spoil by then, so that failure is dropped. */
+  function quiet() {}
+  graph.render().catch(quiet);
+
+  /* Switching re-runs a layout on the same graph rather than building a
+     new one, which would leave listeners behind the same way. */
   ctx.select("layout", [
     { v: "force", t: "force directed" },
     { v: "radial", t: "radial" },
     { v: "circular", t: "circular" },
     { v: "concentric", t: "concentric" },
     { v: "grid", t: "grid" }
-  ], build, "force");
+  ], function (type) {
+    current = type;
+    graph.setLayout(layout(type));
+    graph.layout().then(function () { if (!ctx.dead()) graph.fitView(); }).catch(quiet);
+  }, "force");
   ctx.readout("<b>" + data.nodes.length + "</b> nodes · <b>" + data.links.length +
               "</b> edges — every position is computed, none authored");
 
-  ctx.onResize(function () { if (graph) graph.resize(); });
-  ctx.onDestroy(function () { if (graph) graph.destroy(); });
+  ctx.onResize(function () { graph.resize(); });
+  ctx.onDestroy(function () {
+    /* G6's drag behaviours leave their keyboard shortcuts (three listeners
+       on window each) behind when the graph is destroyed, so release them
+       first. */
+    var behaviors = graph.context && graph.context.behavior;
+    Object.values((behaviors && behaviors.extensionMap) || {}).forEach(function (b) {
+      if (b && b.shortcut && b.shortcut.destroy) b.shortcut.destroy();
+    });
+    graph.destroy();
+  });
 };
 
 /* ---------------------------------------------------------- Cytoscape.js */
@@ -111,16 +136,16 @@ B.cy = async function (ctx) {
 
   var picked = [];
   cy.on("tap", "node", function (e) {
+    if (picked[0] === e.target.id()) return;      /* a node and itself are no path */
     picked.push(e.target.id());
     if (picked.length === 2) { runPath(picked[0], picked[1]); picked = []; }
     else { clear(); e.target.addClass("ends"); out("from <b>" + picked[0] + "</b> — now pick a second node"); }
   });
 
   ctx.btn("Random shortest path", function () {
-    var ns = cy.nodes();
+    var ns = cy.nodes(), a = Math.floor(Math.random() * ns.length), b = Math.floor(Math.random() * (ns.length - 1));
     picked = [];
-    runPath(ns[Math.floor(Math.random() * ns.length)].id(),
-            ns[Math.floor(Math.random() * ns.length)].id());
+    runPath(ns[a].id(), ns[b >= a ? b + 1 : b].id());
   }, true);
   ctx.btn("Betweenness", function () {
     clear();
@@ -148,7 +173,7 @@ B.vn = async function (ctx) {
   var T = ctx.T;
   var data = sample(42, 12);
   var nodes = new vis.DataSet(data.nodes.map(function (n) {
-    return { id: n.id, label: n.label, group: n.group };
+    return { id: n.id, label: n.label, group: String(n.group) };   /* vis matches group names as strings */
   }));
   var edges = new vis.DataSet(data.links.map(function (l, i) {
     return { id: "e" + i, from: l.source, to: l.target };
@@ -173,20 +198,22 @@ B.vn = async function (ctx) {
     interaction: { hover: true, tooltipDelay: 120 }
   });
 
-  var out = ctx.readout("stabilising…");
-  net.on("stabilizationIterationsDone", function () {
-    out("physics settled — drag a node and let go, it springs back");
-  });
+  var physics = true, out = ctx.readout("stabilising…");
+  function settled() { if (physics) out("physics settled — drag a node and let go, it springs back"); }
+  net.on("stabilizationIterationsDone", settled);
+  net.on("stabilized", settled);
 
   ctx.check("physics", true, function (on) {
+    physics = on;
     net.setOptions({ physics: { enabled: on } });
     out(on ? "physics on — the graph pushes back" : "physics off — nodes stay where you drop them");
   });
+  /* With physics on the graph pulls itself back together; off, it stays scattered. */
   ctx.btn("Scatter", function () {
-    net.setOptions({ physics: { enabled: true } });
     nodes.forEach(function (n) {
       net.moveNode(n.id, (Math.random() - .5) * 620, (Math.random() - .5) * 460);
     });
+    if (physics) { net.startSimulation(); out("scattered — watch the physics pull it back"); }
   });
   ctx.btn("Fit", function () { net.fit({ animation: true }); });
 
@@ -245,9 +272,18 @@ B.rg = async function (ctx) {
     var b = React.useState(false), labels = b[0], setLabels = b[1];
     api.setLayout = setLayout;
     api.setLabels = setLabels;
+    /* Selection as Reagraph's docs wire it: useSelection keeps the
+       selected node and, with pathSelectionType "all", its neighbours;
+       the canvas draws them. */
+    var ref = React.useRef(null);
+    var sel = Reagraph.useSelection({ ref: ref, nodes: nodes, edges: edges, pathSelectionType: "all" });
     return h(Reagraph.GraphCanvas, {
+      ref: ref,
       nodes: nodes, edges: edges,
       layoutType: layout,
+      cameraMode: layout === "forceDirected3d" ? "rotate" : "pan",
+      selections: sel.selections, actives: sel.actives,
+      onNodeClick: sel.onNodeClick, onCanvasClick: sel.onCanvasClick,
       theme: ctx.dark ? Reagraph.darkTheme : Reagraph.lightTheme,
       labelType: labels ? "all" : "none",
       draggable: true
@@ -299,18 +335,16 @@ B.sig = async function (ctx) {
   }
   relayout(220);
 
+  /* Sigma 4 styles layer over its defaults, which already read x, y, size,
+     colour and label from the node attributes; only the labels change here. */
   var renderer = new Sigma(g, ctx.el, {
-    labelColor: { color: T.muted },
-    labelFont: T.mono, labelSize: 9,
-    defaultEdgeColor: T.edge,
-    renderLabels: false,
-    allowInvalidContainer: true
+    settings: { renderLabels: false, allowInvalidContainer: true },
+    styles: { nodes: [SigmaLib.DEFAULT_STYLES.nodes, { labelColor: T.muted, labelFont: T.mono, labelSize: 9 }] }
   });
-  renderer.getCamera().animatedReset();
 
   ctx.check("labels", false, function (on) { renderer.setSetting("renderLabels", on); });
   ctx.btn("Re-run layout", function () { relayout(140); renderer.refresh(); });
-  ctx.btn("Reset view", function () { renderer.getCamera().animatedReset(); });
+  ctx.btn("Reset view", function () { renderer.getCamera().reset(); });
   ctx.readout("<b>" + g.order + "</b> nodes · <b>" + g.size + "</b> edges, drawn by WebGL");
 
   ctx.onResize(function () { renderer.refresh(); });
@@ -321,7 +355,8 @@ B.sig = async function (ctx) {
 B.fg3 = async function (ctx) {
   var T = ctx.T;
   var data = sample(120, 34);
-  var g = ForceGraph3D()(ctx.el)
+  /* Orbit controls rather than the default trackball: only they can auto-rotate. */
+  var g = ForceGraph3D({ controlType: "orbit" })(ctx.el)
     .backgroundColor(T.stage)
     .graphData({ nodes: data.nodes, links: data.links })
     .nodeRelSize(4)

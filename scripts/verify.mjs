@@ -1,7 +1,7 @@
 /* Drives every library page in headless Chromium and reports anything
    that fails to start. Usage:
      node scripts/verify.mjs            all libraries
-     node scripts/verify.mjs d3 leaflet only these
+     node scripts/verify.mjs xyf x6     only these
      node scripts/verify.mjs --shots    also write screenshots to /tmp/fd-shots
 */
 import { chromium } from 'playwright';
@@ -44,6 +44,11 @@ const args = process.argv.slice(2);
 const shots = args.includes('--shots');
 const only = args.filter(a => !a.startsWith('--'));
 const libs = win.LIBS.filter(l => !only.length || only.includes(l.k));
+const unknown = only.filter(k => !win.LIBS.some(l => l.k === k));
+if (unknown.length) {
+  console.error('no such library: ' + unknown.join(' ') + '\nkeys: ' + win.LIBS.map(l => l.k).join(' '));
+  process.exit(2);
+}
 
 if (shots) fs.mkdirSync('/tmp/fd-shots', { recursive: true });
 

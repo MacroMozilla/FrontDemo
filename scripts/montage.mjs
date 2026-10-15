@@ -1,7 +1,7 @@
 /* Tiles the audit screenshots into contact sheets so a whole batch of
    stages can be eyeballed at once.
      node scripts/montage.mjs                 every screenshot in /tmp/fd-audit
-     node scripts/montage.mjs wgl zr wd xterm just these  */
+     node scripts/montage.mjs xyf x6 sig      just these  */
 import { PNG } from 'pngjs';
 import fs from 'fs';
 
@@ -10,7 +10,8 @@ const COLS = 4, ROWS = 3, TW = 380, TH = 240, PAD = 4, LABEL = 16;
 
 const only = process.argv.slice(2);
 const keys = (only.length ? only
-  : fs.readdirSync(DIR).filter(f => f.endsWith('.png')).map(f => f.replace(/\.png$/, '')).sort());
+  : fs.readdirSync(DIR).filter(f => f.endsWith('.png') && !f.startsWith('sheet-'))   /* not its own output */
+      .map(f => f.replace(/\.png$/, '')).sort());
 
 /* 5x7 bitmap font, enough for a lowercase key. */
 const GLYPHS = {

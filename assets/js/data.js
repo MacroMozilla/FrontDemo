@@ -6,8 +6,10 @@
    Add a library here, write a builder in assets/js/demos/*.js, done.
 
    Version / release date / license are the real values published on
-   the npm registry (or, for draw.io, on its GitHub releases). `kb` is
-   the size of the browser build the demo actually downloads.
+   the npm registry (or, for draw.io, on its GitHub releases), and the
+   commit date is the newest commit on each repository; all of them are
+   refreshed by scripts/freshness.mjs. `kb` is the size of the browser
+   build the demo actually downloads.
    ------------------------------------------------------------------ */
 
 /* Top-level sections in the sidebar. */
@@ -41,13 +43,18 @@ window.CAPS = [
 /* Mark rendering. */
 window.MK = { y: ["y", "✓"], p: ["p", "◐"], n: ["n", "✗"], a: ["a", "—"] };
 
+/* The day the versions, release dates and commit dates below were last
+   looked up. `node scripts/freshness.mjs --write` refreshes them all. */
+window.CHECKED = "2026-10-15";
+
 /* ------------------------------------------------------------------
    Libraries.
-     k       key — also the DOM id prefix and the URL hash
+     k       key, used in the URL (#/l/key)
      n/pkg   display name / npm package
-     ver     latest version on npm
+     ver     latest version on npm (draw.io: latest GitHub release)
      pub     when that version was published
-     vend    the version actually running, when it is an older line
+     commit  date of the newest commit on the repository's main line
+     vend    the version actually running here, when it is not ver
      lic     license as declared on npm
      kb      size of the browser build the demo downloads
      cat     category id
@@ -76,7 +83,7 @@ window.LIBS = [
    Ordered as in the brief this section was built from. Every demo draws
    the same approval flowchart with the library's own default shapes,
    theme and stock UI, so the pages compare like for like. */
-{ k:"xyf", n:"React Flow", pkg:"@xyflow/react", ver:"12.12.0", pub:"2026-09-24", lic:"MIT", kb:395, cat:"flow", st:5,
+{ k:"xyf", n:"React Flow", pkg:"@xyflow/react", ver:"12.12.0", pub:"2026-09-24", commit:"2026-09-24", lic:"MIT", kb:395, cat:"flow", st:5,
   c:"y y p n y y p y",
   render:"HTML nodes, SVG edges", ui:"React (Svelte Flow for Svelte)",
   box:"Controls, MiniMap, Background, connect, multi-select, keyboard delete",
@@ -87,7 +94,7 @@ window.LIBS = [
   rnNote:"No React Native renderer. Expo web works through react-native-web; on a device you would host it in a WebView.",
   js:["xyflow"], css:["xyflow"], site:"https://reactflow.dev/", repo:"xyflow/xyflow" },
 
-{ k:"m2d", n:"meta2d.js", pkg:"@meta2d/core", ver:"2.0.0", vend:"1.1.32", pub:"2026-09-18", lic:"MIT", kb:766, cat:"flow", st:3,
+{ k:"m2d", n:"meta2d.js", pkg:"@meta2d/core", ver:"2.0.0", vend:"1.1.32", pub:"2026-09-18", commit:"2026-10-14", lic:"MIT", kb:766, cat:"flow", st:3,
   c:"y y y y n y p y",
   render:"Canvas", ui:"any (plain JS)",
   box:"anchors and line drawing, resize and rotate handles, undo/redo, minimap, line styles, flowchart pens",
@@ -99,7 +106,7 @@ window.LIBS = [
   rnNote:"Web only (canvas plus DOM events); on a device you would need a WebView.",
   js:["meta2d"], site:"https://doc.le5le.com/document/136", repo:"le5le-com/meta2d.js" },
 
-{ k:"joint", n:"JointJS", pkg:"@joint/core", ver:"4.3.3", pub:"2026-09-04", lic:"MPL-2.0", kb:463, cat:"flow", st:4,
+{ k:"joint", n:"JointJS", pkg:"@joint/core", ver:"4.3.3", pub:"2026-09-04", commit:"2026-10-14", lic:"MPL-2.0", kb:463, cat:"flow", st:4,
   c:"y y p n p y p y",
   render:"SVG", ui:"any (plain JS; @joint/react for React)",
   box:"model/view split, standard shapes, routers and connectors, link tools, element tools",
@@ -110,7 +117,7 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["joint"], site:"https://www.jointjs.com/", repo:"clientIO/joint" },
 
-{ k:"lf", n:"LogicFlow", pkg:"@logicflow/core", ver:"2.2.5", pub:"2026-07-30", lic:"Apache-2.0", kb:989, cat:"flow", st:4,
+{ k:"lf", n:"LogicFlow", pkg:"@logicflow/core", ver:"2.2.5", pub:"2026-07-30", commit:"2026-10-10", lic:"Apache-2.0", kb:991, cat:"flow", st:4,
   c:"y y p n p p p y",
   render:"SVG", ui:"any (plain JS; React and Vue node renderers)",
   box:"flowchart nodes, drag-in panel, control bar, context menu, minimap, snaplines, undo/redo, box select",
@@ -121,7 +128,7 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["logicflow","logicflow-ext"], css:["logicflow","logicflow-ext"], site:"https://site.logic-flow.cn/", repo:"didi/LogicFlow" },
 
-{ k:"max", n:"maxGraph", pkg:"@maxgraph/core", ver:"0.25.0", pub:"2026-10-06", lic:"Apache-2.0", kb:613, cat:"flow", st:3,
+{ k:"max", n:"maxGraph", pkg:"@maxgraph/core", ver:"0.25.0", pub:"2026-10-06", commit:"2026-10-15", lic:"Apache-2.0", kb:613, cat:"flow", st:3,
   c:"y y p n n p p y",
   render:"SVG", ui:"any (plain JS)",
   box:"rubber-band select, connections, in-place label editing, undo manager, keyboard handler, XML codec",
@@ -132,7 +139,7 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:["maxgraph"], css:["maxgraph"], site:"https://maxgraph.github.io/maxGraph/", repo:"maxGraph/maxGraph" },
 
-{ k:"drawio", n:"draw.io", pkg:"jgraph/drawio", npm:false, ver:"32.4.1", pub:"2026-10-08", lic:"Apache-2.0", kb:9972, cat:"flow", st:4,
+{ k:"drawio", n:"draw.io", pkg:"jgraph/drawio", npm:false, ver:"32.4.1", pub:"2026-10-08", commit:"2026-10-08", lic:"Apache-2.0", kb:9972, cat:"flow", st:4,
   c:"y p p n p y p n",
   render:"the whole app, in an iframe", ui:"any (postMessage)",
   box:"the complete draw.io editor: every shape library, format panel, layers, find, export",
@@ -144,7 +151,7 @@ window.LIBS = [
   rnNote:"No native component. On a device it is a web page in a WebView, like anything else.",
   js:[], site:"https://www.drawio.com/doc/faq/embed-mode", repo:"jgraph/drawio" },
 
-{ k:"dnx", n:"Plait / Drawnix", pkg:"@plait/core", ver:"0.94.1", pub:"2026-09-23", lic:"MIT", kb:681, cat:"flow", st:3,
+{ k:"dnx", n:"Plait / Drawnix", pkg:"@plait/core", ver:"0.94.1", pub:"2026-09-23", commit:"2026-09-07", lic:"MIT", kb:681, cat:"flow", st:3,
   c:"y y p n y y p y",
   render:"SVG", ui:"React (Plait core is framework-agnostic)",
   box:"whiteboard toolbar, flowchart shapes, arrows, mind maps, pen, text, themes, export, Mermaid import",
@@ -156,7 +163,7 @@ window.LIBS = [
   rnNote:"Web only; WebView on native.",
   js:[], esm:"drawnix/drawnix.js", css:["drawnix"], site:"https://drawnix.com/", repo:"plait-board/drawnix" },
 
-{ k:"fgm", n:"FlowGram", pkg:"@flowgram.ai/free-layout-editor", ver:"1.0.16", pub:"2026-10-13", lic:"MIT", kb:1000, cat:"flow", st:4,
+{ k:"fgm", n:"FlowGram", pkg:"@flowgram.ai/free-layout-editor", ver:"1.0.16", pub:"2026-10-13", commit:"2026-10-12", lic:"MIT", kb:1000, cat:"flow", st:4,
   c:"y y p n y p p y",
   render:"HTML nodes, SVG lines", ui:"React",
   box:"free-layout canvas, ports, node forms, minimap, snapping, auto-layout, undo/redo, line styles",
@@ -167,7 +174,7 @@ window.LIBS = [
   rnNote:"No React Native renderer; WebView on native.",
   js:["flowgram"], css:["flowgram"], site:"https://flowgram.ai/", repo:"bytedance/flowgram.ai" },
 
-{ k:"x6", n:"AntV X6", pkg:"@antv/x6", ver:"3.1.8", pub:"2026-08-11", lic:"MIT", kb:590, cat:"flow", st:4,
+{ k:"x6", n:"AntV X6", pkg:"@antv/x6", ver:"3.1.8", pub:"2026-08-11", commit:"2026-10-15", lic:"MIT", kb:590, cat:"flow", st:4,
   c:"y y p n p y p y",
   render:"SVG (HTML nodes optional)", ui:"any (React and Vue node shapes)",
   box:"stencil, ports, selection, snaplines, history, clipboard, keyboard, transform, minimap",
@@ -179,67 +186,67 @@ window.LIBS = [
   js:["x6"], site:"https://x6.antv.antgroup.com/", repo:"antvis/X6" },
 
 /* ---------------- Graphs & networks ---------------- */
-{ k:"g6", n:"AntV G6", pkg:"@antv/g6", ver:"5.1.1", pub:"2026-05-08", lic:"MIT", kb:1351, cat:"graph", st:4,
+{ k:"g6", n:"AntV G6", pkg:"@antv/g6", ver:"5.1.1", pub:"2026-05-08", commit:"2026-10-13", lic:"MIT", kb:1353, cat:"graph", st:4,
   c:"y y y y p y p y",
   what:"A graph toolkit with a large box of layouts and behaviours, from Ant Group.",
   pro:"Layouts, behaviours and graph analysis plugins all in one package",
   con:"Big, and v5 rewrote the API from v4",
   try:"Nothing here is hand-placed — the force layout worked out every position. Drag a node and the whole graph reacts.",
   rnNote:"Web only. AntV's mobile answer is F2, a different library.",
-  js:["g6"], site:"https://g6.antv.antgroup.com/" },
+  js:["g6"], site:"https://g6.antv.antgroup.com/", repo:"antvis/G6" },
 
-{ k:"cy", n:"Cytoscape.js", pkg:"cytoscape", ver:"3.34.0", pub:"2026-06-02", lic:"MIT", kb:425, cat:"graph", st:5,
+{ k:"cy", n:"Cytoscape.js", pkg:"cytoscape", ver:"3.34.3", pub:"2026-09-07", commit:"2026-09-07", lic:"MIT", kb:425, cat:"graph", st:5,
   c:"y y y y p y p y",
   what:"Graph rendering plus a real graph-theory library: shortest path, centrality, clustering, all built in.",
   pro:"The algorithms are the selling point — you rarely need a second package",
   con:"Styling uses its own CSS-like language you have to learn",
   try:"Press the button to run a real Dijkstra shortest path across the graph and watch it highlight.",
   rnNote:"The algorithms are pure JS and work anywhere; the renderer needs a browser canvas.",
-  js:["cytoscape"], site:"https://js.cytoscape.org/" },
+  js:["cytoscape"], site:"https://js.cytoscape.org/", repo:"cytoscape/cytoscape.js" },
 
-{ k:"vn", n:"vis-network", pkg:"vis-network", ver:"10.1.0", pub:"2026-05-15", lic:"Apache-2.0 OR MIT", kb:629, cat:"graph", st:4,
+{ k:"vn", n:"vis-network", pkg:"vis-network", ver:"10.1.2", pub:"2026-08-19", commit:"2026-09-13", lic:"Apache-2.0 OR MIT", kb:640, cat:"graph", st:4,
   c:"y y p y n y p y",
   what:"Network graphs with a physics simulation that keeps running while you interact.",
   pro:"Looks good with almost no configuration",
   con:"The physics engine is hard to tame on large graphs",
   try:"Drag a node and let go. It springs back — the simulation never stopped running.",
   rnNote:"Web only; WebView on native.",
-  js:["visnetwork"], site:"https://visjs.github.io/vis-network/docs/network/" },
+  js:["visnetwork"], site:"https://visjs.github.io/vis-network/docs/network/", repo:"visjs/vis-network" },
 
-{ k:"fg", n:"force-graph", pkg:"force-graph", ver:"1.51.4", pub:"2026-04-16", lic:"MIT", kb:173, cat:"graph", st:4,
+{ k:"fg", n:"force-graph", pkg:"force-graph", ver:"1.52.0", pub:"2026-09-28", commit:"2026-09-29", lic:"MIT", kb:169, cat:"graph", st:4,
   c:"y y y y p y p y",
   what:"d3-force plus a canvas renderer, wrapped so that one config object gets you a working graph.",
   pro:"Zoom, pan, drag and force layout out of one call",
   con:"Custom node visuals mean drawing on the canvas yourself",
   try:"Scroll to zoom, drag the background to pan, drag a node to pull the layout around.",
   rnNote:"Web only, but the d3-force layout underneath is pure JS and does run in React Native.",
-  js:["forcegraph"], site:"https://github.com/vasturiano/force-graph" },
+  js:["forcegraph"], site:"https://github.com/vasturiano/force-graph", repo:"vasturiano/force-graph" },
 
-{ k:"rg", n:"Reagraph", pkg:"reagraph", ver:"4.32.0", pub:"2026-06-25", lic:"Apache-2.0", kb:1578, cat:"graph", st:4,
+{ k:"rg", n:"Reagraph", pkg:"reagraph", ver:"4.32.0", pub:"2026-06-25", commit:"2026-06-25", lic:"Apache-2.0", kb:1931, cat:"graph", st:4,
   c:"y y y y y y p y",
   what:"WebGL graph rendering as React components, built on three.js.",
   pro:"Tens of thousands of nodes that you can still click and select",
   con:"Heavy bundle, and three.js comes along for the ride",
-  try:"Click a node to select it; drag the background to orbit. All of this is WebGL, not SVG.",
+  try:"Click a node to select it and light up its neighbours; drag the background to pan, or to rotate in force 3D. All of this is WebGL, not SVG.",
   rnNote:"Built on three.js, so a react-three-fiber/native port is conceivable but does not exist today.",
-  js:["reagraph"], site:"https://reagraph.dev/" },
+  js:["reagraph"], site:"https://reagraph.dev/", repo:"reaviz/reagraph" },
 
-{ k:"sig", n:"Sigma.js", pkg:"sigma", ver:"3.0.3", pub:"2026-04-30", lic:"MIT", kb:155, cat:"graph", st:4,
+{ k:"sig", n:"Sigma.js", pkg:"sigma", ver:"4.0.2", pub:"2026-10-14", commit:"2026-10-14", lic:"MIT", kb:437, cat:"graph", st:4,
   c:"y y y y n y p y",
   what:"A WebGL renderer for graphology graphs. Rendering only — the data model lives in graphology.",
   pro:"Very large graphs stay interactive",
   con:"You need graphology alongside it; sigma alone does nothing",
-  try:"300 nodes here — the same code handles 30,000. Drag and zoom to feel the WebGL path.",
+  try:"400 nodes here — the same code handles 30,000. Drag and zoom to feel the WebGL path; with labels on, Sigma names the nodes it draws large enough, so zoom in to read them.",
   rnNote:"Web only; WebView on native.",
-  js:["sigma","d3"], site:"https://www.sigmajs.org/" },
+  js:["sigma","d3"], site:"https://www.sigmajs.org/", repo:"jacomyal/sigma.js" },
 
-{ k:"fg3", n:"3d-force-graph", pkg:"3d-force-graph", ver:"1.80.0", pub:"2026-04-05", lic:"MIT", kb:1283, cat:"graph", st:3,
+{ k:"fg3", n:"3d-force-graph", pkg:"3d-force-graph", ver:"1.80.1", pub:"2026-09-29", commit:"2026-09-29", lic:"MIT", kb:1357, cat:"graph", st:3,
   c:"y y y y p y p y",
   what:"The same force-graph idea, but the simulation runs in three dimensions and renders through three.js.",
   pro:"Genuinely useful for dense graphs where 2D turns into hairball",
   con:"Pulls in all of three.js",
   try:"Drag to orbit the graph, scroll to fly in and out, drag a node to disturb the 3D layout.",
   rnNote:"three.js underneath, so expo-gl is theoretically possible; no ready-made port.",
-  js:["fg3d"], site:"https://github.com/vasturiano/3d-force-graph" },
+  js:["fg3d"], site:"https://github.com/vasturiano/3d-force-graph", repo:"vasturiano/3d-force-graph" },
 
 ];

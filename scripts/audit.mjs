@@ -3,7 +3,7 @@
    this catches the ones that run and still show nothing worth looking at.
 
      node scripts/audit.mjs             all libraries
-     node scripts/audit.mjs d3 leaflet  only these
+     node scripts/audit.mjs xyf x6      only these
    Screenshots land in /tmp/fd-audit/. */
 import { chromium } from 'playwright';
 import { PNG } from 'pngjs';
@@ -34,6 +34,11 @@ const win = {};
 new Function('window', fs.readFileSync(path.join(ROOT, 'assets/js/data.js'), 'utf8'))(win);
 const only = process.argv.slice(2).filter(a => !a.startsWith('--'));
 const libs = win.LIBS.filter(l => !only.length || only.includes(l.k));
+const unknown = only.filter(k => !win.LIBS.some(l => l.k === k));
+if (unknown.length) {
+  console.error('no such library: ' + unknown.join(' ') + '\nkeys: ' + win.LIBS.map(l => l.k).join(' '));
+  process.exit(2);
+}
 
 fs.mkdirSync('/tmp/fd-audit', { recursive: true });
 

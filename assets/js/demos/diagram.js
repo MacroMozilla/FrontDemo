@@ -46,10 +46,13 @@ function paper(ctx) {
 /* "Data": what the framework itself would save, in its own format.
    `read` may return an object, a string, or a promise of either. */
 function dataButton(ctx, read) {
-  var panel = null;
+  var panel = null, reading = false;
   ctx.btn("Data", async function () {
     if (panel) { panel.remove(); panel = null; return; }
-    var v = await read();
+    if (reading) return;                 /* a second click while draw.io answers */
+    reading = true;
+    var v;
+    try { v = await read(); } finally { reading = false; }
     if (ctx.dead()) return;
     panel = ctx.mk("pre", "demo-json");
     panel.textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2);
@@ -132,7 +135,10 @@ B.m2d = async function (ctx) {
   paper(ctx);
   var count = counter(ctx);
 
-  /* meta2d lines carry no arrowhead unless asked for one; a flowchart wants it. */
+  /* meta2d's own UI strings default to Chinese, and its dialogs are built in
+     the constructor, so the language is set first. Lines carry no arrowhead
+     unless asked for one; a flowchart wants it. */
+  meta2djs.setLocale("en");
   var meta2d = new Meta2d(ctx.el, { toArrow: "triangleSolid" });
   registerCommonDiagram();               /* flowchart, activity, class, sequence… pens */
   ctx.onDestroy(function () { meta2d.destroy(); });
@@ -293,7 +299,8 @@ B.lf = async function (ctx) {
     container: ctx.el,
     grid: true,
     keyboard: { enabled: true },
-    plugins: [X.DndPanel, X.SelectionSelect, X.Control, X.Menu, X.MiniMap]
+    plugins: [X.DndPanel, X.SelectionSelect, X.Control, X.Menu, X.MiniMap],
+    pluginsOptions: { miniMap: { headerTitle: "Mini map" } }   /* hidden, but Chinese by default */
   });
   ctx.onDestroy(function () { lf.destroy(); });
 
@@ -312,6 +319,32 @@ B.lf = async function (ctx) {
     { type: "circle", text: "End", label: "End", icon: icon('<circle cx="16" cy="16" r="11" stroke-width="3"/>') }
   ]);
   lf.on("selection:selected", function () { lf.extension.selectionSelect.closeSelectionSelect(); });
+
+  /* The control bar and the right-click menus default to Chinese labels.
+     The control items are relabelled by key; the menus are set again with
+     the same actions as the defaults, through LogicFlow's own menu API. */
+  var controls = { "zoom-out": "Zoom out", "zoom-in": "Zoom in", reset: "Fit", undo: "Undo", redo: "Redo" };
+  lf.extension.control.controlItems.forEach(function (item) {
+    if (controls[item.key]) item.text = item.title = controls[item.key];
+  });
+  lf.setMenuConfig({
+    nodeMenu: [
+      { text: "Delete", callback: function (node) { lf.deleteNode(node.id); } },
+      { text: "Edit text", callback: function (node) { lf.graphModel.editText(node.id); } },
+      { text: "Duplicate", callback: function (node) { lf.cloneNode(node.id); } }
+    ],
+    edgeMenu: [
+      { text: "Delete", callback: function (edge) { lf.deleteEdge(edge.id); } },
+      { text: "Edit text", callback: function (edge) { lf.graphModel.editText(edge.id); } }
+    ],
+    selectionMenu: [
+      { text: "Delete", callback: function (sel) {
+        lf.clearSelectElements();
+        sel.edges.forEach(function (e) { lf.deleteEdge(e.id); });
+        sel.nodes.forEach(function (n) { lf.deleteNode(n.id); });
+      } }
+    ]
+  });
 
   /* Built-in node types at their default sizes, the diamond widened so its
      label fits; LogicFlow's x / y are centres, like FLOW's. */
@@ -413,13 +446,14 @@ B.drawio = async function (ctx) {
     process: "rounded=0;whiteSpace=wrap;html=1;",
     decision: "rhombus;whiteSpace=wrap;html=1;"
   };
+  function attr(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;"); }
   var cells = FLOW.nodes.map(function (n) {
     var w = 120, hh = n.kind === "decision" ? 80 : n.kind === "terminal" ? 40 : 60;
-    return '<mxCell id="' + n.id + '" value="' + n.label + '" style="' + style[n.kind] + '" vertex="1" parent="1">' +
+    return '<mxCell id="' + n.id + '" value="' + attr(n.label) + '" style="' + style[n.kind] + '" vertex="1" parent="1">' +
            '<mxGeometry x="' + (n.x - w / 2) + '" y="' + (n.y - hh / 2) + '" width="' + w + '" height="' + hh +
            '" as="geometry"/></mxCell>';
   }).concat(FLOW.edges.map(function (e) {
-    return '<mxCell id="' + e.id + '" value="' + (e.label || "") + '" ' +
+    return '<mxCell id="' + e.id + '" value="' + attr(e.label || "") + '" ' +
            'style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" ' +
            'edge="1" parent="1" source="' + e.from + '" target="' + e.to + '">' +
            '<mxGeometry relative="1" as="geometry"/></mxCell>';
@@ -429,13 +463,13 @@ B.drawio = async function (ctx) {
 
   /* embed=1 is embed mode, proto=json the JSON message protocol, spin=1 a
      spinner until the diagram arrives, configure=1 a chance to configure
-     the editor first; the rest hide the Save/Exit buttons an embedding app
-     would otherwise wire up. */
+     the editor first, lang=en English whatever the browser's language; the
+     rest hide the Save/Exit buttons an embedding app would otherwise wire up. */
   var origin = "https://embed.diagrams.net";
   var frame = ctx.mk("iframe");
   frame.title = "draw.io";
   frame.referrerPolicy = "no-referrer";   /* diagrams.net refuses localhost referrers */
-  frame.src = origin + "/?embed=1&proto=json&spin=1&configure=1&noSaveBtn=1&noExitBtn=1&saveAndExit=0";
+  frame.src = origin + "/?embed=1&proto=json&spin=1&configure=1&lang=en&noSaveBtn=1&noExitBtn=1&saveAndExit=0";
   frame.style.cssText = "display:block;width:100%;height:100%;border:0";
   ctx.el.appendChild(frame);
 
@@ -443,9 +477,19 @@ B.drawio = async function (ctx) {
   function report(xmlNow) {
     count((xmlNow.match(/vertex="1"/g) || []).length, (xmlNow.match(/edge="1"/g) || []).length);
   }
+  /* Without embed.diagrams.net (offline, or a network that blocks it) the
+     frame would just stay empty, so say why after a while. */
+  var answered = false, unfail = null;
+  ctx.after(45000, function () {
+    if (!answered) unfail = ctx.fail("draw.io has not loaded after 45 seconds. Its editor comes from " +
+      "embed.diagrams.net, which this page has to reach; every other page runs from this site alone.");
+  });
+
   var waiting = [];
   ctx.on(window, "message", function (evt) {
     if (evt.origin !== origin || evt.source !== frame.contentWindow) return;
+    answered = true;
+    if (unfail) { unfail(); unfail = null; }
     var msg = JSON.parse(evt.data);
     /* configure → init → load: plain rather than compressed XML, then the diagram. */
     if (msg.event === "configure") send({ action: "configure", config: { compressXml: false } });
@@ -514,6 +558,7 @@ B.dnx = async function (ctx) {
   root.render(h(D.Drawnix, {
     value: value,
     viewport: viewport,
+    initialLanguage: "en",                /* Drawnix defaults to Chinese */
     onChange: function (data) { latest = data.children; report(latest); }
   }));
   ctx.onDestroy(function () { root.unmount(); });
@@ -635,7 +680,10 @@ B.fgm = async function (ctx) {
   };
 
   /* The template's three components: the drag-in side panel, the tool
-     bar and the minimap. */
+     bar and the minimap. On a phone-sized stage the minimap would cover
+     the canvas, so it is left out there, and the tool bar wraps from the
+     left edge instead of starting beside the panel. */
+  var narrow = ctx.el.clientWidth < 640;
   function NodeAddPanel() {
     var drag = F.useService(F.WorkflowDragService);
     var doc = F.useService(F.WorkflowDocument);
@@ -655,7 +703,8 @@ B.fgm = async function (ctx) {
       return function () { d.dispose(); };
     }, [history]);
     var bezier = tools.lineType === F.LineType.BEZIER;
-    return h("div", { style: { position: "absolute", zIndex: 10, bottom: 16, left: 226, display: "flex", gap: 8 } },
+    return h("div", { style: { position: "absolute", zIndex: 10, bottom: 16, left: narrow ? 16 : 226, right: 16,
+                               display: "flex", flexWrap: "wrap", gap: 8 } },
       h("button", { onClick: function () { tools.zoomin(); } }, "ZoomIn"),
       h("button", { onClick: function () { tools.zoomout(); } }, "ZoomOut"),
       h("button", { onClick: function () { tools.fitView(); } }, "Fitview"),
@@ -680,7 +729,7 @@ B.fgm = async function (ctx) {
   root.render(h(F.FreeLayoutEditorProvider, editorProps,
     h("div", { className: "demo-free-container" },
       h("div", { className: "demo-free-layout" }, h(NodeAddPanel), h(F.EditorRenderer, { className: "demo-free-editor" })),
-      h(Tools), h(Minimap), h(Grab))));
+      h(Tools), narrow ? null : h(Minimap), h(Grab))));
   ctx.onDestroy(function () { root.unmount(); });
   count(initialData.nodes.length, initialData.edges.length);
 
@@ -693,15 +742,18 @@ B.x6 = async function (ctx) {
   var count = counter(ctx);
 
   /* Stencil on the left, graph on the right, minimap in the corner — the
-     layout of X6's own editor examples. autoResize sizes the graph to its
-     container's parent, hence the wrapper. */
+     layout of X6's own editor examples, minus the minimap on a phone-sized
+     stage, where it would cover the graph. autoResize sizes the graph to
+     its container's parent, hence the wrapper. */
+  var narrow = ctx.el.clientWidth < 640;
   var side = ctx.mk("div"), wrap = ctx.mk("div"), main = ctx.mk("div"), map = ctx.mk("div");
   side.style.cssText = "position:absolute;left:0;top:0;bottom:0;width:200px;border-right:1px solid #dfe3e8";
   wrap.style.cssText = "position:absolute;left:200px;right:0;top:0;bottom:0";
   map.style.cssText = "position:absolute;right:12px;bottom:12px;width:200px;height:140px;" +
                       "border:1px solid #dfe3e8;background:#fff;z-index:2";
   wrap.appendChild(main);
-  ctx.el.appendChild(side); ctx.el.appendChild(wrap); ctx.el.appendChild(map);
+  ctx.el.appendChild(side); ctx.el.appendChild(wrap);
+  if (!narrow) ctx.el.appendChild(map);
 
   /* Colours from X6's getting-started example. */
   var line = { stroke: "#8f8f8f", strokeWidth: 1 };
@@ -739,8 +791,8 @@ B.x6 = async function (ctx) {
     .use(new X6.Snapline())
     .use(new X6.Keyboard())
     .use(new X6.Clipboard())
-    .use(new X6.History())
-    .use(new X6.MiniMap({ container: map, width: 198, height: 138 }));
+    .use(new X6.History());
+  if (!narrow) graph.use(new X6.MiniMap({ container: map, width: 198, height: 138 }));
   ctx.onDestroy(function () { graph.dispose(); });
 
   graph.fromJSON({

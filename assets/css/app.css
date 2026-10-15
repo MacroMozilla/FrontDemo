@@ -454,13 +454,17 @@ table.m.cmp td.ver .p { display: block; font-size: 9.5px; color: var(--muted); }
 
 /* ==================================================================
    Demo primitives — shared building blocks the individual demos use
-   so that 100 stages still look like one product.
+   so that every stage looks like part of one product.
    ================================================================== */
 .mount.panes { display: flex; align-items: stretch; gap: 0; }
 .mount.panes .pane { min-width: 0; min-height: 0; overflow: auto; position: relative; }
 .mount.panes .pane-a { border-right: 1px solid var(--line); background: var(--sunk); display: flex; flex-direction: column; }
 .mount.panes .pane-b { flex: 1 1 auto; }
 @media (max-width: 720px) {
+  /* keep the breadcrumb to one line beside the buttons */
+  .crumb { white-space: nowrap; }
+  .crumb .cat, .crumb .cat + .sep { display: none; }
+  .crumb b { overflow: hidden; text-overflow: ellipsis; }
   .mount.panes { flex-direction: column; }
   .mount.panes .pane-a { flex: 0 0 42% !important; border-right: 0; border-bottom: 1px solid var(--line); }
 }
@@ -554,3 +558,8 @@ table.m.cmp td.ver .p { display: block; font-size: 9.5px; color: var(--muted); }
   background: var(--panel); color: var(--ink-2); border: 1px solid var(--line); border-radius: 8px;
   font-family: var(--mono); font-size: 11px; line-height: 1.55; box-shadow: var(--shadow);
 }
+
+/* "last update" stands out from the other facts. */
+.fact.upd { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent); }
+.fact.upd b { color: var(--accent); }
+table.m td.up, table.m th.up { font-family: var(--mono); font-size: 10.5px; color: var(--muted); white-space: nowrap; }

@@ -1,4 +1,4 @@
-/* Static sanity checks, run in CI before every deploy.
+/* Static sanity checks, run in CI on every pull request and push to main.
    Catches the mistakes that would otherwise ship a blank page:
    a library with no builder, a vendor file that is not there,
    a duplicate key, a malformed capability string. */
@@ -13,13 +13,17 @@ const warn = [];
 /* ---- load the registry ---- */
 const win = {};
 new Function('window', fs.readFileSync(path.join(ROOT, 'assets/js/data.js'), 'utf8'))(win);
-const { GROUPS, CATS, CAPS, LIBS, MK } = win;
+const { GROUPS, CATS, CAPS, LIBS, MK, CHECKED } = win;
 
 if (!LIBS?.length) { console.error('data.js exposed no LIBS'); process.exit(1); }
+if (!/^\d{4}-\d{2}-\d{2}$/.test(CHECKED || '')) fail.push('window.CHECKED is not a yyyy-mm-dd date');
 
 const catIds = new Set(CATS.map(c => c.id));
 const groupIds = new Set(GROUPS.map(g => g.id));
-CATS.forEach(c => { if (!groupIds.has(c.g)) fail.push(`category ${c.id} points at unknown group ${c.g}`); });
+CATS.forEach(c => {
+  if (!groupIds.has(c.g)) fail.push(`category ${c.id} points at unknown group ${c.g}`);
+  if (!LIBS.some(l => l.cat === c.id)) fail.push(`category ${c.id} has no libraries`);
+});
 
 /* ---- registry integrity ---- */
 const seen = new Set();
@@ -31,11 +35,14 @@ for (const l of LIBS) {
   const marks = String(l.c).trim().split(/\s+/);
   if (marks.length !== CAPS.length) fail.push(`${at}: ${marks.length} capability marks, expected ${CAPS.length}`);
   marks.forEach(m => { if (!MK[m]) fail.push(`${at}: bad capability mark "${m}"`); });
+  const rn = CAPS.findIndex(c => c.id === 'rn');
+  if (rn >= 0 && !/^[ypn]$/.test(marks[rn])) fail.push(`${at}: the React Native mark must be y, p or n`);
   for (const f of ['n', 'pkg', 'ver', 'pub', 'lic', 'kb', 'st', 'what', 'pro', 'con', 'try', 'rnNote', 'site', 'js']) {
     if (l[f] === undefined || l[f] === '') fail.push(`${at}: missing field "${f}"`);
   }
   if (!(l.st >= 1 && l.st <= 5)) fail.push(`${at}: rating out of range`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(l.pub)) fail.push(`${at}: pub is not a yyyy-mm-dd date`);
+  if (l.commit !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(l.commit)) fail.push(`${at}: commit is not a yyyy-mm-dd date`);
   for (const j of l.js || []) {
     if (!fs.existsSync(path.join(ROOT, 'vendor', j + '.js'))) fail.push(`${at}: vendor/${j}.js is missing`);
   }
@@ -60,19 +67,21 @@ for (const f of fs.readdirSync(demoDir)) {
   if (f.endsWith('.js') && !html.includes('assets/js/demos/' + f)) fail.push(`index.html does not load demos/${f}`);
 }
 
-/* ---- no Chinese left in shipped source ---- */
-const cjk = /[一-鿿]/;
+/* ---- English only: no CJK text anywhere, vendor builds included ----
+   (scripts/bundles/build.mjs writes vendor/ as ASCII.) */
+const cjk = /[\u3000-\u303f\u3400-\u4dbf\u4e00-\u9fff\uff00-\uffef]/;
 function walk(dir) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
-    if (e.name === 'node_modules' || e.name === '.git' || e.name === 'vendor') continue;
+    if (e.name === 'node_modules' || e.name === '.git') continue;
     if (e.isDirectory()) { walk(p); continue; }
-    if (!/\.(js|css|html|md|yml)$/.test(e.name)) continue;
-    if (p.includes('assets/css/vendor.css') || p.includes('assets/css/lib/')) continue;
+    if (!/\.(m?js|css|html|md|yml|json|txt)$/.test(e.name)) continue;
     const text = fs.readFileSync(p, 'utf8');
-    text.split('\n').forEach((line, i) => {
-      if (cjk.test(line)) warn.push(`${path.relative(ROOT, p)}:${i + 1} contains CJK text`);
-    });
+    if (!cjk.test(text)) continue;
+    const lines = text.split('\n');
+    const at = lines.findIndex(l => cjk.test(l));
+    fail.push(`${path.relative(ROOT, p)}:${at + 1} contains CJK text` +
+              (lines.length > 1 ? '' : ' (minified file)'));
   }
 }
 walk(ROOT);
