@@ -38,9 +38,21 @@ A category opens as a grid of panels, one per library, all running at once:
 - **Copy** in a panel's header copies its name, package and one-line summary; *Copy all N* on a category
   copies every library there in panel order, and *Copy all* in the top bar copies all of them grouped by
   category — ready to paste into another tool or an AI chat.
-- A panel starts its library when it scrolls into view, and keeps running after that; off screen its
-  animation loops idle. Each panel header has the name, rating, version, last update and a one-line
-  summary; **Details** opens the library's own page.
+- **Only what is on screen runs.** A panel starts its library once it is in view, one panel at a time,
+  and is stopped, freeing everything its demo built, once it has been out of view for a second; it
+  starts afresh when scrolled back. With a panel open over the window, every other panel is stopped.
+  Leaving a page stops all of its demos. The top bar counts the demos running. (A library's code stays
+  loaded once it has run: browsers keep compiled scripts until the page reloads.)
+- **Start time and memory on every demo.** Each panel header, and each library page, shows how long the
+  demo took to start in your browser (download, set-up and first frame on screen) and the JavaScript
+  heap it holds, measured by `scripts/perf.mjs` (below).
+- **Graphs up to 100,000 nodes.** Every demo in *Graphs & networks* takes a node count. Small graphs
+  are laid out by the library; from 1,000 nodes up the positions are precomputed, so the start time is
+  the library drawing. Each library offers what it gets through: G6 and Reagraph stop at 1,000 (10,000
+  did not finish in two minutes), Cytoscape.js, vis-network and 3d-force-graph at 10,000, and
+  force-graph, Sigma.js, cosmos.gl and deck.gl go to 100,000.
+- Each panel header has the name, rating, version, last update and a one-line summary; **Details**
+  opens the library's own page.
 
 Each library's own page gives you:
 
@@ -218,6 +230,7 @@ index.html                  the shell — everything else is rendered by JS
 assets/css/app.css          layout, both themes, and the shared demo primitives
 assets/css/lib/*.css        per-library stylesheets (and KaTeX's fonts), loaded on demand
 assets/js/data.js           ★ single source of truth: libraries, categories, capabilities
+assets/js/perf.js           start time and memory of every demo, written by scripts/perf.mjs
 assets/js/app.js            sidebar, search, routing, theming, the category panels, the demo context API
 assets/js/demos/*.js        one file per area; every demo builder lives here
                             (diagram.js holds the nine editors and their shared flowchart)
@@ -230,6 +243,7 @@ scripts/bundles/            produces everything in vendor/ from the versions in 
 scripts/freshness.mjs       refreshes versions, release and commit dates, and sizes in data.js
 scripts/check.mjs           static checks, run in CI on every pull request and push to main
 scripts/verify.mjs          drives every library page and every category page in headless Chromium
+scripts/perf.mjs            measures every demo's start time and memory into assets/js/perf.js
 scripts/audit.mjs           screenshots every stage and measures what was actually painted
 scripts/montage.mjs         tiles the audit screenshots into contact sheets
 scripts/readme.mjs          regenerates the library tables in this file from data.js
@@ -340,6 +354,21 @@ at 0.18.5.
 Every JavaScript file written is ASCII — non-ASCII characters become `\uXXXX` escapes, which run the
 same — and `build.mjs` refuses to finish while any file in `vendor/` or `assets/css/lib/` contains CJK
 text.
+
+## Measuring start time and memory
+
+```bash
+node scripts/perf.mjs              # every library, about 15 minutes
+node scripts/perf.mjs sig cos      # only these, merged into the file
+```
+
+A page cannot read its own memory precisely (Chrome rounds `performance.memory` and refreshes it
+rarely), so this opens each library alone in headless Chromium with precise memory info and garbage
+collection exposed: it reads the heap on the home page, opens the library, waits until the demo reports
+it is ready, lets it run a second, collects garbage and reads the heap again. The difference, library
+code included, goes into `assets/js/perf.js` with the start time, and a demo with a node-count choice is
+measured at every size. GPU memory and other processes (draw.io's iframe) are not in it, and WebGL is
+drawn in software there, so the times compare libraries rather than promise a time. Needs Playwright.
 
 ## Keeping versions and dates current
 
