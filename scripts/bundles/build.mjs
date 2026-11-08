@@ -410,6 +410,16 @@ for (const [name, globalName] of Object.entries(BUNDLED)) {
   };
 }
 
+/* Reagraph's labels are three.js text (troika), which otherwise fetches a
+   font from a CDN at run time and draws nothing until it arrives; hand it
+   a local TrueType file instead (KaTeX's sans-serif, already a dependency;
+   troika reads TTF but not WOFF2). */
+const reagraphBundle = TASKS.reagraph;
+TASKS.reagraph = async () => {
+  await reagraphBundle();
+  copyFiles('katex/dist/fonts', path.join(VENDOR, 'fonts'), f => f === 'KaTeX_SansSerif-Regular.ttf');
+};
+
 Object.assign(TASKS, {
   async drawnix() {
     const src = drawnixSource();
