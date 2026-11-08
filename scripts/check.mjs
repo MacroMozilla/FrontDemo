@@ -78,6 +78,13 @@ const demoSrc = fs.readdirSync(demoDir).filter(f => f.endsWith('.js'))
 const registered = new Set([...demoSrc.matchAll(/^\s*B(?:\.(\w+)|\[["'](\w+)["']\])\s*=/gm)]
   .map(m => m[1] || m[2]));
 for (const l of LIBS) if (!registered.has(l.k)) fail.push(`lib ${l.k}: no builder registered in assets/js/demos/`);
+
+/* Start time and memory, from scripts/perf.mjs. */
+const perfWin = {};
+const perfFile = path.join(ROOT, 'assets/js/perf.js');
+if (fs.existsSync(perfFile)) new Function('window', fs.readFileSync(perfFile, 'utf8'))(perfWin);
+else fail.push('assets/js/perf.js is missing (node scripts/perf.mjs writes it)');
+for (const l of LIBS) if (perfWin.PERF && !perfWin.PERF.libs[l.k]) warn.push(`lib ${l.k}: no start time or memory in assets/js/perf.js`);
 for (const k of registered) if (!LIBS.some(l => l.k === k)) warn.push(`builder "${k}" has no entry in data.js`);
 
 /* ---- every file in vendor/ and assets/css/lib/ is loaded by some page ----

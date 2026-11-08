@@ -37,6 +37,7 @@
       <button class="iconbtn burger" id="burger" type="button" aria-label="Open navigation">☰</button>
       <div class="crumb" id="crumb"></div>
       <span class="spacer"></span>
+      <span class="live zero" id="liveCount" title="Demos running right now, which are the ones holding memory. A panel out of view, or a page you have left, is stopped and freed.">0 demos running</span>
       <button class="iconbtn" id="copyAll" type="button" title="Copy every library's name and summary, grouped by category, to paste into another tool">Copy all</button>
       <button class="iconbtn" id="themeBtn" type="button" title="Switch theme"></button>
       <a class="iconbtn" id="repoLink" href="https://github.com/MacroMozilla/FrontDemo" target="_blank" rel="noopener">GitHub</a>
@@ -47,6 +48,7 @@
 </div>
 
 <script src="assets/js/data.js"></script>
+<script src="assets/js/perf.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/demos/diagram.js"></script>
 <script src="assets/js/demos/graph.js"></script>

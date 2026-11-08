@@ -130,13 +130,16 @@ function panelState(k) {
     const m = document.querySelector('.panel[data-k="' + k + '"] .stage-msg');
     if (!m) return 'nomsg';
     if (m.classList.contains('err')) return 'ERR:' + m.textContent.trim().replace(/\s+/g, ' ').slice(0, 170);
+    if (m.classList.contains('idle')) return 'stopped';
     return m.classList.contains('on') ? 'loading' : 'ok';
   }, k);
 }
 
 /* Opens a category page and brings each panel into view in turn (panels
-   start when they are seen), then checks every one of them is up and
-   painted, with no element id shared between two panels. */
+   start when they are seen, and stop once out of view), checks each one
+   is up and painted while on screen, with no element id shared between
+   two panels running together, and finally that the panels scrolled
+   far away have been stopped, freeing their memory. */
 async function attemptCat(c) {
   errors = [];
   await page.goto(`http://localhost:${PORT}/#/c/${c.id}`, { waitUntil: 'load' });
@@ -144,18 +147,8 @@ async function attemptCat(c) {
   await page.waitForTimeout(200);
   const keys = await page.evaluate(() => [...document.querySelectorAll('.panel')]
     .sort((a, b) => a.style.order - b.style.order).map(p => p.dataset.k));
-  const state = {};
-  for (const k of keys) {
-    await page.evaluate(([id, k]) => { location.hash = '#/c/' + id + '/' + k; }, [c.id, k]);
-    const t0 = Date.now();
-    do {
-      await page.waitForTimeout(220);
-      state[k] = await panelState(k);
-    } while (state[k] === 'loading' && Date.now() - t0 < 22000);
-    if (state[k] === 'loading') state[k] = 'timeout';
-  }
-  await page.waitForTimeout(800);
-  const info = await page.evaluate(() => {
+  const state = {}, painted = {}, shared = new Set();
+  const look = () => page.evaluate(() => {
     const ids = {};
     document.querySelectorAll('[id]').forEach(e => {
       const p = e.closest('.panel');
@@ -168,7 +161,30 @@ async function attemptCat(c) {
     });
     return { shared: Object.keys(ids).filter(i => ids[i].size > 1).map(i => i + ' (' + [...ids[i]].join(', ') + ')'), painted };
   });
-  const failing = keys.filter(k => state[k] !== 'ok' || !info.painted[k]).map(k => k + ': ' + (state[k] === 'ok' ? 'nothing painted' : state[k]));
+  for (const k of keys) {
+    await page.evaluate(([id, k]) => { location.hash = '#/c/' + id + '/' + k; }, [c.id, k]);
+    const t0 = Date.now();
+    do {
+      await page.waitForTimeout(220);
+      state[k] = await panelState(k);
+    } while ((state[k] === 'loading' || state[k] === 'stopped') && Date.now() - t0 < 22000);
+    if (state[k] === 'loading' || state[k] === 'stopped') state[k] = 'timeout';
+    await page.waitForTimeout(300);
+    const info = await look();
+    painted[k] = info.painted[k];
+    info.shared.forEach(x => shared.add(x));
+  }
+  /* Back at the top, every panel out of view must be stopped in time. */
+  await page.evaluate(() => { const m = document.getElementById('main'); m.style.scrollBehavior = 'auto'; m.scrollTop = 0; });
+  await page.waitForTimeout(2500);
+  const lingering = await page.evaluate(() => [...document.querySelectorAll('.panel')].filter(p => {
+    const r = p.getBoundingClientRect(), m = document.getElementById('main').getBoundingClientRect();
+    const away = r.top > m.bottom + 50 || r.bottom < m.top - 50;
+    return away && !p.querySelector('.stage-msg.idle');
+  }).map(p => p.dataset.k));
+  const failing = keys.filter(k => state[k] !== 'ok' || !painted[k]).map(k => k + ': ' + (state[k] === 'ok' ? 'nothing painted' : state[k]))
+    .concat(lingering.map(k => k + ': still running out of view'));
+  const info = { shared: [...shared] };
   const errs = errors.slice(0, 3);
   return { ok: !failing.length && !info.shared.length && !errs.length, n: keys.length, failing, shared: info.shared, errors: errs };
 }

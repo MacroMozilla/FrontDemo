@@ -197,6 +197,10 @@ function dropCSS(id) {
   if (!cssUse[id] && cssLinks[id]) cssLinks[id].disabled = true;
 }
 
+/* A library's code stays loaded once it has run: browsers keep compiled
+   scripts until the page reloads, even with the script tag and globals
+   gone (removing them freed about a fifth in a test), so only what each
+   demo builds is freed when it stops. */
 function need() {
   var ids = [].slice.call(arguments);
   return ids.reduce(function (p, id) {
@@ -216,6 +220,7 @@ function destroyRec(rec) {
   rec.dead = true;
   var i = lives.indexOf(rec);
   if (i >= 0) lives.splice(i, 1);
+  updateLive();
   rec.destroyers.forEach(function (fn) { try { fn(); } catch (e) {} });
   rec.rafs.forEach(function (id) { cancelAnimationFrame(id); });
   rec.timers.forEach(function (id) { clearInterval(id); clearTimeout(id); });
@@ -238,6 +243,61 @@ function destroyRec(rec) {
 
 function destroyAll() { lives.slice().forEach(destroyRec); }
 
+/* The top bar says how many demos are running, which is how many hold
+   memory: it goes down as panels scroll away or a page is left. */
+function updateLive() {
+  var b = document.getElementById("liveCount");
+  if (!b) return;
+  var n = lives.length;
+  b.textContent = n + (n === 1 ? " demo running" : " demos running");
+  b.classList.toggle("zero", !n);
+}
+
+/* ------------------------------------------------------------------
+   Start time and memory. Start time is measured live, in this browser:
+   from the moment a demo is asked for (library download included) to its
+   first frame on screen. Memory cannot be measured from inside a normal
+   page, so it comes from scripts/perf.mjs, which opens every demo alone
+   in headless Chromium and records the JavaScript heap it adds once
+   garbage has been collected (assets/js/perf.js).
+   ------------------------------------------------------------------ */
+var PERF = window.PERF || { libs: {} };
+
+function perfKey(l, state) {
+  return l.k + (state && state.nodes ? "@" + state.nodes : "");
+}
+
+function fmtMB(mb) { return (mb < 10 ? mb.toFixed(1) : Math.round(mb)) + " MB"; }
+function fmtMs(ms) { return ms >= 1000 ? (ms / 1000).toFixed(ms < 10000 ? 2 : 1) + " s" : ms + " ms"; }
+
+function perfInfo(l, state) { return PERF.libs[perfKey(l, state)] || null; }
+
+function perfTitle(l, state, ms) {
+  var m = perfInfo(l, state), t = [];
+  if (ms != null) t.push("Started in " + fmtMs(ms) + " here: from being asked for (library download included) to its first frame on screen.");
+  if (m) {
+    t.push("Memory: about " + fmtMB(m.mb) + " of JavaScript heap added, and " + fmtMs(m.ms) + " to start, measured " +
+           PERF.date + " in " + PERF.env + ", after garbage collection.");
+    t.push("GPU memory and embedded frames (draw.io) are not counted.");
+  }
+  return t.join(" ");
+}
+
+/* Fills the perf line of a panel or page (in its header) and the badge on
+   its stage: the live start time once there is one, the measured memory,
+   and the measured start time until then. */
+function showPerf(host, l, state, ms) {
+  if (!host) return;
+  var m = perfInfo(l, state), bits = [];
+  if (ms != null) bits.push('<b>' + fmtMs(ms) + '</b> to start');
+  else if (m) bits.push("~" + fmtMs(m.ms) + " to start");
+  if (m) bits.push("<b>" + fmtMB(m.mb) + "</b> heap");
+  host.querySelectorAll(".pf, .fact.perf, .stage-perf").forEach(function (node) {
+    node.innerHTML = bits.join(" · ");
+    node.title = perfTitle(l, state, ms);
+  });
+}
+
 /* parts: the stage's toolbar, stage, mount node and message overlay.
    visible: whether it is on screen, which raf loops wait for. */
 function makeCtx(lib, parts, visible) {
@@ -245,6 +305,7 @@ function makeCtx(lib, parts, visible) {
   var rec = { dead: false, destroyers: [], rafs: [], timers: [], listeners: [], css: [], resizers: [],
               ro: null, stage: stage, msg: parts.msg, visible: visible !== false, ownTheme: false };
   lives.push(rec);
+  updateLive();
 
   /* One ResizeObserver per stage feeds every onResize hook. It reports
      the size it starts with too, which is not a change, so that is skipped. */
@@ -469,6 +530,18 @@ function makeCtx(lib, parts, visible) {
     esc: esc,
     mk: el,                       /* element factory — ctx.el is the mount node */
     need: need,
+    /** A toolbar choice that rebuilds the demo from scratch when changed,
+        such as the number of nodes. The choice survives the rebuild, and
+        the rebuild is timed like any start. Returns the current value. */
+    choose: function (label, options, initial) {
+      var st = parts.state || (parts.state = {});
+      if (st[label] == null) st[label] = String(initial);
+      ctx.select(label, options, function (v) {
+        st[label] = v;
+        if (parts.restart) parts.restart();
+      }, st[label]);
+      return st[label];
+    },
     css: function () {
       var ids = [].slice.call(arguments);
       if (rec.dead) return Promise.resolve();
@@ -670,8 +743,14 @@ function renderHome() {
        '<div class="card"><h4>Panels</h4><p>A category opens as a grid of live panels: two to a row on a desktop ' +
        'screen, three on a very wide one, or pick 1–3 yourself. Drag a panel by its header to reorder ' +
        'them; the order is remembered. <b>⤢</b> opens a panel over the whole window; <b>✕</b> or Esc closes it. ' +
-       '<b>Copy</b> puts a library\'s name and summary on the clipboard, to paste into another tool. Panels are never removed. Each library loads when its panel scrolls into view, ' +
-       'and the controls in its grey bar drive the actual API — they are not canned states.</p></div>' +
+       '<b>Copy</b> puts a library\'s name and summary on the clipboard, to paste into another tool. Panels are never removed. The controls in its grey bar drive the actual API — they ' +
+       'are not canned states.</p></div>' +
+       '<div class="card"><h4>Only what you see runs</h4><p>A panel starts its library when it comes into view, one ' +
+       'panel at a time, and stops it, freeing what the demo built, once it has been out of view for a second; ' +
+       'with a panel open over the window, every other one is stopped. The top bar counts the demos running. ' +
+       'Each header shows how long its demo took to <b>start</b> here, and the JavaScript <b>heap</b> it holds ' +
+       '(measured alone in headless Chromium; hover for details). The graph demos go up to 10,000 or ' +
+       '100,000 nodes.</p></div>' +
        '<div class="card"><h4>Mouse wheel</h4><p>The wheel scrolls the page, even over a map or an editor. To zoom ' +
        'or pan inside a panel with the wheel, click into it first (it gets a blue outline), or hold Ctrl.</p></div>' +
        '<div class="card"><h4>React Native column</h4><p><b class="mk y">✓</b> runs on a device, natively or as pure JS you can ' +
@@ -796,6 +875,7 @@ function renderLib(k) {
        '<p class="lib-what">' + esc(l.what) +
        ' <button class="cpbtn" id="cpLib" type="button" title="Copy the name and this summary">Copy</button></p>' +
        '<div class="facts">' +
+       '<span class="fact perf" id="perfFact"></span>' +
        '<span class="fact upd" title="' + esc(lastUpdateTitle(l)) + '">last update <b>' + esc(lastUpdate(l)) + "</b></span>" +
        '<span class="fact">' + (l.npm === false ? "release" : "npm") + " <b>" + esc(l.ver) + "</b></span>" +
        '<span class="fact">released <b>' + esc(l.pub) + "</b></span>" +
@@ -858,7 +938,22 @@ function renderLib(k) {
   $("#cpLib").addEventListener("click", function () { copyWith(this, libLine(l), l.n); });
 
   wireSource(l);
-  runDemo(l, stageParts($("#stageCard")));
+  startLibStage(l);
+}
+
+/* The library page's stage. A toolbar choice (ctx.choose) rebuilds it,
+   keeping the choices, which last for the visit (libStates). */
+var libRec = null, libStates = {};
+function startLibStage(l) {
+  if (libRec) destroyRec(libRec);
+  var card = $("#stageCard"), state = libStates[l.k] || (libStates[l.k] = {});
+  card.innerHTML = stageHTML(l, true);
+  var parts = stageParts(card);
+  parts.state = state;
+  parts.restart = function () { if ($("#stageCard") === card) startLibStage(l); };
+  parts.onReady = function (ms) { showPerf(view, l, state, ms); };
+  showPerf(view, l, state, null);
+  libRec = runDemo(l, parts);
 }
 
 /* The source panel shows the builder function itself — Function#toString
@@ -896,6 +991,7 @@ function stageHTML(l, ids) {
   return '<div class="stage-bar"' + id("bar") + '><span class="lbl">Live</span></div>' +
          '<div class="stage"' + id("stage") + ">" +
          '<div class="mount"' + id("mount") + "></div>" +
+         '<div class="stage-perf"></div>' +
          '<div class="stage-msg on"' + id("msg") + '><div class="sp"></div><p>loading ' + esc(l.pkg) + "…</p></div>" +
          "</div>";
 }
@@ -915,6 +1011,7 @@ function runDemo(l, parts, visible) {
     return null;
   }
   var made = makeCtx(l, parts, visible), ctx = made.ctx, rec = made.rec;
+  var t0 = performance.now();
   rec.done = (async function () {
     try {
       if (l.css && l.css.length) await ctx.css.apply(null, l.css);
@@ -926,6 +1023,26 @@ function runDemo(l, parts, visible) {
       await fn(ctx);
       if (rec.dead) return;
       msg.classList.remove("on");
+      /* Ready means painted, and done with the work that follows: the
+         builder has returned, two frames have gone by, and the next 0.8 s
+         are watched for a long frame (a library that builds its scene
+         after returning, as React ones do), which counts to its end. */
+      await new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); });
+      if (rec.dead) return;
+      var painted = performance.now(), end = painted;
+      await new Promise(function (r) {
+        var last = painted;
+        (function frame(now) {
+          if (rec.dead) return r();
+          if (now - last > 100) end = now;
+          last = now;
+          if (now - painted > 800) r(); else requestAnimationFrame(frame);
+        })(painted);
+      });
+      if (rec.dead) return;
+      rec.ms = Math.round(end - t0);
+      if (parts.onReady) parts.onReady(rec.ms);
+      window.__fdReady = { k: l.k, ms: rec.ms, key: perfKey(l, parts.state), n: (window.__fdReady ? window.__fdReady.n : 0) + 1 };
     } catch (e) {
       if (rec.dead) return;
       msg.className = "stage-msg on err";
@@ -978,7 +1095,8 @@ function panelHTML(l) {
     '<a class="nm" href="#/l/' + l.k + '" title="' + n + ' on a page of its own">' + n + "</a>" +
     '<span class="stars" title="How readily I would reach for it">' + stars(l.st) + "</span>" +
     '<span class="pv" title="' + esc(lastUpdateTitle(l)) + '">' + ver + " · updated " +
-    esc(lastUpdate(l)) + "</span></div>" +
+    esc(lastUpdate(l)) + "</span>" +
+    '<span class="pf"></span></div>' +
     '<p class="pw" title="' + esc(l.what) + '">' + esc(l.what) + "</p></div>" +
     '<div class="pa">' +
     '<button class="cp" type="button" title="Copy the name and summary" aria-label="Copy ' + n + '\'s name and summary">Copy</button>' +
@@ -1021,7 +1139,7 @@ function renderCat(id, focus) {
 
   var g = grid = { cat: id, el: $("#pgrid"), order: loadOrder(id, keys), panels: {}, active: null, hinted: false };
   g.el.querySelectorAll(".panel").forEach(function (p) {
-    g.panels[p.dataset.k] = { l: byKey[p.dataset.k], el: p, rec: null, started: false, near: false, vis: false, timer: 0 };
+    g.panels[p.dataset.k] = { l: byKey[p.dataset.k], el: p, rec: null, started: false, vis: false, timer: 0, state: {} };
   });
   applyOrder(g);
 
@@ -1328,7 +1446,14 @@ function openPanel(g, p) {
   p.setAttribute("aria-modal", "true");
   g.open = p; g.slot = ph;
   var P = g.panels[p.dataset.k];
-  if (!P.started) startPanel(P);
+  /* Only the open panel runs: every other one is stopped now, not after
+     the usual delay, and starts again when the panel is closed. */
+  g.order.forEach(function (k) {
+    var Q = g.panels[k];
+    clearTimeout(Q.timer);
+    if (Q !== P && Q.started) stopPanel(g, Q);
+  });
+  if (!P.started) queuePanel(g, P);
   if (P.rec) P.rec.visible = true;
   activate(g, p);
   p.querySelector(".cl").focus({ preventScroll: true });
@@ -1348,49 +1473,103 @@ function closePanel() {
   var P = g.panels[p.dataset.k];
   if (P.rec) P.rec.visible = P.vis;
   activate(g, null);
+  g.order.forEach(function (k) { settle(g, g.panels[k]); });
   var ex = p.querySelector(".ex");
   if (ex) ex.focus({ preventScroll: true });
 }
 
-/* A panel starts its demo once it has been near the view for a moment,
-   so scrolling past a dozen editors does not start them all, and then
-   keeps running. Off screen, its raf loops idle. */
+/* Only what is on screen runs. A panel starts its demo once it has been
+   in view for a moment (scrolling past does not start it), and is torn
+   down, freeing what the demo held, once it has been out of view for
+   STOP_MS; it starts afresh when it comes back. While one panel is open
+   over the window, every other panel is stopped.
+
+   Panels start one at a time, each once the one before is up, so opening
+   a category does not load four libraries at once, and each start's time
+   is its own. */
+var STOP_MS = 1200;
+
+function wanted(g, P) { return g.open ? g.open === P.el : P.vis; }
+
 function watchPanels(g) {
   var main = $("#main");
-  g.near = new IntersectionObserver(function (entries) {
-    entries.forEach(function (en) {
-      var P = g.panels[en.target.dataset.k];
-      P.near = en.isIntersecting;
-      if (P.near && !P.started && !P.timer) {
-        P.timer = setTimeout(function () {
-          P.timer = 0;
-          if (P.near && !P.started && grid === g) startPanel(P);
-        }, 150);
-      }
-    });
-  }, { root: main, rootMargin: "200px 0px" });
+  g.queue = []; g.busy = null;
   g.seen = new IntersectionObserver(function (entries) {
     entries.forEach(function (en) {
       var P = g.panels[en.target.dataset.k];
       P.vis = en.isIntersecting;
-      if (P.rec) P.rec.visible = P.vis || g.open === P.el;
+      if (P.rec) P.rec.visible = wanted(g, P);
       if (!P.vis && g.active === P.el && g.open !== P.el) activate(g, null);
       /* The sidebar marks the libraries whose panels are in view. */
       var a = navEl.querySelector('.item[data-k="' + P.l.k + '"]');
       if (a) a.classList.toggle("vis", P.vis);
+      settle(g, P);
     });
   }, { root: main });
-  g.order.forEach(function (k) { g.near.observe(g.panels[k].el); g.seen.observe(g.panels[k].el); });
+  g.order.forEach(function (k) { g.seen.observe(g.panels[k].el); });
+}
+
+/* Starts or stops a panel to match whether it is wanted, after a delay
+   either way, so a panel scrolled straight past is never started and one
+   scrolled away and back at once is not restarted. */
+function settle(g, P) {
+  clearTimeout(P.timer);
+  var want = wanted(g, P);
+  if (want === P.started) return;
+  P.timer = setTimeout(function () {
+    P.timer = 0;
+    if (grid !== g || wanted(g, P) === P.started) return;
+    if (P.started) stopPanel(g, P); else queuePanel(g, P);
+  }, want ? 150 : STOP_MS);
+}
+
+function queuePanel(g, P) {
+  if (P.started) return;
+  P.started = true;
+  g.queue.push(P);
+  pump(g);
+}
+
+function pump(g) {
+  if (g.busy || grid !== g) return;
+  var P = g.queue.shift();
+  if (!P) return;
+  g.busy = P;
+  startPanel(P);
+  var next = function () { if (g.busy === P) { g.busy = null; pump(g); } };
+  if (P.rec && P.rec.done) P.rec.done.then(next, next); else next();
+}
+
+/* Tears the demo down and leaves an empty stage saying why. */
+function stopPanel(g, P) {
+  var i = g.queue.indexOf(P);
+  if (i >= 0) g.queue.splice(i, 1);
+  P.started = false;
+  if (P.rec) destroyRec(P.rec);
+  P.rec = null;
+  if (g.busy === P) { g.busy = null; pump(g); }
+  P.el.classList.remove("frame");
+  var body = P.el.querySelector(".pbody");
+  body.innerHTML = stageHTML(P.l);
+  var msg = body.querySelector(".stage-msg");
+  msg.className = "stage-msg on idle";
+  msg.innerHTML = "<p>Stopped while out of view, so its memory is free. It starts again when you scroll back.</p>";
 }
 
 /* (Re)builds a panel's stage from scratch and runs its demo: a fresh
-   stage carries nothing over from a previous run. */
+   stage carries nothing over from a previous run, except the choices made
+   in its toolbar (P.state), such as the number of nodes. */
 function startPanel(P) {
+  if (P.rec) destroyRec(P.rec);
   var body = P.el.querySelector(".pbody");
   body.innerHTML = stageHTML(P.l);
   var parts = stageParts(body);
+  parts.state = P.state || (P.state = {});
+  parts.restart = function () { if (P.started && grid) { startPanel(P); } };
+  parts.onReady = function (ms) { showPerf(P.el, P.l, P.state, ms); };
+  showPerf(P.el, P.l, P.state, null);
   P.started = true;
-  P.rec = runDemo(P.l, parts, P.vis || (grid && grid.open === P.el));
+  P.rec = runDemo(P.l, parts, grid ? wanted(grid, P) : true);
   /* An iframe swallows the wheel and clicks where the page cannot see
      them, so such a panel is covered until it is clicked into. */
   if (P.rec) P.rec.done.then(function () {
@@ -1401,9 +1580,9 @@ function startPanel(P) {
 function leaveGrid() {
   if (!grid) return;
   closePanel();
-  grid.near.disconnect();
   grid.seen.disconnect();
   grid.order.forEach(function (k) { clearTimeout(grid.panels[k].timer); });
+  grid.queue = [];
   navEl.querySelectorAll(".item.vis").forEach(function (a) { a.classList.remove("vis"); });
   grid = null;
 }
