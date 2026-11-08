@@ -338,7 +338,6 @@ kbd {
   background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
   overflow: hidden; box-shadow: var(--shadow);
 }
-.panel.big { grid-column: 1 / -1; height: clamp(480px, calc(100vh - 90px), 1100px); }
 .panel.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), var(--shadow); }
 .panel.flash { animation: flash 1.3s ease-out; }
 @keyframes flash {
@@ -349,14 +348,11 @@ kbd {
 body.dragging-panel { user-select: none; cursor: grabbing; }
 body.dragging-panel iframe { pointer-events: none; }
 
-.ph { display: flex; align-items: flex-start; gap: 6px; padding: 7px 9px 7px 5px; border-bottom: 1px solid var(--line); flex: 0 0 auto; }
-.grip {
-  flex: 0 0 auto; cursor: grab; touch-action: none;
-  background: none; border: 0; color: var(--muted); font-size: 17px; line-height: 1;
-  padding: 7px 5px; border-radius: 6px;
-}
-.grip:hover, .grip:focus-visible { color: var(--ink); background: var(--sunk); }
-.dragging .grip { cursor: grabbing; }
+.ph { display: flex; align-items: flex-start; gap: 6px; padding: 7px 9px 7px 12px; border-bottom: 1px solid var(--line); flex: 0 0 auto; cursor: grab; user-select: none; touch-action: none; }
+.ph a, .ph button { cursor: pointer; }
+.ph:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.dragging .ph { cursor: grabbing; }
+.panel.max .ph { cursor: default; touch-action: auto; }
 .pt { flex: 1 1 auto; min-width: 0; }
 .pn { display: flex; align-items: baseline; gap: 8px; min-width: 0; white-space: nowrap; }
 .pn .nm { font-size: 14px; font-weight: 650; color: var(--ink); flex: 0 0 auto; }
@@ -373,13 +369,43 @@ body.dragging-panel iframe { pointer-events: none; }
 }
 .pa button:hover:not(:disabled), .pa a:hover { border-color: var(--accent); color: var(--ink); text-decoration: none; }
 .pa button:disabled { opacity: .35; cursor: default; }
-.pa .mv .v { display: none; }
-.pgrid[data-cols="1"] .mv .h { display: none; }
-.pgrid[data-cols="1"] .mv .v { display: inline; }
-@media (max-width: 1279px) {
-  .pgrid[data-cols="auto"] .mv .h { display: none; }
-  .pgrid[data-cols="auto"] .mv .v { display: inline; }
+.pa .cp.ok, .cpbtn.ok { border-color: var(--yes); color: var(--yes); }
+.pa .cl { display: none; }
+
+/* ⤢: the panel floats over the whole window on a dark backdrop (see openPanel). */
+.panel.max {
+  position: fixed; inset: clamp(10px, 3vh, 36px) clamp(10px, 3vw, 48px); z-index: 100;
+  height: auto; border: 1px solid #000; border-radius: 14px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 30px 90px -10px rgba(0,0,0,.85);
+  transform: none !important;
 }
+.panel.max .ph { background: var(--sunk); }
+.panel.max .ex { display: none; }
+.panel.max .cl {
+  display: inline-flex; font-size: 13px; min-width: 30px; height: 28px;
+  background: color-mix(in srgb, var(--bad) 14%, var(--sunk)); color: var(--ink);
+}
+.panel.max .cl:hover { border-color: var(--bad); color: var(--bad); }
+.panel-backdrop {
+  position: fixed; inset: 0; z-index: 99; display: none;
+  background: rgba(4,6,10,.78); backdrop-filter: blur(2px);
+}
+.panel-backdrop.on { display: block; }
+body.panel-open .main { overflow: hidden; }
+.panel-slot { border: 1px dashed var(--line-2); border-radius: 12px; }
+
+.cpbtn {
+  font: inherit; font-size: 11px; cursor: pointer; vertical-align: 2px; margin-left: 4px;
+  background: var(--sunk); color: var(--ink-2); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px;
+}
+.cpbtn:hover { border-color: var(--accent); color: var(--ink); }
+.toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 10px); z-index: 200;
+  background: color-mix(in srgb, var(--ink) 92%, transparent); color: var(--bg);
+  font-size: 12.5px; padding: 7px 15px; border-radius: 20px; pointer-events: none;
+  opacity: 0; transition: opacity .18s, transform .18s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
 
 .pbody { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; position: relative; }
 .panel .stage-bar { padding: 5px 10px; min-height: 37px; gap: 8px; }
@@ -560,9 +586,8 @@ table.m.cmp td.ver .p { display: block; font-size: 9.5px; color: var(--muted); }
   .scrim.on { display: block; }
   .stage { height: clamp(300px, 52vh, 460px); }
   .pgrid[data-cols] { --cols: 1; --ph: clamp(360px, 76vh, 620px); }
-  .pgrid[data-cols] .mv .h { display: none; }
-  .pgrid[data-cols] .mv .v { display: inline; }
-  .pgrid[data-cols] .panel.big { height: clamp(420px, 86vh, 760px); }
+  .panel.max { inset: 6px; }
+  #copyAll { display: none; }
   .seg { display: none; }
   .hero h2 { font-size: 26px; }
   .pad { padding: 16px 14px 70px; }

@@ -33,7 +33,13 @@ const write = process.argv.includes('--write');
 
 const win = {};
 new Function('window', fs.readFileSync(DATA, 'utf8'))(win);
-const pins = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/bundles/package.json'), 'utf8')).dependencies;
+/* The root's pins plus those of its workspaces (cosmos.gl lives in one). */
+const pins = (() => {
+  const dir = path.join(ROOT, 'scripts/bundles');
+  const root = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'));
+  return Object.assign({}, ...(root.workspaces || []).map(w =>
+    JSON.parse(fs.readFileSync(path.join(dir, w, 'package.json'), 'utf8')).dependencies), root.dependencies);
+})();
 
 /* A pin is a version, or the URL of a tarball named after its version
    (SheetJS installs from cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz). */

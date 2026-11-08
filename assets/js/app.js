@@ -9,8 +9,8 @@
      · home page, category panels, library page, comparison matrix
 
    A category opens as a grid of panels, one live demo per library, so
-   they can be compared side by side. Panels can be reordered (the order
-   is remembered per category) but never removed.
+   they can be compared side by side. Panels can be reordered by dragging
+   (the order is remembered per category) but never removed.
 
    Demo builders live in assets/js/demos/*.js and register themselves:
        B.mylib = async function (ctx) { ... }
@@ -23,6 +23,9 @@ var GROUPS = window.GROUPS, CATS = window.CATS, CAPS = window.CAPS,
 var B = window.B = {};                       /* key -> builder            */
 /* No prototype, so a route like #/l/constructor finds nothing. */
 var byKey = Object.create(null);   LIBS.forEach(function (l) { byKey[l.k] = l; });
+/* A library shown in a second category (deck.gl, under Maps and under
+   Graphs) has a second entry marked also; it is counted and compared once. */
+var COUNTED = LIBS.filter(function (l) { return !l.also; });
 var catById = Object.create(null); CATS.forEach(function (c) { catById[c.id] = c; });
 
 var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -37,6 +40,71 @@ var esc = function (s) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
   });
 };
+
+/* ------------------------------------------------------------------
+   Copying names and summaries, so a list of libraries can be pasted
+   into another tool (an AI chat, a ticket). One line per library:
+       Name (package) — what it is
+   ------------------------------------------------------------------ */
+function libLine(l) {
+  return l.n + (l.pkg && l.pkg !== l.n ? " (" + l.pkg + ")" : "") + " — " + l.what;
+}
+
+function catText(cat, keys) {
+  return "## " + cat.name + "\n" + keys.map(function (k) { return "- " + libLine(byKey[k]); }).join("\n");
+}
+
+function allText() {
+  var out = ["# FrontDemo — " + COUNTED.length + " front-end libraries"];
+  CATS.forEach(function (c) {
+    var keys = grid && grid.cat === c.id ? grid.order
+             : LIBS.filter(function (l) { return l.cat === c.id; }).map(function (l) { return l.k; });
+    if (keys.length) out.push(catText(c, keys));
+  });
+  return out.join("\n\n");
+}
+
+function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text).catch(function () { return copyFallback(text); });
+  }
+  return copyFallback(text);
+}
+
+function copyFallback(text) {
+  return new Promise(function (res, rej) {
+    var t = el("textarea");
+    t.value = text;
+    t.setAttribute("readonly", "");
+    t.style.cssText = "position:fixed;top:0;left:0;opacity:0;pointer-events:none";
+    document.body.appendChild(t);
+    t.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) {}
+    t.remove();
+    if (ok) res(); else rej(new Error("copy failed"));
+  });
+}
+
+var toastEl = null, toastT = 0;
+function toast(msg) {
+  if (!toastEl) { toastEl = el("div", "toast"); toastEl.setAttribute("role", "status"); document.body.appendChild(toastEl); }
+  toastEl.textContent = msg;
+  toastEl.classList.add("on");
+  clearTimeout(toastT);
+  toastT = setTimeout(function () { toastEl.classList.remove("on"); }, 1800);
+}
+
+/* Copies, flashes "Copied" on the button, and says how much went. */
+function copyWith(btn, text, what) {
+  copyText(text).then(function () {
+    toast("Copied " + what);
+    if (!btn) return;
+    btn.classList.add("ok");
+    clearTimeout(btn._t);
+    btn._t = setTimeout(function () { btn.classList.remove("ok"); }, 1400);
+  }, function () { toast("Could not copy — the browser blocked the clipboard"); });
+}
 
 /* ------------------------------------------------------------------
    Theme
@@ -387,7 +455,7 @@ function makeCtx(lib, parts, visible) {
     },
 
     /** Debounced hook for when the stage changes size: the window resized,
-        a panel widened, the toolbar wrapped. Cleaned up on unmount. */
+        a panel expanded, the toolbar wrapped. Cleaned up on unmount. */
     onResize: function (fn) {
       var t = null;
       var h = function () { clearTimeout(t); t = setTimeout(function () { if (!rec.dead) fn(); }, 140); };
@@ -430,7 +498,7 @@ function buildNav() {
   home.href = "#/"; home.dataset.route = "/";
   frag.appendChild(home);
 
-  var mx = el("a", "nav-link", '<span class="g">▦</span><span>Compare all ' + LIBS.length + '</span>');
+  var mx = el("a", "nav-link", '<span class="g">▦</span><span>Compare all ' + COUNTED.length + '</span>');
   mx.href = "#/matrix"; mx.dataset.route = "/matrix";
   frag.appendChild(mx);
 
@@ -462,7 +530,7 @@ function buildNav() {
 
   navEl.appendChild(frag);
   navEl.appendChild(el("p", "no-hits", "Nothing matches that.")).hidden = true;
-  $("#brandCount").textContent = LIBS.length + " libs";
+  $("#brandCount").textContent = COUNTED.length + " libs";
 }
 
 /* route: the nav link to light up; cat: the category open on screen,
@@ -544,8 +612,8 @@ function renderHome() {
   var byGroup = GROUPS.map(function (g) {
     return { g: g, cats: CATS.filter(function (c) { return c.g === g.id; }) };
   });
-  var vizCount = LIBS.filter(function (l) { return catById[l.cat].g === "viz"; }).length;
-  var rnYes = LIBS.filter(function (l) { return l.c.split(/\s+/)[6] === "y"; }).length;
+  var vizCount = COUNTED.filter(function (l) { return catById[l.cat].g === "viz"; }).length;
+  var rnYes = COUNTED.filter(function (l) { return l.c.split(/\s+/)[6] === "y"; }).length;
   /* The diagram editors that draw the shared flowchart carry a profile
      (render / ui / box) for the comparison table. */
   var editors = LIBS.filter(function (l) { return l.render; });
@@ -561,7 +629,7 @@ function renderHome() {
        "</div>";
 
   h += '<div class="stats">' +
-       '<div class="stat"><div class="v">' + LIBS.length + '</div><div class="k">libraries</div></div>' +
+       '<div class="stat"><div class="v">' + COUNTED.length + '</div><div class="k">libraries</div></div>' +
        '<div class="stat"><div class="v">' + CATS.length + '</div><div class="k">categories</div></div>' +
        '<div class="stat"><div class="v">' + vizCount + '</div><div class="k">graphics libs</div></div>' +
        '<div class="stat"><div class="v">' + rnYes + '</div><div class="k">React Native ready</div></div>' +
@@ -600,9 +668,9 @@ function renderHome() {
   h += '<div class="sechead"><h3>How to read the pages</h3></div>';
   h += '<div class="cards">' +
        '<div class="card"><h4>Panels</h4><p>A category opens as a grid of live panels: two to a row on a desktop ' +
-       'screen, three on a very wide one, or pick 1–3 yourself. Drag <b>⠿</b> or use the arrows in a panel\'s header ' +
-       'to reorder them; ' +
-       'the order is remembered. Panels are never removed. Each library loads when its panel scrolls into view, ' +
+       'screen, three on a very wide one, or pick 1–3 yourself. Drag a panel by its header to reorder ' +
+       'them; the order is remembered. <b>⤢</b> opens a panel over the whole window; <b>✕</b> or Esc closes it. ' +
+       '<b>Copy</b> puts a library\'s name and summary on the clipboard, to paste into another tool. Panels are never removed. Each library loads when its panel scrolls into view, ' +
        'and the controls in its grey bar drive the actual API — they are not canned states.</p></div>' +
        '<div class="card"><h4>Mouse wheel</h4><p>The wheel scrolls the page, even over a map or an editor. To zoom ' +
        'or pan inside a panel with the wheel, click into it first (it gets a blue outline), or hold Ctrl.</p></div>' +
@@ -627,7 +695,7 @@ function renderMatrix() {
   var picked = {};
 
   var h = '<div class="pad wide">';
-  h += '<div class="sechead"><h3>All ' + LIBS.length + " libraries</h3><span>Tick a capability to narrow the list. Hover a column header for what it means.</span></div>";
+  h += '<div class="sechead"><h3>All ' + COUNTED.length + " libraries</h3><span>Tick a capability to narrow the list. Hover a column header for what it means.</span></div>";
   h += '<div class="filters" id="capFilters"></div>';
   h += '<div class="tscroll"><table class="m"><thead><tr>' +
        '<th class="nm">Library</th><th class="sz">Size</th><th class="up">Last update</th>' +
@@ -670,7 +738,7 @@ function renderMatrix() {
   function draw() {
     var body = "", n = 0;
     CATS.forEach(function (c) {
-      var rows = LIBS.filter(function (l) { return l.cat === c.id && pass(l); });
+      var rows = COUNTED.filter(function (l) { return l.cat === c.id && pass(l); });
       if (!rows.length) return;
       body += '<tr class="cathead"><td colspan="' + (CAPS.length + 3) + '"><a href="#/c/' + c.id + '">' +
               esc(c.name) + '</a><span class="n">' + rows.length + "</span></td></tr>";
@@ -687,7 +755,7 @@ function renderMatrix() {
       });
     });
     $("#mbody").innerHTML = body;
-    $("#mcount").innerHTML = "<b>" + n + "</b> / " + LIBS.length + " shown";
+    $("#mcount").innerHTML = "<b>" + n + "</b> / " + COUNTED.length + " shown";
     document.querySelectorAll("thead th[data-cap]").forEach(function (th) {
       th.classList.toggle("on", !!picked[th.dataset.cap]);
     });
@@ -725,7 +793,8 @@ function renderLib(k) {
            esc(l.ext || l.pkg) + ' <span class="cp">embed docs</span></a>'
          : '<button class="npm" id="cpNpm" type="button" title="Copy install command">' + esc(install) +
            ' <span class="cp">copy</span></button>') + "</div>" +
-       '<p class="lib-what">' + esc(l.what) + "</p>" +
+       '<p class="lib-what">' + esc(l.what) +
+       ' <button class="cpbtn" id="cpLib" type="button" title="Copy the name and this summary">Copy</button></p>' +
        '<div class="facts">' +
        '<span class="fact upd" title="' + esc(lastUpdateTitle(l)) + '">last update <b>' + esc(lastUpdate(l)) + "</b></span>" +
        '<span class="fact">' + (l.npm === false ? "release" : "npm") + " <b>" + esc(l.ver) + "</b></span>" +
@@ -785,6 +854,8 @@ function renderLib(k) {
       setTimeout(function () { s.textContent = "copy"; }, 1600);
     }, function () {});
   });
+
+  $("#cpLib").addEventListener("click", function () { copyWith(this, libLine(l), l.n); });
 
   wireSource(l);
   runDemo(l, stageParts($("#stageCard")));
@@ -868,7 +939,9 @@ function runDemo(l, parts, visible) {
 /* ------------------------------------------------------------------
    Category page: every library of a category as a live panel, in a
    grid of one to three columns. Panels can be reordered — by dragging
-   ⠿, with ◀ ▶, or with the arrow keys on ⠿ — but never removed.
+   the header, or with the arrow keys on a focused header — but never
+   removed. ⤢ opens
+   a panel over the whole window.
 
    Reordering only changes each panel's CSS order. A panel never leaves
    the DOM, which would reload draw.io's iframe and can upset a
@@ -899,9 +972,8 @@ function panelHTML(l) {
   var ver = l.vend ? '<b class="warn" title="npm has ' + esc(l.ver) + "; this demo is written against the " +
                      esc(l.vend) + ' build running here">' + esc(l.vend) + "</b>" : esc(l.ver);
   return '<section class="panel" data-k="' + l.k + '" aria-label="' + n + '">' +
-    '<header class="ph">' +
-    '<button class="grip" type="button" title="Drag to reorder (or focus it and use the arrow keys)" ' +
-    'aria-label="Reorder ' + n + '">⠿</button>' +
+    '<header class="ph" tabindex="0" title="Drag to reorder (or focus and use the arrow keys)" ' +
+    'aria-label="' + n + ': drag, or use the arrow keys, to reorder">' +
     '<div class="pt"><div class="pn">' +
     '<a class="nm" href="#/l/' + l.k + '" title="' + n + ' on a page of its own">' + n + "</a>" +
     '<span class="stars" title="How readily I would reach for it">' + stars(l.st) + "</span>" +
@@ -909,11 +981,9 @@ function panelHTML(l) {
     esc(lastUpdate(l)) + "</span></div>" +
     '<p class="pw" title="' + esc(l.what) + '">' + esc(l.what) + "</p></div>" +
     '<div class="pa">' +
-    '<button class="mv" type="button" data-mv="-1" title="Move earlier" aria-label="Move ' + n + ' earlier">' +
-    '<span class="h">◀</span><span class="v">▲</span></button>' +
-    '<button class="mv" type="button" data-mv="1" title="Move later" aria-label="Move ' + n + ' later">' +
-    '<span class="h">▶</span><span class="v">▼</span></button>' +
-    '<button class="ex" type="button" title="Widen to the full row" aria-pressed="false">⤢</button>' +
+    '<button class="cp" type="button" title="Copy the name and summary" aria-label="Copy ' + n + '\'s name and summary">Copy</button>' +
+    '<button class="ex" type="button" title="Open over the whole window" aria-label="Expand ' + n + '">⤢</button>' +
+    '<button class="cl" type="button" title="Close (Esc)" aria-label="Close ' + n + '">✕</button>' +
     '<a class="dt" href="#/l/' + l.k + '" title="Install command, trade-off, React Native notes and the source of this demo">Details</a>' +
     "</div></header>" +
     '<div class="pbody">' + stageHTML(l) + "</div></section>";
@@ -940,7 +1010,9 @@ function renderCat(id, focus) {
              (v === cols ? ' class="on"' : "") + ">" + (v === "auto" ? "Auto" : v) + "</button>";
     }).join("") + "</span>" +
     '<button class="iconbtn" type="button" id="resetOrder" title="Back to the default order">Reset order</button>' +
-    '<span class="cat-hint">Drag <b>⠿</b> or use the arrows on a panel to reorder; the order is remembered. ' +
+    '<button class="iconbtn" type="button" id="copyCat" title="Copy every library here: name and summary, one per line, in panel order">' +
+    "Copy all " + libs.length + "</button>" +
+    '<span class="cat-hint">Drag a panel by its header to reorder; the order is remembered. ' +
     '<span class="hm">The wheel scrolls the page; click into a panel to zoom or pan it with the wheel.</span>' +
     '<span class="ht">Tap a panel before panning or zooming it; until then a swipe scrolls the page.</span></span>' +
     "</div></header>" +
@@ -964,6 +1036,9 @@ function renderCat(id, focus) {
       });
     });
   });
+  $("#copyCat").addEventListener("click", function () {
+    copyWith(this, catText(cat, g.order), g.order.length + " libraries");
+  });
   $("#resetOrder").addEventListener("click", function () {
     reorder(g, function () { g.order = keys.slice(); });
     try { localStorage.removeItem("fd-order-" + id); } catch (e) {}
@@ -978,8 +1053,6 @@ function applyOrder(g) {
   g.order.forEach(function (k, i) {
     var p = g.panels[k].el;
     p.style.order = i;
-    p.querySelector('[data-mv="-1"]').disabled = i === 0;
-    p.querySelector('[data-mv="1"]').disabled = i === g.order.length - 1;
   });
 }
 
@@ -1091,37 +1164,36 @@ function wireGrid(g) {
   var ge = g.el;
 
   ge.addEventListener("click", function (e) {
-    var t = e.target.closest(".mv, .ex, .nm, .dt");
+    var t = e.target.closest(".cp, .ex, .cl, .nm, .dt");
     /* A tap on a stage activates its panel (a swipe that scrolls the page gives no click). */
     if (!t && e.target.closest(".stage")) activate(g, e.target.closest(".panel"));
     if (!t) return;
     var p = t.closest(".panel");
-    if (t.classList.contains("mv")) { movePanel(g, p, +t.dataset.mv); return; }
-    if (t.classList.contains("ex")) {
-      var big = p.classList.toggle("big");
-      t.setAttribute("aria-pressed", big);
-      t.title = big ? "Back to its normal size" : "Widen to the full row";
-      t.textContent = big ? "⤡" : "⤢";
-      focusPanel(p.dataset.k);
-      return;
-    }
+    if (t.classList.contains("cp")) { copyWith(t, libLine(g.panels[p.dataset.k].l), g.panels[p.dataset.k].l.n); return; }
+    if (t.classList.contains("ex")) { openPanel(g, p); return; }
+    if (t.classList.contains("cl")) { closePanel(); return; }
+    if (g.open) closePanel();
     /* Leaving for a library's page: make this history entry point at its
        panel, so Back returns to it rather than to the top of the grid. */
     try { history.replaceState(null, "", "#/c/" + g.cat + "/" + p.dataset.k); } catch (x) {}
   });
 
   ge.addEventListener("keydown", function (e) {
-    var grip = e.target.closest(".grip");
-    var d = grip && { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
+    var head = e.target.classList && e.target.classList.contains("ph") ? e.target : null;
+    var d = head && !g.open && { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
     if (!d) return;
     e.preventDefault();
-    movePanel(g, grip.closest(".panel"), d);
-    grip.focus();
+    movePanel(g, head.closest(".panel"), d);
+    head.focus();
   });
 
   ge.addEventListener("pointerdown", function (e) {
-    var grip = e.target.closest(".grip");
-    if (grip && e.button === 0) { e.preventDefault(); dragPanel(g, grip, e); return; }
+    /* The whole header is the drag handle, except its links and buttons
+       (it has touch-action: none, so a finger drags it rather than scrolling). */
+    var ph = e.target.closest(".ph");
+    if (ph && !e.target.closest("a, button") && e.button === 0 && !g.open) {
+      e.preventDefault(); dragPanel(g, ph, e); return;
+    }
     /* A mouse press activates at once, so the wheel works mid-drag; a
        finger only by tapping (above), since touching down may be a swipe. */
     var p = e.target.closest(".panel");
@@ -1158,17 +1230,17 @@ function wheelHint(g, p, e) {
   t._h = setTimeout(function () { t.classList.remove("on"); }, 1600);
 }
 
-/* Dragging ⠿: the panel follows the pointer, and whichever panel it is
+/* Dragging a header: the panel follows the pointer, and whichever panel it is
    over makes room. Near the top or bottom edge the page scrolls. */
-function dragPanel(g, grip, e) {
-  var p = grip.closest(".panel"), k = p.dataset.k, id = e.pointerId, main = $("#main");
+function dragPanel(g, handle, e) {
+  var p = handle.closest(".panel"), moved = false, x0 = e.clientX, y0 = e.clientY, k = p.dataset.k, id = e.pointerId, main = $("#main");
   var gr = g.el.getBoundingClientRect();
   var offX = e.clientX - gr.left - p.offsetLeft, offY = e.clientY - gr.top - p.offsetTop;
   var x = e.clientX, y = e.clientY, tick = 0, lastOver = null;
   p.classList.add("dragging");
   document.body.classList.add("dragging-panel");
   main.style.scrollBehavior = "auto";
-  try { grip.setPointerCapture(id); } catch (err) {}
+  try { handle.setPointerCapture(id); } catch (err) {}
 
   function over(px, py) {
     for (var i = 0; i < g.order.length; i++) {
@@ -1202,10 +1274,13 @@ function dragPanel(g, grip, e) {
   function move(ev) {
     if (ev.pointerId !== id) return;
     x = ev.clientX; y = ev.clientY;
+    /* A press that has not moved yet is not a drag: the header's text stays put. */
+    if (!moved && Math.abs(x - x0) + Math.abs(y - y0) < 4) return;
+    moved = true;
     update();
     if (!tick) tick = requestAnimationFrame(edge);
   }
-  function scrolled() { update(); }
+  function scrolled() { if (moved) update(); }
   function end(ev) {
     if (ev.pointerId !== id) return;
     window.removeEventListener("pointermove", move);
@@ -1226,6 +1301,55 @@ function dragPanel(g, grip, e) {
   window.addEventListener("pointerup", end);
   window.addEventListener("pointercancel", end);
   main.addEventListener("scroll", scrolled, { passive: true });
+}
+
+/* ⤢ lifts a panel out of the grid and over the whole window, on a dark
+   backdrop; ✕, Esc or a click on the backdrop puts it back. The panel
+   never leaves the DOM (that would reload draw.io's iframe): it becomes
+   position: fixed, and a placeholder of the same size holds its slot so
+   the grid behind does not reflow. Its stage refits through onResize. */
+var backdrop = null;
+function openPanel(g, p) {
+  if (g.open === p) return;
+  closePanel();
+  var ph = el("div", "panel-slot");
+  ph.style.order = p.style.order;
+  ph.style.height = p.offsetHeight + "px";
+  p.parentNode.insertBefore(ph, p);
+  if (!backdrop) {
+    backdrop = el("div", "panel-backdrop");
+    backdrop.addEventListener("click", closePanel);
+    document.body.appendChild(backdrop);
+  }
+  backdrop.classList.add("on");
+  document.body.classList.add("panel-open");
+  p.classList.add("max");
+  p.setAttribute("role", "dialog");
+  p.setAttribute("aria-modal", "true");
+  g.open = p; g.slot = ph;
+  var P = g.panels[p.dataset.k];
+  if (!P.started) startPanel(P);
+  if (P.rec) P.rec.visible = true;
+  activate(g, p);
+  p.querySelector(".cl").focus({ preventScroll: true });
+}
+
+function closePanel() {
+  var g = grid;
+  if (!g || !g.open) return;
+  var p = g.open;
+  p.classList.remove("max");
+  p.removeAttribute("role");
+  p.removeAttribute("aria-modal");
+  if (g.slot) g.slot.remove();
+  g.open = null; g.slot = null;
+  if (backdrop) backdrop.classList.remove("on");
+  document.body.classList.remove("panel-open");
+  var P = g.panels[p.dataset.k];
+  if (P.rec) P.rec.visible = P.vis;
+  activate(g, null);
+  var ex = p.querySelector(".ex");
+  if (ex) ex.focus({ preventScroll: true });
 }
 
 /* A panel starts its demo once it has been near the view for a moment,
@@ -1249,8 +1373,8 @@ function watchPanels(g) {
     entries.forEach(function (en) {
       var P = g.panels[en.target.dataset.k];
       P.vis = en.isIntersecting;
-      if (P.rec) P.rec.visible = P.vis;
-      if (!P.vis && g.active === P.el) activate(g, null);
+      if (P.rec) P.rec.visible = P.vis || g.open === P.el;
+      if (!P.vis && g.active === P.el && g.open !== P.el) activate(g, null);
       /* The sidebar marks the libraries whose panels are in view. */
       var a = navEl.querySelector('.item[data-k="' + P.l.k + '"]');
       if (a) a.classList.toggle("vis", P.vis);
@@ -1266,7 +1390,7 @@ function startPanel(P) {
   body.innerHTML = stageHTML(P.l);
   var parts = stageParts(body);
   P.started = true;
-  P.rec = runDemo(P.l, parts, P.vis);
+  P.rec = runDemo(P.l, parts, P.vis || (grid && grid.open === P.el));
   /* An iframe swallows the wheel and clicks where the page cannot see
      them, so such a panel is covered until it is clicked into. */
   if (P.rec) P.rec.done.then(function () {
@@ -1276,6 +1400,7 @@ function startPanel(P) {
 
 function leaveGrid() {
   if (!grid) return;
+  closePanel();
   grid.near.disconnect();
   grid.seen.disconnect();
   grid.order.forEach(function (k) { clearTimeout(grid.panels[k].timer); });
@@ -1398,7 +1523,13 @@ window.__boot = function () {
       q.focus(); q.select();
     }
     if (e.key === "Escape" && document.activeElement === q) { q.value = ""; searchTerm = ""; applySearch(); q.blur(); }
+    /* Esc closes an expanded panel, unless it is closing something inside
+       the demo (a field being typed in, an editor's own dialog). */
+    else if (e.key === "Escape" && grid && grid.open && !typing && !e.defaultPrevented) closePanel();
   });
+
+  $("#copyAll").textContent = "Copy all " + COUNTED.length;
+  $("#copyAll").addEventListener("click", function () { copyWith(this, allText(), "all " + COUNTED.length + " libraries"); });
 
   $("#burger").addEventListener("click", openDrawer);
   $("#scrim").addEventListener("click", closeDrawer);

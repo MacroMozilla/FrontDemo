@@ -1,0 +1,13 @@
+{
+  "name": "frontdemo-bundle-cosmos",
+  "private": true,
+  "description": "cosmos.gl wants luma.gl ~9.3 while deck.gl wants ~9.4; a workspace of its own lets both be installed. Built from entries/cosmos.js via cosmos/index.js.",
+  "type": "module",
+  "dependencies": {
+    "@cosmos.gl/graph": "3.6.0",
+    "@luma.gl/core": "9.3.6",
+    "@luma.gl/engine": "9.3.6",
+    "@luma.gl/shadertools": "9.3.6",
+    "@luma.gl/webgl": "9.3.6"
+  }
+}

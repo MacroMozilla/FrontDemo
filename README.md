@@ -1,6 +1,6 @@
 # FrontDemo
 
-**A playground for front-end libraries. 150 of them, across 36 categories, each one actually running
+**A playground for front-end libraries. 151 of them, across 36 categories, each one actually running
 in the page — nine diagram editors among them, drawing the same flowchart side by side.**
 
 Pick a category from the sidebar and every library in it opens at once, side by side, each mounted on
@@ -24,7 +24,7 @@ A category opens as a grid of panels, one per library, all running at once:
 - **Two to a row, half a screen tall**, so a desktop screen shows four at a time; three to a row on a
   very wide screen (2160 px and up), so six; one to a row on narrow screens. The *Per row* buttons
   pick 1, 2 or 3 instead, and that choice is remembered.
-- **Reorder, never remove.** Drag a panel by **⠿**, press **◀ ▶** in its header, or focus **⠿** and use
+- **Reorder, never remove.** Drag a panel by its header, or focus the header (Tab) and use
   the arrow keys. The order is remembered per category; *Reset order* goes back to the default. There
   is no way to close a panel.
 - **One long page.** More panels than fit simply continue below; the wheel scrolls the page.
@@ -33,7 +33,11 @@ A category opens as a grid of panels, one per library, all running at once:
   gets the wheel after you click into it (it gets a blue outline) until you click elsewhere; Ctrl or
   Cmd with the wheel, or a trackpad pinch, always reaches it. On a touch screen a panel likewise takes
   a tap before it takes a drag, and the draw.io panel (an iframe) a click.
-- **⤢ widens a panel** to the full row and most of the screen's height, and the demo refits.
+- **⤢ opens a panel over the whole window** on a dark backdrop, and the demo refits; **✕**, Esc or a
+  click on the backdrop puts it back where it was.
+- **Copy** in a panel's header copies its name, package and one-line summary; *Copy all N* on a category
+  copies every library there in panel order, and *Copy all* in the top bar copies all of them grouped by
+  category — ready to paste into another tool or an AI chat.
 - A panel starts its library when it scrolls into view, and keeps running after that; off screen its
   animation loops idle. Each panel header has the name, rating, version, last update and a one-line
   summary; **Details** opens the library's own page.
@@ -46,7 +50,7 @@ Each library's own page gives you:
 | **The trade-off** | One line for what it is genuinely good at, one line for where it hurts. Both are opinions, and both are stated as such. |
 | **Last update** | The page leads with the library's last update: the newer of its latest release and the newest commit to its repository, with both dates beside it. |
 | **React Native & mobile** | Whether the library can be used from a React codebase that also targets phones — see below. |
-| **Capabilities** | Eight columns, comparable across all 150 libraries, also available as one big [matrix](https://macromozilla.github.io/FrontDemo/#/matrix) with the last update of each. |
+| **Capabilities** | Eight columns, comparable across all 151 libraries, also available as one big [matrix](https://macromozilla.github.io/FrontDemo/#/matrix) with the last update of each. |
 | **The source** | The exact builder function that drew the stage, verbatim, at the bottom of every page. |
 
 ## What is covered
@@ -66,7 +70,7 @@ feedback · scroll and layout · templating and text · storage, files and worke
 internationalization · client-side search · crypto and identifiers · games and audio · delight and
 micro-interactions · icons
 
-Nothing here is a stub. Every one of the 150 libraries runs for real, on its own page and in its
+Nothing here is a stub. Every one of the 151 libraries runs for real, on its own page and in its
 category's panels, and `scripts/verify.mjs` drives them all in headless Chromium.
 
 ## Fit for production
@@ -270,7 +274,7 @@ for the node and edge readout, `dataButton` for the Data panel, and `FLOW` for t
 Your demo runs in a panel next to every other library of its category, so it has to share the page:
 prefix any element ids, look elements up inside `ctx.el` rather than the whole document, and add
 window or document listeners with `ctx.on`, so they go when the panel does. `onResize` fires whenever
-the stage changes size — a resized window, a widened panel, a toolbar that wrapped — and a demo that
+the stage changes size — a resized window, an expanded panel, a toolbar that wrapped — and a demo that
 uses `ctx.raf` for its animation gets paused for free while its panel is off screen.
 
 4. Run the checks:
@@ -437,7 +441,7 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **diagram-js** | `diagram-js` | ★★★ | MIT | 149 KB | 2026-10-07 | ◐ | The kernel underneath bpmn.io. Canvas, selection, dragging and an undoable command stack — and nothing else. The core is 35 KB; the build here adds the modeling, move, connect and bendpoint features. |
 | **Baklava.js** | `baklavajs` | ★★★ | MIT | 359 KB | 2026-09-17 | ✗ | A node editor where the graph is also a program — connect nodes and values flow through them. |
 
-#### Graphs & networks (7)
+#### Graphs & networks (9)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
@@ -448,6 +452,8 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **Reagraph** | `reagraph` | ★★★★ | Apache-2.0 | 1.9 MB | 2026-06-25 | ◐ | WebGL graph rendering as React components, built on three.js. |
 | **Sigma.js** | `sigma` | ★★★★ | MIT | 437 KB | 2026-10-14 | ◐ | A WebGL renderer for graphology graphs. Rendering only — the data model lives in graphology. |
 | **3d-force-graph** | `3d-force-graph` | ★★★ | MIT | 1.3 MB | 2026-09-29 | ◐ | The same force-graph idea, but the simulation runs in three dimensions and renders through three.js. |
+| **cosmos.gl** | `@cosmos.gl/graph` | ★★★★ | MIT | 810 KB | 2026-11-07 | ◐ | A force graph where the layout runs on the GPU as well as the drawing, in shaders, so hundreds of thousands of nodes keep moving. |
+| **deck.gl** | `deck.gl` | ★★★★ | MIT | 2.0 MB | 2026-10-13 | ◐ | deck.gl without a map: one layer of points, one of lines and one of labels on an orthographic view, all on the GPU. |
 
 #### Charts (7)
 
