@@ -939,7 +939,8 @@ function runDemo(l, parts, visible) {
 /* ------------------------------------------------------------------
    Category page: every library of a category as a live panel, in a
    grid of one to three columns. Panels can be reordered — by dragging
-   the header, or with the arrow keys on ⠿ — but never removed. ⤢ opens
+   the header, or with the arrow keys on a focused header — but never
+   removed. ⤢ opens
    a panel over the whole window.
 
    Reordering only changes each panel's CSS order. A panel never leaves
@@ -971,9 +972,8 @@ function panelHTML(l) {
   var ver = l.vend ? '<b class="warn" title="npm has ' + esc(l.ver) + "; this demo is written against the " +
                      esc(l.vend) + ' build running here">' + esc(l.vend) + "</b>" : esc(l.ver);
   return '<section class="panel" data-k="' + l.k + '" aria-label="' + n + '">' +
-    '<header class="ph">' +
-    '<button class="grip" type="button" title="Drag the header to reorder (or focus here and use the arrow keys)" ' +
-    'aria-label="Reorder ' + n + '">⠿</button>' +
+    '<header class="ph" tabindex="0" title="Drag to reorder (or focus and use the arrow keys)" ' +
+    'aria-label="' + n + ': drag, or use the arrow keys, to reorder">' +
     '<div class="pt"><div class="pn">' +
     '<a class="nm" href="#/l/' + l.k + '" title="' + n + ' on a page of its own">' + n + "</a>" +
     '<span class="stars" title="How readily I would reach for it">' + stars(l.st) + "</span>" +
@@ -1179,20 +1179,21 @@ function wireGrid(g) {
   });
 
   ge.addEventListener("keydown", function (e) {
-    var grip = e.target.closest(".grip");
-    var d = grip && { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
+    var head = e.target.classList && e.target.classList.contains("ph") ? e.target : null;
+    var d = head && !g.open && { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
     if (!d) return;
     e.preventDefault();
-    movePanel(g, grip.closest(".panel"), d);
-    grip.focus();
+    movePanel(g, head.closest(".panel"), d);
+    head.focus();
   });
 
   ge.addEventListener("pointerdown", function (e) {
-    /* The whole header is a drag handle, except its links and buttons;
-       on a touch screen only ⠿ is, so a swipe over a header still scrolls. */
-    var grip = e.target.closest(".grip"), ph = e.target.closest(".ph");
-    var handle = grip || (ph && e.pointerType !== "touch" && !e.target.closest("a, button"));
-    if (handle && e.button === 0 && !g.open) { e.preventDefault(); dragPanel(g, ph || grip, e); return; }
+    /* The whole header is the drag handle, except its links and buttons
+       (it has touch-action: none, so a finger drags it rather than scrolling). */
+    var ph = e.target.closest(".ph");
+    if (ph && !e.target.closest("a, button") && e.button === 0 && !g.open) {
+      e.preventDefault(); dragPanel(g, ph, e); return;
+    }
     /* A mouse press activates at once, so the wheel works mid-drag; a
        finger only by tapping (above), since touching down may be a swipe. */
     var p = e.target.closest(".panel");
@@ -1229,17 +1230,17 @@ function wheelHint(g, p, e) {
   t._h = setTimeout(function () { t.classList.remove("on"); }, 1600);
 }
 
-/* Dragging a header (or ⠿): the panel follows the pointer, and whichever panel it is
+/* Dragging a header: the panel follows the pointer, and whichever panel it is
    over makes room. Near the top or bottom edge the page scrolls. */
-function dragPanel(g, grip, e) {
-  var p = grip.closest(".panel"), moved = false, x0 = e.clientX, y0 = e.clientY, k = p.dataset.k, id = e.pointerId, main = $("#main");
+function dragPanel(g, handle, e) {
+  var p = handle.closest(".panel"), moved = false, x0 = e.clientX, y0 = e.clientY, k = p.dataset.k, id = e.pointerId, main = $("#main");
   var gr = g.el.getBoundingClientRect();
   var offX = e.clientX - gr.left - p.offsetLeft, offY = e.clientY - gr.top - p.offsetTop;
   var x = e.clientX, y = e.clientY, tick = 0, lastOver = null;
   p.classList.add("dragging");
   document.body.classList.add("dragging-panel");
   main.style.scrollBehavior = "auto";
-  try { grip.setPointerCapture(id); } catch (err) {}
+  try { handle.setPointerCapture(id); } catch (err) {}
 
   function over(px, py) {
     for (var i = 0; i < g.order.length; i++) {

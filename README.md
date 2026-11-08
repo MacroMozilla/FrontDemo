@@ -24,8 +24,8 @@ A category opens as a grid of panels, one per library, all running at once:
 - **Two to a row, half a screen tall**, so a desktop screen shows four at a time; three to a row on a
   very wide screen (2160 px and up), so six; one to a row on narrow screens. The *Per row* buttons
   pick 1, 2 or 3 instead, and that choice is remembered.
-- **Reorder, never remove.** Drag a panel by its header (on a touch screen, by **⠿**), or focus **⠿**
-  and use the arrow keys. The order is remembered per category; *Reset order* goes back to the default. There
+- **Reorder, never remove.** Drag a panel by its header, or focus the header (Tab) and use
+  the arrow keys. The order is remembered per category; *Reset order* goes back to the default. There
   is no way to close a panel.
 - **One long page.** More panels than fit simply continue below; the wheel scrolls the page.
 - **The wheel scrolls the page, even over a map or an editor.** Maps, diagram editors, 3D scenes and

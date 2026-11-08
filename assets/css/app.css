@@ -348,16 +348,11 @@ kbd {
 body.dragging-panel { user-select: none; cursor: grabbing; }
 body.dragging-panel iframe { pointer-events: none; }
 
-.ph { display: flex; align-items: flex-start; gap: 6px; padding: 7px 9px 7px 5px; border-bottom: 1px solid var(--line); flex: 0 0 auto; cursor: grab; user-select: none; }
+.ph { display: flex; align-items: flex-start; gap: 6px; padding: 7px 9px 7px 12px; border-bottom: 1px solid var(--line); flex: 0 0 auto; cursor: grab; user-select: none; touch-action: none; }
 .ph a, .ph button { cursor: pointer; }
-.panel.max .ph, .panel.max .grip { cursor: default; }
-.grip {
-  flex: 0 0 auto; cursor: grab; touch-action: none;
-  background: none; border: 0; color: var(--muted); font-size: 17px; line-height: 1;
-  padding: 7px 5px; border-radius: 6px;
-}
-.grip:hover, .grip:focus-visible { color: var(--ink); background: var(--sunk); }
-.dragging .grip { cursor: grabbing; }
+.ph:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.dragging .ph { cursor: grabbing; }
+.panel.max .ph { cursor: default; touch-action: auto; }
 .pt { flex: 1 1 auto; min-width: 0; }
 .pn { display: flex; align-items: baseline; gap: 8px; min-width: 0; white-space: nowrap; }
 .pn .nm { font-size: 14px; font-weight: 650; color: var(--ink); flex: 0 0 auto; }
@@ -385,7 +380,7 @@ body.dragging-panel iframe { pointer-events: none; }
   transform: none !important;
 }
 .panel.max .ph { background: var(--sunk); }
-.panel.max .ex, .panel.max .grip { display: none; }
+.panel.max .ex { display: none; }
 .panel.max .cl {
   display: inline-flex; font-size: 13px; min-width: 30px; height: 28px;
   background: color-mix(in srgb, var(--bad) 14%, var(--sunk)); color: var(--ink);
