@@ -24,8 +24,8 @@ A category opens as a grid of panels, one per library, all running at once:
 - **Two to a row, half a screen tall**, so a desktop screen shows four at a time; three to a row on a
   very wide screen (2160 px and up), so six; one to a row on narrow screens. The *Per row* buttons
   pick 1, 2 or 3 instead, and that choice is remembered.
-- **Reorder, never remove.** Drag a panel by **⠿**, press **◀ ▶** in its header, or focus **⠿** and use
-  the arrow keys. The order is remembered per category; *Reset order* goes back to the default. There
+- **Reorder, never remove.** Drag a panel by its header (on a touch screen, by **⠿**), or focus **⠿**
+  and use the arrow keys. The order is remembered per category; *Reset order* goes back to the default. There
   is no way to close a panel.
 - **One long page.** More panels than fit simply continue below; the wheel scrolls the page.
 - **The wheel scrolls the page, even over a map or an editor.** Maps, diagram editors, 3D scenes and
@@ -33,7 +33,11 @@ A category opens as a grid of panels, one per library, all running at once:
   gets the wheel after you click into it (it gets a blue outline) until you click elsewhere; Ctrl or
   Cmd with the wheel, or a trackpad pinch, always reaches it. On a touch screen a panel likewise takes
   a tap before it takes a drag, and the draw.io panel (an iframe) a click.
-- **⤢ widens a panel** to the full row and most of the screen's height, and the demo refits.
+- **⤢ opens a panel over the whole window** on a dark backdrop, and the demo refits; **✕**, Esc or a
+  click on the backdrop puts it back where it was.
+- **Copy** in a panel's header copies its name, package and one-line summary; *Copy all N* on a category
+  copies every library there in panel order, and *Copy all* in the top bar copies all of them grouped by
+  category — ready to paste into another tool or an AI chat.
 - A panel starts its library when it scrolls into view, and keeps running after that; off screen its
   animation loops idle. Each panel header has the name, rating, version, last update and a one-line
   summary; **Details** opens the library's own page.
@@ -270,7 +274,7 @@ for the node and edge readout, `dataButton` for the Data panel, and `FLOW` for t
 Your demo runs in a panel next to every other library of its category, so it has to share the page:
 prefix any element ids, look elements up inside `ctx.el` rather than the whole document, and add
 window or document listeners with `ctx.on`, so they go when the panel does. `onResize` fires whenever
-the stage changes size — a resized window, a widened panel, a toolbar that wrapped — and a demo that
+the stage changes size — a resized window, an expanded panel, a toolbar that wrapped — and a demo that
 uses `ctx.raf` for its animation gets paused for free while its panel is off screen.
 
 4. Run the checks:
