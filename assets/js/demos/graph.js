@@ -37,7 +37,7 @@ B.g6 = async function (ctx) {
     autoFit: "view",
     background: T.stage,
     data: {
-      nodes: data.nodes.map(function (n) { return { id: n.id, data: { group: n.group } }; }),
+      nodes: data.nodes.map(function (n) { return { id: n.id, data: { group: n.group, label: n.label } }; }),
       edges: data.links.map(function (l, i) { return { id: "e" + i, source: l.source, target: l.target }; })
     },
     node: {
@@ -45,7 +45,7 @@ B.g6 = async function (ctx) {
         size: 18,
         fill: function (d) { return ctx.series(d.data.group); },
         stroke: T.stage, lineWidth: 1.5,
-        labelText: function (d) { return d.id; },
+        labelText: function (d) { return d.data.label; },
         labelFill: T.muted, labelFontSize: 9, labelPlacement: "bottom"
       },
       state: { active: { fill: T.accent, halo: true, labelFill: T.ink, labelFontSize: 11 } }
@@ -99,14 +99,14 @@ B.cy = async function (ctx) {
 
   var cy = cytoscape({
     container: ctx.el,
-    elements: data.nodes.map(function (n) { return { data: { id: n.id, g: n.group } }; })
+    elements: data.nodes.map(function (n) { return { data: { id: n.id, label: n.label, g: n.group } }; })
       .concat(data.links.map(function (l, i) {
         return { data: { id: "e" + i, source: l.source, target: l.target } };
       })),
     style: [
       { selector: "node", style: {
           "background-color": function (e) { return ctx.series(e.data("g")); },
-          label: "data(id)", color: T.muted, "font-size": 8, "font-family": T.mono,
+          label: "data(label)", color: T.muted, "font-size": 11, "font-family": T.mono,
           "text-valign": "bottom", "text-margin-y": 3, width: 18, height: 18 } },
       { selector: "edge", style: { width: 1.2, "line-color": T.edge, "curve-style": "bezier", opacity: .6 } },
       { selector: ".path", style: {
@@ -187,7 +187,7 @@ B.vn = async function (ctx) {
 
   var net = new vis.Network(ctx.el, { nodes: nodes, edges: edges }, {
     nodes: { shape: "dot", size: 12, borderWidth: 1.5,
-             font: { color: T.muted, size: 10, face: "monospace" } },
+             font: { color: T.muted, size: 14, face: "monospace" } },
     edges: { color: { color: T.edge, opacity: .6 }, width: 1, smooth: { type: "continuous" } },
     groups: groups,
     physics: {
@@ -223,7 +223,7 @@ B.vn = async function (ctx) {
 /* ------------------------------------------------------------ force-graph */
 B.fg = async function (ctx) {
   var T = ctx.T;
-  var data = sample(160, 45);
+  var data = sample(160, 45), labels = true;
   var g = ForceGraph()(ctx.el)
     .backgroundColor(T.stage)
     .graphData({ nodes: data.nodes, links: data.links })
@@ -232,9 +232,19 @@ B.fg = async function (ctx) {
     .linkColor(function () { return T.edge; })
     .linkWidth(.7)
     .nodeLabel(function (n) { return n.label; })
+    /* The name under every node, drawn on the same canvas after the dot;
+       it keeps one size on screen whatever the zoom. */
+    .nodeCanvasObjectMode(function () { return labels ? "after" : null; })
+    .nodeCanvasObject(function (n, g2, scale) {
+      g2.font = (10 / scale) + "px " + T.mono;
+      g2.textAlign = "center"; g2.textBaseline = "top";
+      g2.fillStyle = T.muted;
+      g2.fillText(n.label, n.x, n.y + 5 + 2 / scale);
+    })
     .cooldownTicks(140)
     .d3VelocityDecay(.28);
 
+  ctx.check("labels", true, function (on) { labels = on; g.nodeCanvasObjectMode(g.nodeCanvasObjectMode()); });
   ctx.check("flow particles", false, function (on) {
     g.linkDirectionalParticles(on ? 2 : 0)
      .linkDirectionalParticleWidth(2)
@@ -269,7 +279,7 @@ B.rg = async function (ctx) {
   var api = {};
   function App() {
     var a = React.useState("forceDirected2d"), layout = a[0], setLayout = a[1];
-    var b = React.useState(false), labels = b[0], setLabels = b[1];
+    var b = React.useState(true), labels = b[0], setLabels = b[1];
     api.setLayout = setLayout;
     api.setLabels = setLabels;
     /* Selection as Reagraph's docs wire it: useSelection keeps the
@@ -281,11 +291,16 @@ B.rg = async function (ctx) {
       ref: ref,
       nodes: nodes, edges: edges,
       layoutType: layout,
+      /* Reagraph's node labels have one fixed size in graph units; a tighter
+         force layout makes the camera fit closer, so they read on screen. */
+      layoutOverrides: { linkDistance: 18, nodeStrength: -34 },
       cameraMode: layout === "forceDirected3d" ? "rotate" : "pan",
       selections: sel.selections, actives: sel.actives,
       onNodeClick: sel.onNodeClick, onCanvasClick: sel.onCanvasClick,
       theme: ctx.dark ? Reagraph.darkTheme : Reagraph.lightTheme,
       labelType: labels ? "all" : "none",
+      /* A local font, so the labels never wait on a CDN (see build.mjs). */
+      labelFontUrl: new URL("vendor/fonts/KaTeX_SansSerif-Regular.ttf", document.baseURI).href,
       draggable: true
     });
   }
@@ -300,7 +315,7 @@ B.rg = async function (ctx) {
     { v: "radialOut2d", t: "radial" },
     { v: "circular2d", t: "circular" }
   ], function (v) { if (api.setLayout) api.setLayout(v); }, "forceDirected2d");
-  ctx.check("labels", false, function (v) { if (api.setLabels) api.setLabels(v); });
+  ctx.check("labels", true, function (v) { if (api.setLabels) api.setLabels(v); });
   ctx.readout("<b>" + nodes.length + "</b> nodes through WebGL — each one still selectable");
 };
 
@@ -338,11 +353,13 @@ B.sig = async function (ctx) {
   /* Sigma 4 styles layer over its defaults, which already read x, y, size,
      colour and label from the node attributes; only the labels change here. */
   var renderer = new Sigma(g, ctx.el, {
-    settings: { renderLabels: false, allowInvalidContainer: true },
+    /* Every node gets its name: a dense label grid and no size threshold
+       turn off Sigma's habit of naming only the biggest nodes. */
+    settings: { renderLabels: true, labelRenderedSizeThreshold: 0, labelDensity: 50, labelGridCellSize: 20, allowInvalidContainer: true },
     styles: { nodes: [SigmaLib.DEFAULT_STYLES.nodes, { labelColor: T.muted, labelFont: T.mono, labelSize: 9 }] }
   });
 
-  ctx.check("labels", false, function (on) { renderer.setSetting("renderLabels", on); });
+  ctx.check("labels", true, function (on) { renderer.setSetting("renderLabels", on); });
   ctx.btn("Re-run layout", function () { relayout(140); renderer.refresh(); });
   ctx.btn("Reset view", function () { renderer.getCamera().reset(); });
   ctx.readout("<b>" + g.order + "</b> nodes · <b>" + g.size + "</b> edges, drawn by WebGL");
@@ -367,9 +384,39 @@ B.fg3 = async function (ctx) {
     .showNavInfo(false)
     .enableNodeDrag(true);
 
+  /* The name of every node, as HTML over the canvas: each frame projects
+     the node to the screen. Nodes behind the camera hide their label, and
+     farther ones fade. */
+  var layer = ctx.mk("div", "fg3-labels"), labels = true, tmp = null, spans = data.nodes.map(function (n) {
+    var sp = ctx.mk("span", null, ctx.esc(n.label));
+    sp.style.cssText = "position:absolute;left:0;top:0;white-space:nowrap;display:none";
+    layer.appendChild(sp);
+    return sp;
+  });
+  layer.style.cssText = "position:absolute;inset:0;pointer-events:none;overflow:hidden;font:10px " + T.mono + ";color:" + T.muted;
+  ctx.el.style.position = "relative";
+  ctx.el.appendChild(layer);
+  ctx.raf(function () {
+    if (!labels) return;
+    var cam = g.camera(), w = ctx.el.clientWidth, h2 = ctx.el.clientHeight;
+    if (!tmp) tmp = cam.position.clone();
+    data.nodes.forEach(function (n, i) {
+      var sp = spans[i];
+      if (n.x == null) { sp.style.display = "none"; return; }
+      /* In camera space a node in front of the camera has z < 0. */
+      var v = tmp.set(n.x, n.y, n.z).applyMatrix4(cam.matrixWorldInverse);
+      var p = g.graph2ScreenCoords(n.x, n.y, n.z);
+      if (v.z >= 0 || p.x < -40 || p.y < -20 || p.x > w + 40 || p.y > h2 + 20) { sp.style.display = "none"; return; }
+      sp.style.display = "";
+      sp.style.transform = "translate(" + p.x.toFixed(1) + "px," + p.y.toFixed(1) + "px) translate(-50%, 7px)";
+      sp.style.opacity = String(Math.max(.55, Math.min(1, 700 / -v.z)));
+    });
+  });
+
   var controls = g.controls();
   controls.autoRotate = true;
   controls.autoRotateSpeed = 1.1;
+  ctx.check("labels", true, function (on) { labels = on; layer.style.display = on ? "" : "none"; });
   ctx.check("auto-rotate", true, function (on) { controls.autoRotate = on; });
   ctx.check("link particles", false, function (on) {
     g.linkDirectionalParticles(on ? 2 : 0)
@@ -394,7 +441,7 @@ function rgb(hex) {
 /* -------------------------------------------------------------- cosmos.gl */
 B.cos = async function (ctx) {
   var T = ctx.T;
-  var size = 400, paused = false;
+  var size = 400, paused = false, labels = true, count = 0;
 
   /* cosmos.gl takes flat typed arrays: x,y per point, source,target per
      link, r,g,b,a per point colour (0..1), all addressed by index. */
@@ -447,6 +494,36 @@ B.cos = async function (ctx) {
   ctx.onDestroy(function () { graph.destroy(); });
   await graph.ready;
 
+  /* cosmos.gl draws no text, so the names go on a 2D canvas over its own:
+     each frame reads where the points are and writes the names under them.
+     Up to 400 nodes every point is tracked; beyond that cosmos.gl's
+     sampler picks an evenly spread set of the visible ones, and zooming
+     in names more of them. */
+  var over = ctx.mk("canvas");
+  over.style.cssText = "position:absolute;inset:0;pointer-events:none";
+  ctx.el.style.position = "relative";
+  ctx.el.appendChild(over);
+  var g2 = over.getContext("2d");
+  ctx.raf(function () {
+    var w = ctx.el.clientWidth, h = ctx.el.clientHeight, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (over.width !== Math.round(w * dpr) || over.height !== Math.round(h * dpr)) {
+      over.width = Math.round(w * dpr); over.height = Math.round(h * dpr);
+    }
+    g2.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g2.clearRect(0, 0, w, h);
+    if (!labels || !count) return;
+    var at = count <= 400 ? graph.getTrackedPointPositionsMap({ nonBlocking: true })
+                          : graph.getSampledPointPositionsMap({ nonBlocking: true });
+    g2.font = "10px " + T.mono;
+    g2.textAlign = "center"; g2.textBaseline = "top";
+    g2.fillStyle = T.muted;
+    at.forEach(function (pos, i) {
+      var sp = graph.spaceToScreenPosition(pos);
+      if (sp[0] < -30 || sp[1] < -12 || sp[0] > w + 30 || sp[1] > h + 12) return;
+      g2.fillText("pkg-" + i, sp[0], sp[1] + 6);
+    });
+  });
+
   var say = ctx.readout("");
   function load(n) {
     var d = build(n);
@@ -455,6 +532,10 @@ B.cos = async function (ctx) {
     graph.setPointColors(d.col);
     graph.setPointSizes(d.sz);
     graph.setLinks(d.links);
+    count = n;
+    var all = [];
+    for (var i = 0; i < Math.min(n, 400); i++) all.push(i);
+    graph.trackPointPositionsByIndices(n <= 400 ? all : []);
     graph.render();
     graph.start(1);
     paused = false; pauseBtn.textContent = "Pause";
@@ -470,6 +551,7 @@ B.cos = async function (ctx) {
     pauseBtn.textContent = paused ? "Resume" : "Pause";
   });
   ctx.btn("Fit view", function () { graph.fitView(500); });
+  ctx.check("labels", true, function (on) { labels = on; });
   load(size);
 };
 
@@ -493,7 +575,7 @@ B.dkg = async function (ctx) {
   relayout(220);
 
   var edge = rgb(T.edge), muted = rgb(T.muted), ink = rgb(T.ink), acc = rgb(T.accent);
-  var hover = null, labels = "filter";
+  var hover = null, labels = "all";
 
   function fit() {
     var xs = data.nodes.map(function (n) { return n.x; }), ys = data.nodes.map(function (n) { return n.y; });
@@ -560,7 +642,7 @@ B.dkg = async function (ctx) {
   ctx.el.style.background = T.stage;
 
   ctx.select("labels", [{ v: "filter", t: "no overlap" }, { v: "all", t: "all" }, { v: "off", t: "off" }],
-             function (v) { labels = v; deckgl.setProps({ layers: layers() }); }, "filter");
+             function (v) { labels = v; deckgl.setProps({ layers: layers() }); }, "all");
   ctx.btn("Re-run layout", function () {
     relayout(140);
     deckgl.setProps({ layers: layers(), initialViewState: fit() });

@@ -299,7 +299,7 @@ window.LIBS = [
   what:"A WebGL renderer for graphology graphs. Rendering only — the data model lives in graphology.",
   pro:"Very large graphs stay interactive",
   con:"You need graphology alongside it; sigma alone does nothing",
-  try:"400 nodes here — the same code handles 30,000. Drag and zoom to feel the WebGL path; with labels on, Sigma names the nodes it draws large enough, so zoom in to read them.",
+  try:"400 nodes here — the same code handles 30,000. Every node carries its name; drag and zoom to feel the WebGL path.",
   rnNote:"Web only; WebView on native.",
   js:["sigma","d3"], site:"https://www.sigmajs.org/", repo:"jacomyal/sigma.js" },
 
@@ -317,7 +317,7 @@ window.LIBS = [
   what:"A force graph where the layout runs on the GPU as well as the drawing, in shaders, so hundreds of thousands of nodes keep moving.",
   pro:"The simulation itself is on the GPU: 50,000 nodes settle in seconds, where CPU layouts stall",
   con:"No labels of its own, and data goes in as flat Float32Arrays of indices, not node objects",
-  try:"Switch to 50,000 nodes: the whole layout settles live on the GPU. Drag a node, or click one to light up its neighbours.",
+  try:"Switch to 50,000 nodes: the whole layout settles live on the GPU. cosmos.gl draws no text, so the names come from a 2D canvas laid over it (at 50,000, an evenly spread sample). Click a node to light up its neighbours.",
   rnNote:"WebGL 2 in a browser only; Expo web or a WebView on native.",
   js:["cosmos"], site:"https://cosmosgl.github.io/graph/", repo:"cosmosgl/graph" },
 
@@ -328,7 +328,7 @@ window.LIBS = [
   what:"deck.gl without a map: one layer of points, one of lines and one of labels on an orthographic view, all on the GPU.",
   pro:"Labels come with collision filtering built in, so they never pile up, and the layers scale to millions",
   con:"No layout and no graph model: positions come from elsewhere (d3-force here) and dragging is yours to write",
-  try:"Zoom in and more labels appear, never overlapping: the collision filter decides which fit. Set labels to all to see what it saves you from. Hover a node to see its neighbours.",
+  try:"Every node is named. Set labels to no overlap and deck.gl's collision filter keeps only the names that fit, bringing more back as you zoom in. Hover a node to see its neighbours.",
   rnNote:"Web only; WebView on native.",
   js:["deck","d3"], site:"https://deck.gl/", repo:"visgl/deck.gl" },
 
