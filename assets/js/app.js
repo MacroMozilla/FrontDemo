@@ -23,6 +23,9 @@ var GROUPS = window.GROUPS, CATS = window.CATS, CAPS = window.CAPS,
 var B = window.B = {};                       /* key -> builder            */
 /* No prototype, so a route like #/l/constructor finds nothing. */
 var byKey = Object.create(null);   LIBS.forEach(function (l) { byKey[l.k] = l; });
+/* A library shown in a second category (deck.gl, under Maps and under
+   Graphs) has a second entry marked also; it is counted and compared once. */
+var COUNTED = LIBS.filter(function (l) { return !l.also; });
 var catById = Object.create(null); CATS.forEach(function (c) { catById[c.id] = c; });
 
 var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -52,7 +55,7 @@ function catText(cat, keys) {
 }
 
 function allText() {
-  var out = ["# FrontDemo — " + LIBS.length + " front-end libraries"];
+  var out = ["# FrontDemo — " + COUNTED.length + " front-end libraries"];
   CATS.forEach(function (c) {
     var keys = grid && grid.cat === c.id ? grid.order
              : LIBS.filter(function (l) { return l.cat === c.id; }).map(function (l) { return l.k; });
@@ -495,7 +498,7 @@ function buildNav() {
   home.href = "#/"; home.dataset.route = "/";
   frag.appendChild(home);
 
-  var mx = el("a", "nav-link", '<span class="g">▦</span><span>Compare all ' + LIBS.length + '</span>');
+  var mx = el("a", "nav-link", '<span class="g">▦</span><span>Compare all ' + COUNTED.length + '</span>');
   mx.href = "#/matrix"; mx.dataset.route = "/matrix";
   frag.appendChild(mx);
 
@@ -527,7 +530,7 @@ function buildNav() {
 
   navEl.appendChild(frag);
   navEl.appendChild(el("p", "no-hits", "Nothing matches that.")).hidden = true;
-  $("#brandCount").textContent = LIBS.length + " libs";
+  $("#brandCount").textContent = COUNTED.length + " libs";
 }
 
 /* route: the nav link to light up; cat: the category open on screen,
@@ -609,8 +612,8 @@ function renderHome() {
   var byGroup = GROUPS.map(function (g) {
     return { g: g, cats: CATS.filter(function (c) { return c.g === g.id; }) };
   });
-  var vizCount = LIBS.filter(function (l) { return catById[l.cat].g === "viz"; }).length;
-  var rnYes = LIBS.filter(function (l) { return l.c.split(/\s+/)[6] === "y"; }).length;
+  var vizCount = COUNTED.filter(function (l) { return catById[l.cat].g === "viz"; }).length;
+  var rnYes = COUNTED.filter(function (l) { return l.c.split(/\s+/)[6] === "y"; }).length;
   /* The diagram editors that draw the shared flowchart carry a profile
      (render / ui / box) for the comparison table. */
   var editors = LIBS.filter(function (l) { return l.render; });
@@ -626,7 +629,7 @@ function renderHome() {
        "</div>";
 
   h += '<div class="stats">' +
-       '<div class="stat"><div class="v">' + LIBS.length + '</div><div class="k">libraries</div></div>' +
+       '<div class="stat"><div class="v">' + COUNTED.length + '</div><div class="k">libraries</div></div>' +
        '<div class="stat"><div class="v">' + CATS.length + '</div><div class="k">categories</div></div>' +
        '<div class="stat"><div class="v">' + vizCount + '</div><div class="k">graphics libs</div></div>' +
        '<div class="stat"><div class="v">' + rnYes + '</div><div class="k">React Native ready</div></div>' +
@@ -692,7 +695,7 @@ function renderMatrix() {
   var picked = {};
 
   var h = '<div class="pad wide">';
-  h += '<div class="sechead"><h3>All ' + LIBS.length + " libraries</h3><span>Tick a capability to narrow the list. Hover a column header for what it means.</span></div>";
+  h += '<div class="sechead"><h3>All ' + COUNTED.length + " libraries</h3><span>Tick a capability to narrow the list. Hover a column header for what it means.</span></div>";
   h += '<div class="filters" id="capFilters"></div>';
   h += '<div class="tscroll"><table class="m"><thead><tr>' +
        '<th class="nm">Library</th><th class="sz">Size</th><th class="up">Last update</th>' +
@@ -735,7 +738,7 @@ function renderMatrix() {
   function draw() {
     var body = "", n = 0;
     CATS.forEach(function (c) {
-      var rows = LIBS.filter(function (l) { return l.cat === c.id && pass(l); });
+      var rows = COUNTED.filter(function (l) { return l.cat === c.id && pass(l); });
       if (!rows.length) return;
       body += '<tr class="cathead"><td colspan="' + (CAPS.length + 3) + '"><a href="#/c/' + c.id + '">' +
               esc(c.name) + '</a><span class="n">' + rows.length + "</span></td></tr>";
@@ -752,7 +755,7 @@ function renderMatrix() {
       });
     });
     $("#mbody").innerHTML = body;
-    $("#mcount").innerHTML = "<b>" + n + "</b> / " + LIBS.length + " shown";
+    $("#mcount").innerHTML = "<b>" + n + "</b> / " + COUNTED.length + " shown";
     document.querySelectorAll("thead th[data-cap]").forEach(function (th) {
       th.classList.toggle("on", !!picked[th.dataset.cap]);
     });
@@ -1524,8 +1527,8 @@ window.__boot = function () {
     else if (e.key === "Escape" && grid && grid.open && !typing && !e.defaultPrevented) closePanel();
   });
 
-  $("#copyAll").textContent = "Copy all " + LIBS.length;
-  $("#copyAll").addEventListener("click", function () { copyWith(this, allText(), "all " + LIBS.length + " libraries"); });
+  $("#copyAll").textContent = "Copy all " + COUNTED.length;
+  $("#copyAll").addEventListener("click", function () { copyWith(this, allText(), "all " + COUNTED.length + " libraries"); });
 
   $("#burger").addEventListener("click", openDrawer);
   $("#scrim").addEventListener("click", closeDrawer);

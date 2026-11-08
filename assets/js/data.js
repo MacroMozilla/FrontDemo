@@ -312,6 +312,26 @@ window.LIBS = [
   rnNote:"three.js underneath, so expo-gl is theoretically possible; no ready-made port.",
   js:["fg3d"], site:"https://github.com/vasturiano/3d-force-graph", repo:"vasturiano/3d-force-graph" },
 
+{ k:"cos", n:"cosmos.gl", pkg:"@cosmos.gl/graph", ver:"3.6.0", pub:"2026-11-04", commit:"2026-11-07", lic:"MIT", kb:810, cat:"graph", st:4,
+  c:"y y y y n y p y",
+  what:"A force graph where the layout runs on the GPU as well as the drawing, in shaders, so hundreds of thousands of nodes keep moving.",
+  pro:"The simulation itself is on the GPU: 50,000 nodes settle in seconds, where CPU layouts stall",
+  con:"No labels of its own, and data goes in as flat Float32Arrays of indices, not node objects",
+  try:"Switch to 50,000 nodes: the whole layout settles live on the GPU. Drag a node, or click one to light up its neighbours.",
+  rnNote:"WebGL 2 in a browser only; Expo web or a WebView on native.",
+  js:["cosmos"], site:"https://cosmosgl.github.io/graph/", repo:"cosmosgl/graph" },
+
+/* deck.gl is listed under Maps; here it draws a network on a plain plane.
+   also: the entry it repeats, so it is counted once (see app.js). */
+{ k:"dkg", n:"deck.gl", pkg:"deck.gl", ver:"9.4.0", pub:"2026-09-05", commit:"2026-10-13", lic:"MIT", kb:2025, cat:"graph", st:4, also:"dk",
+  c:"p y y y y y p y",
+  what:"deck.gl without a map: one layer of points, one of lines and one of labels on an orthographic view, all on the GPU.",
+  pro:"Labels come with collision filtering built in, so they never pile up, and the layers scale to millions",
+  con:"No layout and no graph model: positions come from elsewhere (d3-force here) and dragging is yours to write",
+  try:"Zoom in and more labels appear, never overlapping: the collision filter decides which fit. Set labels to all to see what it saves you from. Hover a node to see its neighbours.",
+  rnNote:"Web only; WebView on native.",
+  js:["deck","d3"], site:"https://deck.gl/", repo:"visgl/deck.gl" },
+
 /* ---------------- Charts ---------------- */
 { k:"ec", n:"ECharts", pkg:"echarts", ver:"6.1.0", pub:"2026-05-19", commit:"2026-10-04", lic:"Apache-2.0", kb:1097, cat:"chart", st:5,
   c:"p y y y p y y y",

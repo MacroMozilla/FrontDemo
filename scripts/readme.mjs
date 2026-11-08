@@ -67,9 +67,9 @@ if (process.argv.includes('--check')) {
     console.error('README.md library tables are stale — run `node scripts/readme.mjs`.');
     process.exit(1);
   }
-  console.log('README library tables are up to date (' + LIBS.length + ' libraries).');
+  console.log('README library tables are up to date (' + LIBS.filter((l) => !l.also).length + ' libraries).');
 } else {
   fs.writeFileSync(readmePath, next);
-  console.log('README.md regenerated: ' + LIBS.length + ' libraries in ' +
+  console.log('README.md regenerated: ' + LIBS.filter((l) => !l.also).length + ' libraries in ' +
     CATS.filter((c) => LIBS.some((l) => l.cat === c.id)).length + ' categories.');
 }

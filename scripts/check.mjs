@@ -19,7 +19,15 @@ if (!LIBS?.length) { console.error('data.js exposed no LIBS'); process.exit(1); 
 
 /* scripts/bundles builds everything in vendor/, so its package.json records
    the version running here (see scripts/freshness.mjs). */
-const bundled = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/bundles/package.json'), 'utf8')).dependencies;
+const bundled = pinned();
+/* The root's pins plus those of its workspaces (cosmos.gl lives in one, see
+   scripts/bundles/cosmos/package.json). */
+function pinned() {
+  const dir = path.join(ROOT, 'scripts/bundles');
+  const root = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'));
+  return Object.assign({}, ...(root.workspaces || []).map(w =>
+    JSON.parse(fs.readFileSync(path.join(dir, w, 'package.json'), 'utf8')).dependencies), root.dependencies);
+}
 if (!/^\d{4}-\d{2}-\d{2}$/.test(CHECKED || '')) fail.push('window.CHECKED is not a yyyy-mm-dd date');
 
 const catIds = new Set(CATS.map(c => c.id));

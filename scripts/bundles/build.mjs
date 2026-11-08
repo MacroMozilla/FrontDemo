@@ -202,6 +202,7 @@ const BUNDLED = {
   x6: 'X6',
   reagraph: 'Reagraph',
   sigma: 'SigmaLib',
+  cosmos: 'Cosmos',
   diagramjs: 'DJS',
   recharts: 'Recharts',
   freehand: 'Freehand',

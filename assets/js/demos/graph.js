@@ -384,4 +384,191 @@ B.fg3 = async function (ctx) {
   ctx.onDestroy(function () { if (g._destructor) g._destructor(); });
 };
 
+/* "#6EA8FE" -> [110, 168, 254] */
+function rgb(hex) {
+  var h = hex.replace("#", "");
+  if (h.length === 3) h = h.replace(/./g, "$&$&");
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+
+/* -------------------------------------------------------------- cosmos.gl */
+B.cos = async function (ctx) {
+  var T = ctx.T;
+  var size = 400, paused = false;
+
+  /* cosmos.gl takes flat typed arrays: x,y per point, source,target per
+     link, r,g,b,a per point colour (0..1), all addressed by index. */
+  function build(n) {
+    var data = sample(n, Math.round(n * .4), 11), at = {};
+    data.nodes.forEach(function (d, i) { at[d.id] = i; });
+    var pos = new Float32Array(n * 2), col = new Float32Array(n * 4), sz = new Float32Array(n);
+    var r = ctx.rng(5);
+    for (var i = 0; i < n; i++) {
+      pos[i * 2] = r() * 4096; pos[i * 2 + 1] = r() * 4096;
+      var c = rgb(ctx.series(data.nodes[i].group));
+      col[i * 4] = c[0] / 255; col[i * 4 + 1] = c[1] / 255; col[i * 4 + 2] = c[2] / 255; col[i * 4 + 3] = 1;
+      sz[i] = (n > 5000 ? 2 : 4) + (data.nodes[i].group % 4);
+    }
+    var links = new Float32Array(data.links.length * 2);
+    data.links.forEach(function (l, j) { links[j * 2] = at[l.source]; links[j * 2 + 1] = at[l.target]; });
+    return { pos: pos, col: col, sz: sz, links: links, n: n, m: data.links.length };
+  }
+
+  var graph = new Cosmos.Graph(ctx.el, {
+    backgroundColor: T.stage,
+    pointDefaultColor: T.accent,
+    linkDefaultColor: T.edge,
+    linkOpacity: .5,
+    linkDefaultWidth: 1,
+    pointGreyoutOpacity: .12,
+    linkGreyoutOpacity: .05,
+    renderHoveredPointRing: true,
+    hoveredPointRingColor: T.ink,
+    enableDrag: true,
+    fitViewOnInit: true,
+    fitViewDelay: 1200,
+    fitViewPadding: .15,
+    simulationRepulsion: .6,
+    simulationLinkSpring: 1,
+    simulationLinkDistance: 6,
+    simulationGravity: .25,
+    simulationFriction: .85,
+    onPointClick: function (i) {
+      var near = graph.getNeighboringPointIndices(i);
+      graph.setConfigPartial({ highlightedPointIndices: [i].concat(near),
+                               highlightedLinkIndices: graph.getConnectedLinkIndices(i), focusedPointIndex: i });
+    },
+    /* The layout spreads out as it runs, so fit once more when it settles. */
+    onSimulationEnd: function () { graph.fitView(600); },
+    onBackgroundClick: function () {
+      graph.setConfigPartial({ highlightedPointIndices: undefined, highlightedLinkIndices: undefined, focusedPointIndex: undefined });
+    }
+  });
+  ctx.onDestroy(function () { graph.destroy(); });
+  await graph.ready;
+
+  var say = ctx.readout("");
+  function load(n) {
+    var d = build(n);
+    graph.setConfigPartial({ highlightedPointIndices: undefined, highlightedLinkIndices: undefined, focusedPointIndex: undefined });
+    graph.setPointPositions(d.pos);
+    graph.setPointColors(d.col);
+    graph.setPointSizes(d.sz);
+    graph.setLinks(d.links);
+    graph.render();
+    graph.start(1);
+    paused = false; pauseBtn.textContent = "Pause";
+    ctx.after(1600, function () { graph.fitView(600); });
+    say("<b>" + d.n.toLocaleString() + "</b> nodes · <b>" + d.m.toLocaleString() + "</b> edges, layout and drawing on the GPU");
+  }
+
+  ctx.select("nodes", [{ v: "400", t: "400" }, { v: "5000", t: "5,000" }, { v: "50000", t: "50,000" }],
+             function (v) { size = +v; load(size); }, "400");
+  var pauseBtn = ctx.btn("Pause", function () {
+    paused = !paused;
+    if (paused) graph.pause(); else graph.unpause();
+    pauseBtn.textContent = paused ? "Resume" : "Pause";
+  });
+  ctx.btn("Fit view", function () { graph.fitView(500); });
+  load(size);
+};
+
+/* ----------------------------------------- deck.gl (as a graph renderer) */
+B.dkg = async function (ctx) {
+  var T = ctx.T;
+  var data = sample(400, 160, 11), byId = {}, nbr = {};
+  data.nodes.forEach(function (n) { byId[n.id] = n; nbr[n.id] = {}; n.size = 3 + (n.group % 4); });
+  data.links.forEach(function (l) { nbr[l.source][l.target] = 1; nbr[l.target][l.source] = 1; });
+
+  /* deck.gl draws; it does not lay out. d3-force works out the positions. */
+  function relayout(iterations) {
+    var ls = data.links.map(function (l) { return { source: l.source, target: l.target }; });
+    var sim = d3.forceSimulation(data.nodes)
+      .force("link", d3.forceLink(ls).id(function (d) { return d.id; }).distance(24).strength(.6))
+      .force("charge", d3.forceManyBody().strength(-26))
+      .force("center", d3.forceCenter(0, 0))
+      .stop();
+    for (var i = 0; i < iterations; i++) sim.tick();
+  }
+  relayout(220);
+
+  var edge = rgb(T.edge), muted = rgb(T.muted), ink = rgb(T.ink), acc = rgb(T.accent);
+  var hover = null, labels = "filter";
+
+  function fit() {
+    var xs = data.nodes.map(function (n) { return n.x; }), ys = data.nodes.map(function (n) { return n.y; });
+    var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+    var w = Math.max(1, ctx.el.clientWidth), h = Math.max(1, ctx.el.clientHeight);
+    var zoom = Math.log2(Math.min(w / ((x1 - x0) * 1.12), h / ((y1 - y0) * 1.12)));
+    return { target: [(x0 + x1) / 2, (y0 + y1) / 2, 0], zoom: zoom, minZoom: zoom - 2, maxZoom: zoom + 6 };
+  }
+
+  function lit(id) { return !hover || id === hover || nbr[hover][id]; }
+
+  function layers() {
+    return [
+      new deck.LineLayer({
+        id: "edges", data: data.links,
+        getSourcePosition: function (l) { return [byId[l.source].x, byId[l.source].y]; },
+        getTargetPosition: function (l) { return [byId[l.target].x, byId[l.target].y]; },
+        getColor: function (l) {
+          var on = hover && (l.source === hover || l.target === hover);
+          return on ? acc.concat([230]) : edge.concat([hover ? 25 : 110]);
+        },
+        getWidth: function (l) { return hover && (l.source === hover || l.target === hover) ? 2 : 1; },
+        updateTriggers: { getColor: hover, getWidth: hover }
+      }),
+      new deck.ScatterplotLayer({
+        id: "nodes", data: data.nodes, pickable: true,
+        radiusUnits: "pixels", stroked: true, lineWidthUnits: "pixels", getLineWidth: 1,
+        getPosition: function (n) { return [n.x, n.y]; },
+        getRadius: function (n) { return n.size; },
+        getFillColor: function (n) { return rgb(ctx.series(n.group)).concat([lit(n.id) ? 255 : 40]); },
+        getLineColor: rgb(T.stage),
+        updateTriggers: { getFillColor: hover },
+        onHover: function (info) {
+          var id = info.object ? info.object.id : null;
+          if (id !== hover) { hover = id; deckgl.setProps({ layers: layers() }); }
+        }
+      }),
+      new deck.TextLayer({
+        id: "labels-" + labels, data: data.nodes, visible: labels !== "off",
+        getPosition: function (n) { return [n.x, n.y]; },
+        getText: function (n) { return n.label; },
+        getSize: 11, fontFamily: T.mono,
+        getPixelOffset: function (n) { return [0, n.size + 8]; },
+        getColor: function (n) { return n.id === hover ? ink : muted.concat([lit(n.id) ? 255 : 50]); },
+        updateTriggers: { getColor: hover },
+        /* Labels that would overlap one another are dropped, bigger nodes
+           first: deck.gl's collision filter, run on the GPU every frame. */
+        extensions: labels === "filter" ? [new deck.CollisionFilterExtension()] : [],
+        getCollisionPriority: function (n) { return n.id === hover ? 100 : n.size; },
+        collisionTestProps: { sizeScale: 2 }
+      })
+    ];
+  }
+
+  var deckgl = new deck.DeckGL({
+    container: ctx.el,
+    views: new deck.OrthographicView({ flipY: false }),
+    initialViewState: fit(),
+    controller: true,
+    parameters: { clearColor: [0, 0, 0, 0] },
+    getCursor: function (st) { return st.isHovering ? "pointer" : st.isDragging ? "grabbing" : "grab"; },
+    layers: layers()
+  });
+  ctx.el.style.background = T.stage;
+
+  ctx.select("labels", [{ v: "filter", t: "no overlap" }, { v: "all", t: "all" }, { v: "off", t: "off" }],
+             function (v) { labels = v; deckgl.setProps({ layers: layers() }); }, "filter");
+  ctx.btn("Re-run layout", function () {
+    relayout(140);
+    deckgl.setProps({ layers: layers(), initialViewState: fit() });
+  });
+  ctx.btn("Reset view", function () { deckgl.setProps({ initialViewState: Object.assign(fit(), { transitionDuration: 400 }) }); });
+  ctx.readout("<b>" + data.nodes.length + "</b> nodes · <b>" + data.links.length + "</b> edges in three layers: points, lines, labels");
+
+  ctx.onDestroy(function () { deckgl.finalize(); });
+};
+
 })();

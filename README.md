@@ -1,6 +1,6 @@
 # FrontDemo
 
-**A playground for front-end libraries. 150 of them, across 36 categories, each one actually running
+**A playground for front-end libraries. 151 of them, across 36 categories, each one actually running
 in the page — nine diagram editors among them, drawing the same flowchart side by side.**
 
 Pick a category from the sidebar and every library in it opens at once, side by side, each mounted on
@@ -50,7 +50,7 @@ Each library's own page gives you:
 | **The trade-off** | One line for what it is genuinely good at, one line for where it hurts. Both are opinions, and both are stated as such. |
 | **Last update** | The page leads with the library's last update: the newer of its latest release and the newest commit to its repository, with both dates beside it. |
 | **React Native & mobile** | Whether the library can be used from a React codebase that also targets phones — see below. |
-| **Capabilities** | Eight columns, comparable across all 150 libraries, also available as one big [matrix](https://macromozilla.github.io/FrontDemo/#/matrix) with the last update of each. |
+| **Capabilities** | Eight columns, comparable across all 151 libraries, also available as one big [matrix](https://macromozilla.github.io/FrontDemo/#/matrix) with the last update of each. |
 | **The source** | The exact builder function that drew the stage, verbatim, at the bottom of every page. |
 
 ## What is covered
@@ -70,7 +70,7 @@ feedback · scroll and layout · templating and text · storage, files and worke
 internationalization · client-side search · crypto and identifiers · games and audio · delight and
 micro-interactions · icons
 
-Nothing here is a stub. Every one of the 150 libraries runs for real, on its own page and in its
+Nothing here is a stub. Every one of the 151 libraries runs for real, on its own page and in its
 category's panels, and `scripts/verify.mjs` drives them all in headless Chromium.
 
 ## Fit for production
@@ -441,7 +441,7 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **diagram-js** | `diagram-js` | ★★★ | MIT | 149 KB | 2026-10-07 | ◐ | The kernel underneath bpmn.io. Canvas, selection, dragging and an undoable command stack — and nothing else. The core is 35 KB; the build here adds the modeling, move, connect and bendpoint features. |
 | **Baklava.js** | `baklavajs` | ★★★ | MIT | 359 KB | 2026-09-17 | ✗ | A node editor where the graph is also a program — connect nodes and values flow through them. |
 
-#### Graphs & networks (7)
+#### Graphs & networks (9)
 
 | Library | npm | Pick | License | Size | Last update | RN | What it is |
 |---|---|---|---|---|---|:--:|---|
@@ -452,6 +452,8 @@ _Versions, release dates and commit dates checked 2026-10-15 (`node scripts/fres
 | **Reagraph** | `reagraph` | ★★★★ | Apache-2.0 | 1.9 MB | 2026-06-25 | ◐ | WebGL graph rendering as React components, built on three.js. |
 | **Sigma.js** | `sigma` | ★★★★ | MIT | 437 KB | 2026-10-14 | ◐ | A WebGL renderer for graphology graphs. Rendering only — the data model lives in graphology. |
 | **3d-force-graph** | `3d-force-graph` | ★★★ | MIT | 1.3 MB | 2026-09-29 | ◐ | The same force-graph idea, but the simulation runs in three dimensions and renders through three.js. |
+| **cosmos.gl** | `@cosmos.gl/graph` | ★★★★ | MIT | 810 KB | 2026-11-07 | ◐ | A force graph where the layout runs on the GPU as well as the drawing, in shaders, so hundreds of thousands of nodes keep moving. |
+| **deck.gl** | `deck.gl` | ★★★★ | MIT | 2.0 MB | 2026-10-13 | ◐ | deck.gl without a map: one layer of points, one of lines and one of labels on an orthographic view, all on the GPU. |
 
 #### Charts (7)
 

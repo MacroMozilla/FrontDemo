@@ -3,6 +3,9 @@
   "private": true,
   "description": "Produces every build in vendor/ and the stylesheets in assets/css/lib/. See build.mjs.",
   "type": "module",
+  "workspaces": [
+    "cosmos"
+  ],
   "scripts": {
     "build": "node build.mjs"
   },
