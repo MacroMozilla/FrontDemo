@@ -283,16 +283,19 @@ function perfTitle(l, state, ms) {
   return t.join(" ");
 }
 
-/* Fills a panel's or page's perf line: the live start time once there is
-   one, the measured memory, and the measured start time until then. */
-function showPerf(node, l, state, ms) {
-  if (!node) return;
+/* Fills the perf line of a panel or page (in its header) and the badge on
+   its stage: the live start time once there is one, the measured memory,
+   and the measured start time until then. */
+function showPerf(host, l, state, ms) {
+  if (!host) return;
   var m = perfInfo(l, state), bits = [];
   if (ms != null) bits.push('<b>' + fmtMs(ms) + '</b> to start');
   else if (m) bits.push("~" + fmtMs(m.ms) + " to start");
   if (m) bits.push("<b>" + fmtMB(m.mb) + "</b> heap");
-  node.innerHTML = bits.join(" · ");
-  node.title = perfTitle(l, state, ms);
+  host.querySelectorAll(".pf, .fact.perf, .stage-perf").forEach(function (node) {
+    node.innerHTML = bits.join(" · ");
+    node.title = perfTitle(l, state, ms);
+  });
 }
 
 /* parts: the stage's toolbar, stage, mount node and message overlay.
@@ -948,8 +951,8 @@ function startLibStage(l) {
   var parts = stageParts(card);
   parts.state = state;
   parts.restart = function () { if ($("#stageCard") === card) startLibStage(l); };
-  parts.onReady = function (ms) { showPerf($("#perfFact"), l, state, ms); };
-  showPerf($("#perfFact"), l, state, null);
+  parts.onReady = function (ms) { showPerf(view, l, state, ms); };
+  showPerf(view, l, state, null);
   libRec = runDemo(l, parts);
 }
 
@@ -988,6 +991,7 @@ function stageHTML(l, ids) {
   return '<div class="stage-bar"' + id("bar") + '><span class="lbl">Live</span></div>' +
          '<div class="stage"' + id("stage") + ">" +
          '<div class="mount"' + id("mount") + "></div>" +
+         '<div class="stage-perf"></div>' +
          '<div class="stage-msg on"' + id("msg") + '><div class="sp"></div><p>loading ' + esc(l.pkg) + "…</p></div>" +
          "</div>";
 }
@@ -1562,8 +1566,8 @@ function startPanel(P) {
   var parts = stageParts(body);
   parts.state = P.state || (P.state = {});
   parts.restart = function () { if (P.started && grid) { startPanel(P); } };
-  parts.onReady = function (ms) { showPerf(P.el.querySelector(".pf"), P.l, P.state, ms); };
-  showPerf(P.el.querySelector(".pf"), P.l, P.state, null);
+  parts.onReady = function (ms) { showPerf(P.el, P.l, P.state, ms); };
+  showPerf(P.el, P.l, P.state, null);
   P.started = true;
   P.rec = runDemo(P.l, parts, grid ? wanted(grid, P) : true);
   /* An iframe swallows the wheel and clicks where the page cannot see
