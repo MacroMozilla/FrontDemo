@@ -130,11 +130,11 @@ B.jg = async function (ctx) {
   ctx.tall();
 
   /* jsGantt draws a white sheet and leaves the text colour to the page, so
-     give it dark ink in either theme rather than the dark theme's pale one. */
-  ctx.ownTheme();
+     it gets dark ink on white, shown inverted in the dark theme. */
   var host = ctx.mk("div");
   host.id = "jsgantt-host";
   host.style.cssText = "position:absolute;inset:0;overflow:auto;background:#fff;color:#1A2130";
+  ctx.invert(host);
   ctx.el.appendChild(host);
 
   var g = new JSGantt.GanttChart(host, "week");
