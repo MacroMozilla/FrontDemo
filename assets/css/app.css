@@ -796,3 +796,17 @@ table.m td.up, table.m th.up { font-family: var(--mono); font-size: 10.5px; colo
 :root:not([data-theme="light"]) .apexcharts-tooltip-title { background: var(--panel-2) !important; border-color: var(--line) !important; }
 :root:not([data-theme="light"]) .bb-legend-background { fill: #000 !important; stroke: var(--line-2) !important; opacity: .85; }
 :root:not([data-theme="light"]) :is(.bb-legend-item text, .bb-axis text, .bb text) { fill: var(--ink-2); }
+
+/* Tabulator's stock look is grey and white; in the dark theme its sheet is black. */
+:root:not([data-theme="light"]) :is(.tabulator, .tabulator .tabulator-header, .tabulator .tabulator-header .tabulator-col,
+  .tabulator .tabulator-tableholder, .tabulator .tabulator-footer, .tabulator-row, .tabulator-row.tabulator-row-even,
+  .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title .tabulator-title-editor,
+  .tabulator .tabulator-header .tabulator-col input, .tabulator-row .tabulator-cell input, .tabulator-row .tabulator-cell select,
+  .tabulator .tabulator-footer .tabulator-page) {
+  background-color: #000 !important; color: var(--ink-2) !important; border-color: var(--line) !important;
+}
+:root:not([data-theme="light"]) .tabulator-row.tabulator-row-even { background-color: #0A0A0A !important; }
+:root:not([data-theme="light"]) .tabulator-row.tabulator-selectable:hover { background-color: var(--panel-2) !important; }
+:root:not([data-theme="light"]) .tabulator-row .tabulator-cell { border-right-color: var(--line) !important; }
+:root:not([data-theme="light"]) .tabulator .tabulator-footer .tabulator-page.active { color: var(--accent) !important; border-color: var(--accent) !important; }
+:root:not([data-theme="light"]) .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-sorter .tabulator-arrow { border-bottom-color: var(--muted); }

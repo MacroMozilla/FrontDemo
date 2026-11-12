@@ -213,6 +213,7 @@ B.wd = async function (ctx) {
     var id = "wd-out-" + (++n);
     out.innerHTML = '<div id="' + id + '0"></div>';
     WaveDrom.RenderWaveForm(0, obj, id);
+    ctx.invert(out.firstChild);          /* WaveDrom draws on white; shown on black */
   }, "digital timing diagrams — that JSON is the entire input");
 
   ctx.select("sample", Object.keys(samples), function (v) {
