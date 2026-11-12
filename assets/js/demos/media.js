@@ -331,9 +331,10 @@ B.sigpad = async function (ctx) {
   p.a.appendChild(padWrap);
 
   var card = ctx.mk("div");
-  card.style.cssText = "flex:1 1 auto;background:#ffffff;border-radius:12px;position:relative;overflow:hidden;" +
+  card.style.cssText = "flex:1 1 auto;background:#ffffff;border:1px solid #999;border-radius:12px;position:relative;overflow:hidden;" +
                        "box-shadow:0 8px 26px rgba(0,0,0,.3)";
   padWrap.appendChild(card);
+  ctx.invert(card);                      /* dark ink on white, shown light on black */
   var cv = ctx.mk("canvas");
   cv.style.cssText = "width:100%;height:100%;display:block;touch-action:none";
   card.appendChild(cv);
@@ -370,7 +371,7 @@ B.sigpad = async function (ctx) {
   fit();
   ctx.onResize(fit);
 
-  var out = ctx.readout("sign in the white area");
+  var out = ctx.readout(ctx.dark ? "sign in the framed area" : "sign in the white area");
   pad.addEventListener("endStroke", function () {
     hint.style.display = "none";
     var pts = pad.toData();
@@ -383,7 +384,7 @@ B.sigpad = async function (ctx) {
     var svg = pad.toDataURL("image/svg+xml");
     var decoded = decodeURIComponent(svg.split(",")[1] || "");
     var box = document.getElementById("sig-out");
-    box.innerHTML = '<div style="background:#fff;border-radius:10px;padding:10px">' +
+    box.innerHTML = '<div style="background:#fff;border-radius:10px;padding:10px' + (ctx.dark ? ';filter:invert(1) hue-rotate(180deg)' : '') + '">' +
                     '<img src="' + svg + '" style="max-width:100%">' + "</div>";
     document.getElementById("sig-src").textContent =
       decoded.replace(/></g, ">\n<").slice(0, 1400);
@@ -393,7 +394,7 @@ B.sigpad = async function (ctx) {
     if (pad.isEmpty()) { out("nothing to export yet"); return; }
     var url = pad.toDataURL("image/png");
     document.getElementById("sig-out").innerHTML =
-      '<div style="background:#fff;border-radius:10px;padding:10px"><img src="' + url +
+      '<div style="background:#fff;border-radius:10px;padding:10px' + (ctx.dark ? ';filter:invert(1) hue-rotate(180deg)' : '') + '"><img src="' + url +
       '" style="max-width:100%"></div>';
     document.getElementById("sig-src").textContent = url.slice(0, 260) + "…";
     out("PNG data URL, <b>" + (url.length / 1024).toFixed(1) + " KB</b>");

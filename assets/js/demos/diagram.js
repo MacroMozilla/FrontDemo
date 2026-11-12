@@ -5,8 +5,8 @@
    and toolbars, wired up the way its own getting-started code does it.
    Where a framework has no diamond or terminator, its plain node stands
    in — nothing there is a hand-made custom shape. The only code shared
-   between those builders is the flowchart itself, the white page the
-   editors sit on, and the Data / count helpers.
+   between those builders is the flowchart itself, the page the
+   editors sit on (white, or inverted to black in the dark theme), and the Data / count helpers.
 
    Vue Flow, diagram-js and Baklava.js follow at the end with demos of
    their own, in the site's theme. */
@@ -36,13 +36,15 @@ var FLOW = {
   ]
 };
 
-/* Editors sit on a plain white page with black text, the way their own
-   docs show them, rather than inheriting this site's (possibly dark) theme. */
+/* Editors are built on a plain white page with black text, the way their
+   own docs show them. In the dark theme that page is shown inverted, so it
+   is black with white lines and text, like the rest of the site. */
 function paper(ctx) {
-  ctx.tall().ownTheme();
+  ctx.tall();
   ctx.el.style.background = "#fff";
   ctx.el.style.color = "#000";
   ctx.el.style.colorScheme = "light";
+  ctx.invert();
 }
 
 /* "Data": what the framework itself would save, in its own format.

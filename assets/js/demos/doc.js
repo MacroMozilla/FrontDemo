@@ -12,8 +12,9 @@ B.bar = async function (ctx) {
   ctx.el.appendChild(wrap);
 
   var card = ctx.mk("div");
-  card.style.cssText = "background:#ffffff;border-radius:10px;padding:20px 26px;box-shadow:0 8px 30px rgba(0,0,0,.3)";
+  card.style.cssText = "background:#ffffff;border:1px solid #999;border-radius:10px;padding:20px 26px;box-shadow:0 8px 30px rgba(0,0,0,.3)";
   wrap.appendChild(card);
+  ctx.invert(card);                      /* black bars on white, shown white on black */
   var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   card.appendChild(svg);
 
@@ -57,8 +58,9 @@ B.qr = async function (ctx) {
   ctx.el.appendChild(wrap);
 
   var card = ctx.mk("div");
-  card.style.cssText = "background:#ffffff;padding:16px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.3)";
+  card.style.cssText = "background:#ffffff;border:1px solid #999;padding:16px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.3)";
   wrap.appendChild(card);
+  ctx.invert(card);                      /* drawn dark on light, shown light on dark */
   var cv = ctx.mk("canvas");
   card.appendChild(cv);
 
@@ -112,6 +114,7 @@ B.pdfjs = async function (ctx) {
   ctx.el.appendChild(host);
   var cv = ctx.mk("canvas");
   cv.style.cssText = "box-shadow:0 8px 30px rgba(0,0,0,.35);border-radius:4px;background:#fff";
+  ctx.invert(cv);                        /* the page reads as a dark page */
   host.appendChild(cv);
 
   /* Build a multi-page PDF in the browser, then parse it back with PDF.js. */
@@ -187,6 +190,7 @@ B.jspdf = async function (ctx) {
   p.b.appendChild(preview);
   var cv = ctx.mk("canvas");
   cv.style.cssText = "box-shadow:0 8px 30px rgba(0,0,0,.35);border-radius:4px;background:#fff;max-width:100%";
+  ctx.invert(cv);
   preview.appendChild(cv);
 
   var state = { title: "Invoice 2026-0042", customer: "Acme Corp", format: "a4",

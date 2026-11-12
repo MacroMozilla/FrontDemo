@@ -110,7 +110,7 @@ function copyWith(btn, text, what) {
    Theme
    ------------------------------------------------------------------ */
 var SERIES = {
-  dark:  ["#6EA8FE", "#56D3A0", "#E3B341", "#F58A8A", "#A78BFA", "#4FD1DB", "#F0A868", "#93A7C4"],
+  dark:  ["#6EA8FE", "#56D3A0", "#E3B341", "#F58A8A", "#A78BFA", "#4FD1DB", "#F0A868", "#A8A8A8"],
   light: ["#2C64E3", "#0E8F68", "#B0770F", "#D33F3F", "#7C4DDA", "#0C8794", "#CC6C15", "#57687F"]
 };
 
@@ -130,10 +130,10 @@ function readTheme() {
   T.mono = g("mono"); T.sans = g("sans");
   T.series = SERIES[dark ? "dark" : "light"].slice();
   /* Handy pre-mixed values so demos do not each reinvent them. */
-  T.grid = dark ? "#2A3240" : "#E4E9F1";
-  T.nodeFill = dark ? "#262D3C" : "#FFFFFF";
-  T.nodeLine = dark ? "#3C4759" : "#C9D2E0";
-  T.edge = dark ? "#7D8CA3" : "#94A2B8";
+  T.grid = dark ? "#222222" : "#E4E9F1";
+  T.nodeFill = dark ? "#0D0D0D" : "#FFFFFF";
+  T.nodeLine = dark ? "#6E6E6E" : "#C9D2E0";
+  T.edge = dark ? "#9A9A9A" : "#94A2B8";
   return T;
 }
 
@@ -475,6 +475,13 @@ function makeCtx(lib, parts, visible) {
     dead: function () { return rec.dead; },
     /** The demo looks the same in either theme, so a theme switch leaves it running. */
     ownTheme: function () { rec.ownTheme = true; return ctx; },
+    /** For a library that only draws on white: in the dark theme its node
+        (the mount by default) is shown inverted, white page to black and
+        black lines and text to white, with hues turned back to themselves. */
+    invert: function (node) {
+      if (T.dark) (node || mount).style.filter = "invert(1) hue-rotate(180deg)";
+      return ctx;
+    },
 
     /** Shows a failure that happens after the builder returned, where a
         thrown error would show it; returns a function that hides it again. */
