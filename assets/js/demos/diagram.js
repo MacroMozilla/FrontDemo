@@ -440,7 +440,11 @@ B.max = async function (ctx) {
 
 /* ---------------------------------------------------------------- draw.io */
 B.drawio = async function (ctx) {
-  paper(ctx);
+  /* Not inverted like the other editors: draw.io has a dark mode of its
+     own (dark=1), which keeps its colour palette, icons and pickers true.
+     Inverting the whole application showed every colour as its opposite. */
+  ctx.tall();
+  ctx.el.style.background = ctx.dark ? "#000" : "#fff";
   var count = counter(ctx);
 
   /* The flowchart in draw.io's own XML, with the styles its General
@@ -473,7 +477,8 @@ B.drawio = async function (ctx) {
   var frame = ctx.mk("iframe");
   frame.title = "draw.io";
   frame.referrerPolicy = "no-referrer";   /* diagrams.net refuses localhost referrers */
-  frame.src = origin + "/?embed=1&proto=json&spin=1&configure=1&lang=en&noSaveBtn=1&noExitBtn=1&saveAndExit=0";
+  frame.src = origin + "/?embed=1&proto=json&spin=1&configure=1&lang=en&noSaveBtn=1&noExitBtn=1&saveAndExit=0" +
+              (ctx.dark ? "&dark=1" : "&dark=0");
   frame.style.cssText = "display:block;width:100%;height:100%;border:0";
   ctx.el.appendChild(frame);
 
